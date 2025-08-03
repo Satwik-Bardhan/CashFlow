@@ -97,6 +97,8 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     private LinearLayout btnHome;
     private LinearLayout btnSettings;
 
+    private String currentCashbookId;
+
     private ActivityResultLauncher<Intent> chooseCategoryLauncher;
 
 
@@ -131,6 +133,15 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
             Log.e(TAG, "Root layout (R.id.main_root_layout) not found. Insets might not be applied correctly.");
             Toast.makeText(this, "Layout error: root view not found for insets.", Toast.LENGTH_LONG).show();
         }
+
+        if (getIntent() != null) {
+            currentCashbookId = getIntent().getStringExtra("cashbook_id");
+        }
+        if (currentCashbookId == null) {
+            Log.e(TAG, "No cashbook ID received. This activity may not function correctly.");
+            Toast.makeText(this, "Error: No active cashbook found.", Toast.LENGTH_LONG).show();
+        }
+
 
         incomeText = findViewById(R.id.incomeText);
         expenseText = findViewById(R.id.expenseText);
@@ -345,26 +356,34 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
                 allTransactions.clear();
                 int deserializedCount = 0;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    // Start with a new TransactionModel
-                    TransactionModel transaction = new TransactionModel();
-                    transaction.setTransactionId(snapshot.getKey()); // Always set ID from snapshot key
+                    TransactionModel transaction = snapshot.getValue(TransactionModel.class);
+                    if (transaction != null) {
+                        transaction.setTransactionId(snapshot.getKey());
+                        if (snapshot.hasChild("timestamp")) {
+                            transaction.setTimestamp(snapshot.child("timestamp").getValue(Long.class));
+                        } else {
+                            transaction.setTimestamp(0);
+                            Log.w(TAG, "Transaction " + snapshot.getKey() + " has no timestamp. Defaulting to 0.");
+                        }
+                        if (!snapshot.hasChild("paymentMode")) transaction.setPaymentMode("Cash");
+                        if (!snapshot.hasChild("remark")) transaction.setRemark("");
+                        if (!snapshot.hasChild("partyName")) transaction.setPartyName("");
+                        if (!snapshot.hasChild("transactionCategory") || transaction.getTransactionCategory() == null) {
+                            transaction.setTransactionCategory("Other");
+                        }
+                        if (!snapshot.hasChild("type") || transaction.getType() == null) {
+                            transaction.setType("OUT");
+                        }
+                        if (!snapshot.hasChild("amount") || transaction.getAmount() == 0.0) {
+                            transaction.setAmount(0.0);
+                        }
 
-                    // --- START OF SPECIFIC CHANGES ---
-                    // Safely get values, providing defaults if not present or null
-                    transaction.setAmount(snapshot.child("amount").getValue(Double.class) != null ? snapshot.child("amount").getValue(Double.class) : 0.0);
-                    transaction.setDate(snapshot.child("date").getValue(String.class) != null ? snapshot.child("date").getValue(String.class) : "Unknown Date");
-                    transaction.setType(snapshot.child("type").getValue(String.class) != null ? snapshot.child("type").getValue(String.class) : "OUT"); // Default to OUT if type missing
-                    transaction.setPaymentMode(snapshot.child("paymentMode").getValue(String.class) != null ? snapshot.child("paymentMode").getValue(String.class) : "Cash");
-                    transaction.setRemark(snapshot.child("remark").getValue(String.class) != null ? snapshot.child("remark").getValue(String.class) : "");
-                    transaction.setPartyName(snapshot.child("partyName").getValue(String.class) != null ? snapshot.child("partyName").getValue(String.class) : "");
-                    transaction.setTransactionCategory(snapshot.child("transactionCategory").getValue(String.class) != null ? snapshot.child("transactionCategory").getValue(String.class) : "Other");
-                    transaction.setTimestamp(snapshot.child("timestamp").getValue(Long.class) != null ? snapshot.child("timestamp").getValue(Long.class) : 0L);
-                    // --- END OF SPECIFIC CHANGES ---
 
-                    // After setting all fields defensively, add the transaction
-                    allTransactions.add(transaction);
-                    deserializedCount++;
-
+                        allTransactions.add(transaction);
+                        deserializedCount++;
+                    } else {
+                        Log.w(TAG, "onDataChange: Transaction is null for snapshot: " + snapshot.getKey() + ". Skipping this entry.");
+                    }
                 }
                 Log.d(TAG, "onDataChange: Successfully deserialized " + deserializedCount + " out of " + dataSnapshot.getChildrenCount() + " raw transactions.");
                 Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
@@ -388,7 +407,6 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         String lowerCaseQuery = query.toLowerCase(Locale.getDefault());
 
         for (TransactionModel transaction : allTransactions) {
-            // Defensive checks for null fields before calling methods on them
             String transactionCategory = transaction.getTransactionCategory() != null ? transaction.getTransactionCategory().toLowerCase(Locale.getDefault()) : "";
             String transactionType = transaction.getType() != null ? transaction.getType().toLowerCase(Locale.getDefault()) : "";
             String transactionRemark = transaction.getRemark() != null ? transaction.getRemark().toLowerCase(Locale.getDefault()) : "";

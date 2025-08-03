@@ -1,14 +1,18 @@
 package com.example.cashflow;
 
 import android.annotation.SuppressLint;
-import android.content.DialogInterface; // Added import for DialogInterface
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -17,7 +21,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog; // Added import for AlertDialog
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -37,7 +41,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List; // Added import
+import java.util.List;
 import java.util.Locale;
 
 public class HomePage extends AppCompatActivity {
@@ -57,6 +61,7 @@ public class HomePage extends AppCompatActivity {
     LinearLayout cashInButton;
     LinearLayout cashOutButton;
     LinearLayout viewFullTransactionsButton;
+    LinearLayout userBox;
 
     LinearLayout btnTransactions;
     LinearLayout btnHome;
@@ -65,16 +70,17 @@ public class HomePage extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private ValueEventListener transactionsListener;
     private ValueEventListener userProfileListener;
-    private ArrayList<TransactionModel> allTransactions = new ArrayList<>();
+    private ValueEventListener cashbooksListener;
 
-    private LinearLayout userBox; // New: Reference to the userBox layout
+    private ArrayList<TransactionModel> allTransactions = new ArrayList<>();
+    private List<CashbookModel> cashbooks = new ArrayList<>();
+    private String currentCashbookId;
 
 
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -123,7 +129,7 @@ public class HomePage extends AppCompatActivity {
         cashInButton = findViewById(R.id.cashInButton);
         cashOutButton = findViewById(R.id.cashOutButton);
         viewFullTransactionsButton = findViewById(R.id.viewFullTransactionsButton);
-        userBox = findViewById(R.id.userBox); // Initialize userBox
+        userBox = findViewById(R.id.userBox);
 
         btnTransactions = findViewById(R.id.btnTransactions);
         btnHome = findViewById(R.id.btnHome);
@@ -133,7 +139,7 @@ public class HomePage extends AppCompatActivity {
                 balanceText == null || moneyInText == null || moneyOutText == null ||
                 userNameBottom == null || transactionTable == null ||
                 cashInButton == null || cashOutButton == null || viewFullTransactionsButton == null ||
-                userBox == null || // Added userBox to null check
+                userBox == null ||
                 btnTransactions == null || btnHome == null || btnSettings == null) {
             Log.e(TAG, "Missing UI components. Check layout IDs in activity_main.xml.");
             Toast.makeText(this, "Error: UI components missing in layout.", Toast.LENGTH_LONG).show();
@@ -154,30 +160,32 @@ public class HomePage extends AppCompatActivity {
         cashInButton.setOnClickListener(v -> {
             Intent intent = new Intent(HomePage.this, CashInOutActivity.class);
             intent.putExtra("transaction_type", "IN");
+            intent.putExtra("cashbook_id", currentCashbookId);
             startActivity(intent);
         });
 
         cashOutButton.setOnClickListener(v -> {
             Intent intent = new Intent(HomePage.this, CashInOutActivity.class);
             intent.putExtra("transaction_type", "OUT");
+            intent.putExtra("cashbook_id", currentCashbookId);
             startActivity(intent);
         });
 
         viewFullTransactionsButton.setOnClickListener(v -> {
             Intent intent = new Intent(HomePage.this, TransactionActivity.class);
+            intent.putExtra("cashbook_id", currentCashbookId);
             startActivity(intent);
         });
 
-        // Set Listeners for the dropdown userBox
         userBox.setOnClickListener(v -> showUserDropdown());
 
-        // Set Listeners for Bottom Navigation Bar
         btnHome.setOnClickListener(v -> {
             Toast.makeText(HomePage.this, "Already on Home", Toast.LENGTH_SHORT).show();
         });
 
         btnTransactions.setOnClickListener(v -> {
             Intent intent = new Intent(HomePage.this, TransactionActivity.class);
+            intent.putExtra("cashbook_id", currentCashbookId);
             startActivity(intent);
         });
 
@@ -187,52 +195,16 @@ public class HomePage extends AppCompatActivity {
         });
     }
 
-    private void showUserDropdown() {
-        // Placeholder for dropdown functionality
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Switch User / Cashbook");
-
-        List<String> userOptions = new ArrayList<>();
-        userOptions.add("Create New Cashbook");
-        userOptions.add("My Main Cashbook (example@gmail.com)");
-        userOptions.add("Family Cashbook");
-        userOptions.add("Business Cashbook");
-
-        builder.setItems(userOptions.toArray(new String[0]), (dialog, which) -> {
-            String selectedOption = userOptions.get(which);
-            Toast.makeText(HomePage.this, selectedOption + " selected", Toast.LENGTH_SHORT).show();
-            // Implement logic here to switch users or create a new one
-            // This is a placeholder for now.
-        });
-
-        builder.show();
-    }
-
-
     @Override
     protected void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null && !getIntent().getBooleanExtra("isGuest", false)) {
-            Log.d(TAG, "onStart: User logged in, starting transaction listener.");
-            startListeningForTransactions(currentUser.getUid());
-            startListeningForUserProfile(currentUser.getUid());
-        } else if (getIntent().getBooleanExtra("isGuest", false)) {
-            Log.d(TAG, "onStart: Guest user, clearing transactions and profile.");
-            allTransactions.clear();
-            updateTransactionTableAndSummary();
-            userNameTop.setText("Guest User");
-            uidText.setText("UID: GUEST");
-            userNameBottom.setText("Guest User");
-            dateTodayText.setText("Last Open: Guest Session");
+            Log.d(TAG, "onStart: User logged in, starting listeners.");
+            loadActiveCashbookId(currentUser.getUid());
         } else {
-            Log.d(TAG, "onStart: No user, not starting listener.");
-            allTransactions.clear();
-            updateTransactionTableAndSummary();
-            userNameTop.setText("Welcome User");
-            uidText.setText("UID: N/A");
-            userNameBottom.setText("User Name");
-            dateTodayText.setText("Last Open: Not Available");
+            Log.d(TAG, "onStart: Guest user or not logged in.");
+            handleGuestOrNoUser();
         }
     }
 
@@ -241,16 +213,213 @@ public class HomePage extends AppCompatActivity {
         super.onStop();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            if (transactionsListener != null) {
-                mDatabase.child("users").child(currentUser.getUid()).child("transactions").removeEventListener(transactionsListener);
+            if (transactionsListener != null && currentCashbookId != null) {
+                mDatabase.child("users").child(currentUser.getUid()).child("cashbooks").child(currentCashbookId).child("transactions").removeEventListener(transactionsListener);
                 Log.d(TAG, "Firebase transaction listener removed in onStop.");
             }
             if (userProfileListener != null) {
                 mDatabase.child("users").child(currentUser.getUid()).removeEventListener(userProfileListener);
                 Log.d(TAG, "Firebase user profile listener removed in onStop.");
             }
+            if (cashbooksListener != null) {
+                mDatabase.child("users").child(currentUser.getUid()).child("cashbooks").removeEventListener(cashbooksListener);
+                Log.d(TAG, "Firebase cashbooks listener removed in onStop.");
+            }
         }
     }
+
+    private void handleGuestOrNoUser() {
+        allTransactions.clear();
+        updateTransactionTableAndSummary();
+        userNameTop.setText("Guest User");
+        uidText.setText("UID: GUEST");
+        userNameBottom.setText("Guest User");
+        dateTodayText.setText("Last Open: Guest Session");
+    }
+
+    private void loadActiveCashbookId(String userId) {
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        currentCashbookId = prefs.getString("active_cashbook_id", null);
+
+        startListeningForUserProfile(userId);
+        startListeningForCashbooks(userId);
+    }
+
+    private void startListeningForCashbooks(String userId) {
+        if (cashbooksListener != null) {
+            mDatabase.child("users").child(userId).child("cashbooks").removeEventListener(cashbooksListener);
+        }
+
+        cashbooksListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                cashbooks.clear();
+                boolean activeCashbookFound = false;
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
+                    if (cashbook != null) {
+                        cashbook.setId(snapshot.getKey());
+                        cashbooks.add(cashbook);
+                        if (cashbook.getId().equals(currentCashbookId)) {
+                            activeCashbookFound = true;
+                        }
+                    }
+                }
+
+                if (!activeCashbookFound && !cashbooks.isEmpty()) {
+                    currentCashbookId = cashbooks.get(0).getId();
+                    saveActiveCashbookId(currentCashbookId);
+                } else if (cashbooks.isEmpty()) {
+                    showCreateFirstCashbookDialog();
+                    return;
+                }
+
+                updateUserUI(false);
+                startListeningForTransactions(userId);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, "Cashbooks load onCancelled: " + databaseError.getMessage(), databaseError.toException());
+                Toast.makeText(HomePage.this, "Failed to load cashbooks.", Toast.LENGTH_SHORT).show();
+            }
+        };
+        mDatabase.child("users").child(userId).child("cashbooks").addValueEventListener(cashbooksListener);
+    }
+
+    private void showCreateFirstCashbookDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Create Your First Cashbook");
+        builder.setMessage("Please enter a name for your first cashbook.");
+
+        final EditText input = new EditText(this);
+        input.setHint("e.g., My Main Book");
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("Create", (dialog, which) -> {
+            String cashbookName = input.getText().toString().trim();
+            if (!cashbookName.isEmpty()) {
+                createNewCashbook(cashbookName);
+            } else {
+                Toast.makeText(HomePage.this, "Cashbook name cannot be empty.", Toast.LENGTH_SHORT).show();
+                showCreateFirstCashbookDialog();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> {
+            Toast.makeText(HomePage.this, "You need a cashbook to use the app.", Toast.LENGTH_LONG).show();
+        });
+        builder.show();
+    }
+
+
+    private void createNewCashbook(String name) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "You must be logged in.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String userId = currentUser.getUid();
+        String cashbookId = mDatabase.child("users").child(userId).child("cashbooks").push().getKey();
+        if (cashbookId != null) {
+            CashbookModel newCashbook = new CashbookModel(cashbookId, name);
+            mDatabase.child("users").child(userId).child("cashbooks").child(cashbookId).setValue(newCashbook)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(HomePage.this, "New cashbook '" + name + "' created!", Toast.LENGTH_SHORT).show();
+                        currentCashbookId = cashbookId;
+                        saveActiveCashbookId(currentCashbookId);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to create new cashbook: " + e.getMessage(), e);
+                        Toast.makeText(HomePage.this, "Failed to create cashbook.", Toast.LENGTH_LONG).show();
+                    });
+        }
+    }
+
+
+    private void showUserDropdown() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Switch Cashbook");
+
+        List<String> userOptions = new ArrayList<>();
+        List<String> cashbookIds = new ArrayList<>();
+
+        for (CashbookModel cashbook : cashbooks) {
+            String displayText = cashbook.getName();
+            if (cashbook.getId().equals(currentCashbookId)) {
+                displayText += " (Active)";
+            }
+            userOptions.add(displayText);
+            cashbookIds.add(cashbook.getId());
+        }
+        userOptions.add("Add New Cashbook");
+
+        builder.setItems(userOptions.toArray(new String[0]), (dialog, which) -> {
+            if (which == userOptions.size() - 1) {
+                showCreateNewCashbookDialog();
+            } else {
+                String selectedId = cashbookIds.get(which);
+                if (!selectedId.equals(currentCashbookId)) {
+                    switchCashbook(selectedId, userOptions.get(which));
+                } else {
+                    Toast.makeText(HomePage.this, "This is already the active cashbook.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.show();
+    }
+
+    private void showCreateNewCashbookDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Create New Cashbook");
+
+        final EditText input = new EditText(this);
+        input.setHint("e.g., Family Book");
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("Create", (dialog, which) -> {
+            String cashbookName = input.getText().toString().trim();
+            if (!cashbookName.isEmpty()) {
+                createNewCashbook(cashbookName);
+            } else {
+                Toast.makeText(HomePage.this, "Cashbook name cannot be empty.", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+
+    private void switchCashbook(String newCashbookId, String newCashbookName) {
+        Log.d(TAG, "Switching from " + currentCashbookId + " to " + newCashbookId);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null && transactionsListener != null && currentCashbookId != null) {
+            mDatabase.child("users").child(currentUser.getUid()).child("cashbooks").child(currentCashbookId).child("transactions").removeEventListener(transactionsListener);
+        }
+
+        currentCashbookId = newCashbookId;
+        saveActiveCashbookId(currentCashbookId);
+
+        if (currentUser != null) {
+            startListeningForTransactions(currentUser.getUid());
+        }
+
+        Toast.makeText(this, "Switched to '" + newCashbookName + "'", Toast.LENGTH_SHORT).show();
+        updateUserUI(false);
+    }
+
+    private void saveActiveCashbookId(String id) {
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("active_cashbook_id", id);
+        editor.apply();
+        Log.d(TAG, "Saved active cashbook ID: " + id);
+    }
+
 
     @SuppressLint("SetTextI18n")
     private void updateUserUI(boolean isGuest) {
@@ -262,9 +431,19 @@ public class HomePage extends AppCompatActivity {
         } else {
             FirebaseUser currentUser = mAuth.getCurrentUser();
             if (currentUser != null) {
-                userNameTop.setText(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : currentUser.getEmail());
+                // Corrected logic: userNameTop shows the cashbook name
+                String cashbookName = "My Main Cashbook"; // Default
+                for (CashbookModel cashbook : cashbooks) {
+                    if (cashbook.getId().equals(currentCashbookId)) {
+                        cashbookName = cashbook.getName();
+                        break;
+                    }
+                }
+                userNameTop.setText(cashbookName);
+
+                // Corrected logic: userNameBottom shows the user's email
+                userNameBottom.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "N/A Email");
                 uidText.setText("UID: " + currentUser.getUid());
-                userNameBottom.setText(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "User Name");
                 dateTodayText.setText("Last Open: " + DateFormat.getDateTimeInstance().format(new Date()));
             } else {
                 userNameTop.setText("Welcome User");
@@ -288,20 +467,11 @@ public class HomePage extends AppCompatActivity {
 
                 if (userProfile != null) {
                     Log.d(TAG, "onDataChange: User profile loaded from database for HomePage.");
-                    userNameTop.setText(userProfile.getUserName() != null ? userProfile.getUserName() : "User Name");
-                    userNameBottom.setText(firebaseUser != null && firebaseUser.getEmail() != null ? firebaseUser.getEmail() : (userProfile.getMail() != null ? userProfile.getMail() : "N/A Email"));
-                    uidText.setText("UID: " + (userProfile.getUserId() != null ? userProfile.getUserId() : "N/A"));
+                    // We only need the user's name from this listener to display in settings
+                    // For HomePage, we use the active cashbook name in the top bar.
                 } else {
                     Log.d(TAG, "onDataChange: User profile not found in database. Setting default for HomePage.");
-                    if (firebaseUser != null) {
-                        userNameTop.setText(firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : firebaseUser.getEmail());
-                        userNameBottom.setText(firebaseUser.getEmail() != null ? firebaseUser.getEmail() : "N/A Email");
-                        uidText.setText("UID: " + firebaseUser.getUid());
-                    } else {
-                        userNameTop.setText("Welcome User");
-                        uidText.setText("UID: N/A");
-                        userNameBottom.setText("User Name");
-                    }
+                    // No need to update HomePage UI here, as it's done by updateUserUI on cashbook load
                 }
             }
 
@@ -316,15 +486,20 @@ public class HomePage extends AppCompatActivity {
 
 
     private void startListeningForTransactions(String userId) {
-        if (transactionsListener != null) {
-            mDatabase.child("users").child(userId).child("transactions").removeEventListener(transactionsListener);
+        if (transactionsListener != null && currentCashbookId != null) {
+            mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").removeEventListener(transactionsListener);
             Log.d(TAG, "Removed existing transaction listener before attaching new one.");
         }
 
-        mDatabase.child("users").child(userId).child("transactions").addValueEventListener(new ValueEventListener() {
+        if (currentCashbookId == null) {
+            Log.w(TAG, "startListeningForTransactions: currentCashbookId is null. Cannot attach listener.");
+            return;
+        }
+
+        transactionsListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.d(TAG, "onDataChange: Transaction data received from Firebase.");
+                Log.d(TAG, "onDataChange: Transaction data received from Firebase for cashbook: " + currentCashbookId);
                 allTransactions.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     TransactionModel transaction = snapshot.getValue(TransactionModel.class);
@@ -357,8 +532,9 @@ public class HomePage extends AppCompatActivity {
                 Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
                 Toast.makeText(HomePage.this, "Failed to load transactions: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        });
-        Log.d(TAG, "Firebase transaction listener attached for user: " + userId);
+        };
+        mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").addValueEventListener(transactionsListener);
+        Log.d(TAG, "Firebase transaction listener attached for user: " + userId + " for cashbook: " + currentCashbookId);
     }
 
     @SuppressLint("SetTextI18n")

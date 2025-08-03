@@ -58,9 +58,7 @@ public class CashInOutActivity extends AppCompatActivity {
     private String selectedTransactionType = "IN";
     private String selectedPaymentMode = "Cash";
     private String currentSelectedCategory = "Select Category";
-    // FIX: Removed initialization here. It will be initialized in onCreate.
     private String currentSelectedCategoryColor;
-
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -70,7 +68,7 @@ public class CashInOutActivity extends AppCompatActivity {
     private LinearLayout btnSettings;
 
     private ImageView backButton;
-
+    private String currentCashbookId; // New: To store the active cashbook ID
 
     private ActivityResultLauncher<Intent> chooseCategoryLauncher;
 
@@ -80,7 +78,6 @@ public class CashInOutActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_cash_in_out);
 
-        // FIX: Initialize currentSelectedCategoryColor here, where Context is available
         currentSelectedCategoryColor = String.format("#%06X", (0xFFFFFF & ContextCompat.getColor(this, R.color.category_default)));
 
 
@@ -106,6 +103,16 @@ public class CashInOutActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        // Get the current cashbook ID from the Intent
+        if (getIntent() != null) {
+            currentCashbookId = getIntent().getStringExtra("cashbook_id");
+            if (currentCashbookId == null) {
+                Log.e(TAG, "No cashbook ID received. This activity may not function correctly.");
+                Toast.makeText(this, "Error: No active cashbook found.", Toast.LENGTH_LONG).show();
+            }
+        }
+
 
         dateTextView = findViewById(R.id.dateTextView);
         amountEditText = findViewById(R.id.amountEditText);
@@ -155,7 +162,6 @@ public class CashInOutActivity extends AppCompatActivity {
                 }
         );
 
-
         String initialTransactionType = getIntent().getStringExtra("transaction_type");
         if ("OUT".equals(initialTransactionType)) {
             radioOut.setChecked(true);
@@ -196,15 +202,11 @@ public class CashInOutActivity extends AppCompatActivity {
             selectedPaymentMode = "Online";
         }
 
-        // Hide the original spinner
         categorySpinner.setVisibility(View.GONE);
-        // Set initial display for selected category
         updateSelectedCategoryDisplay();
 
-        // Click listener to open ChooseCategoryActivity
         selectedCategoryTextView.setOnClickListener(v -> openChooseCategoryActivity());
         categoryColorIndicator.setOnClickListener(v -> openChooseCategoryActivity());
-
 
         attachFileButton.setOnClickListener(v -> {
             Toast.makeText(this, "Attach File functionality coming soon!", Toast.LENGTH_SHORT).show();
@@ -215,9 +217,9 @@ public class CashInOutActivity extends AppCompatActivity {
 
         backButton.setOnClickListener(v -> finish());
 
-
         btnTransactions.setOnClickListener(v -> {
             Intent intent = new Intent(CashInOutActivity.this, TransactionActivity.class);
+            intent.putExtra("cashbook_id", currentCashbookId);
             startActivity(intent);
             finish();
         });
@@ -253,7 +255,6 @@ public class CashInOutActivity extends AppCompatActivity {
         }
     }
 
-
     private void showDatePickerDialog() {
         new DatePickerDialog(this, (view, year, monthOfYear, dayOfMonth) -> {
             calendar.set(Calendar.YEAR, year);
@@ -273,6 +274,10 @@ public class CashInOutActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "Please sign in to save transactions.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (currentCashbookId == null) {
+            Toast.makeText(this, "Error: No active cashbook selected.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -309,10 +314,11 @@ public class CashInOutActivity extends AppCompatActivity {
                 currentTimestamp
         );
 
-        String transactionId = mDatabase.child("users").child(userId).child("transactions").push().getKey();
+        // Updated path to save to the specific cashbook
+        String transactionId = mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").push().getKey();
         if (transactionId != null) {
             newTransaction.setTransactionId(transactionId);
-            mDatabase.child("users").child(userId).child("transactions").child(transactionId).setValue(newTransaction)
+            mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").child(transactionId).setValue(newTransaction)
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(CashInOutActivity.this, "Transaction saved successfully!", Toast.LENGTH_SHORT).show();
                         clearForm();
