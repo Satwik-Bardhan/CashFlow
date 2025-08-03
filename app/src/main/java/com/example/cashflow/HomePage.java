@@ -1,6 +1,7 @@
 package com.example.cashflow;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface; // Added import for DialogInterface
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog; // Added import for AlertDialog
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -35,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List; // Added import
 import java.util.Locale;
 
 public class HomePage extends AppCompatActivity {
@@ -63,6 +66,8 @@ public class HomePage extends AppCompatActivity {
     private ValueEventListener transactionsListener;
     private ValueEventListener userProfileListener;
     private ArrayList<TransactionModel> allTransactions = new ArrayList<>();
+
+    private LinearLayout userBox; // New: Reference to the userBox layout
 
 
     @SuppressLint("SetTextI18n")
@@ -118,6 +123,7 @@ public class HomePage extends AppCompatActivity {
         cashInButton = findViewById(R.id.cashInButton);
         cashOutButton = findViewById(R.id.cashOutButton);
         viewFullTransactionsButton = findViewById(R.id.viewFullTransactionsButton);
+        userBox = findViewById(R.id.userBox); // Initialize userBox
 
         btnTransactions = findViewById(R.id.btnTransactions);
         btnHome = findViewById(R.id.btnHome);
@@ -127,6 +133,7 @@ public class HomePage extends AppCompatActivity {
                 balanceText == null || moneyInText == null || moneyOutText == null ||
                 userNameBottom == null || transactionTable == null ||
                 cashInButton == null || cashOutButton == null || viewFullTransactionsButton == null ||
+                userBox == null || // Added userBox to null check
                 btnTransactions == null || btnHome == null || btnSettings == null) {
             Log.e(TAG, "Missing UI components. Check layout IDs in activity_main.xml.");
             Toast.makeText(this, "Error: UI components missing in layout.", Toast.LENGTH_LONG).show();
@@ -161,21 +168,46 @@ public class HomePage extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Set Listeners for Bottom Navigation Bar (reflecting new order)
-        btnHome.setOnClickListener(v -> { // Home is now left
+        // Set Listeners for the dropdown userBox
+        userBox.setOnClickListener(v -> showUserDropdown());
+
+        // Set Listeners for Bottom Navigation Bar
+        btnHome.setOnClickListener(v -> {
             Toast.makeText(HomePage.this, "Already on Home", Toast.LENGTH_SHORT).show();
         });
 
-        btnTransactions.setOnClickListener(v -> { // Transactions is now center
+        btnTransactions.setOnClickListener(v -> {
             Intent intent = new Intent(HomePage.this, TransactionActivity.class);
             startActivity(intent);
         });
 
-        btnSettings.setOnClickListener(v -> { // Settings is now right
+        btnSettings.setOnClickListener(v -> {
             Intent intent = new Intent(HomePage.this, SettingsActivity.class);
             startActivity(intent);
         });
     }
+
+    private void showUserDropdown() {
+        // Placeholder for dropdown functionality
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Switch User / Cashbook");
+
+        List<String> userOptions = new ArrayList<>();
+        userOptions.add("Create New Cashbook");
+        userOptions.add("My Main Cashbook (example@gmail.com)");
+        userOptions.add("Family Cashbook");
+        userOptions.add("Business Cashbook");
+
+        builder.setItems(userOptions.toArray(new String[0]), (dialog, which) -> {
+            String selectedOption = userOptions.get(which);
+            Toast.makeText(HomePage.this, selectedOption + " selected", Toast.LENGTH_SHORT).show();
+            // Implement logic here to switch users or create a new one
+            // This is a placeholder for now.
+        });
+
+        builder.show();
+    }
+
 
     @Override
     protected void onStart() {
