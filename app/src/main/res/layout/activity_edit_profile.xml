@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#2B2B2B"
+    android:fitsSystemWindows="true">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/main_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- Header Section with Back Button -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#121212"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Title and Back Button Layout -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:layout_marginBottom="16dp">
+
+                    <ImageView
+                        android:id="@+id/backButton"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_left"
+                        android:contentDescription="Back"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:tint="#FFFFFF" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="CASH FLOW"
+                        android:textColor="#FFFFFF"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:gravity="center_horizontal"
+                        android:layout_marginStart="-24dp" /> <!-- Offset for back button -->
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Edit Profile"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="16dp" />
+            </LinearLayout>
+
+            <!-- Profile Edit Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="#FFFFFF">
+
+                    <!-- User Name Input -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="User Name"
+                        android:textColor="#000000"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+                    <EditText
+                        android:id="@+id/editUserName"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:hint="Your Name"
+                        android:inputType="textPersonName"
+                        android:background="@drawable/rounded_white"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#AAAAAA"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Email Display (usually not editable directly via profile page) -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email"
+                        android:textColor="#000000"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+                    <TextView
+                        android:id="@+id/displayEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:text="user@example.com"
+                        android:background="@drawable/rounded_white_readonly"
+                        android:paddingHorizontal="12dp"
+                        android:gravity="center_vertical"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Profile Picture URL (optional, if you implement this) -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Profile Picture URL"
+                        android:textColor="#000000"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+                    <EditText
+                        android:id="@+id/editProfilePictureUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:hint="https://example.com/pic.jpg"
+                        android:inputType="textUri"
+                        android:background="@drawable/rounded_white"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#AAAAAA"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Change Password Button -->
+                    <Button
+                        android:id="@+id/changePasswordButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Change Password"
+                        android:backgroundTint="#2196F3"
+                        android:textColor="#FFFFFF"
+                        android:paddingHorizontal="24dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Save Changes Button -->
+                    <Button
+                        android:id="@+id/saveProfileChangesButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Save Changes"
+                        android:backgroundTint="#00C853"
+                        android:textColor="#FFFFFF"
+                        android:paddingHorizontal="24dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="16dp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Fixed Bottom Navigation Bar (if applicable, though usually not on EditProfile) -->
+    <!-- If you want bottom nav bar here, copy fixedBottomContainer from activity_main.xml -->
+
+</RelativeLayout>

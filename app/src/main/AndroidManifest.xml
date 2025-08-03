@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.cashflow">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Cash Flow"
+        android:theme="@style/Theme.CashFlow"
+        android:supportsRtl="true"
+        android:roundIcon="@mipmap/ic_launcher_round">
+
+        <activity android:name=".CashInOutActivity" android:exported="false" />
+        <activity android:name=".TransactionDetailActivity" android:exported="false" />
+        <activity android:name=".EditProfileActivity" android:exported="false" />
+        <activity android:name=".ChooseCategoryActivity" android:exported="false" /> <!-- NEW: Declaration for ChooseCategoryActivity -->
+
+        <activity android:name=".Splash" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".MainActivity" android:exported="true" />
+        <activity android:name=".Signup" android:exported="false" />
+        <activity android:name=".Signin" android:exported="false" />
+        <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".HomePage" android:exported="false" />
+        <activity android:name=".ForgotPassword" android:exported="false" />
+        <activity android:name=".TransactionActivity" android:exported="false" />
+        <!-- TransactionPage and activity_transaction_page.xml are assumed to be deleted -->
+
+    </application>
+
+</manifest>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Cash Flow</string>
+    <string name="cash_flow">Cash-Flow</string>
+    <string name="todo">TODO</string>
+    <string name="cCasash_flow" tools:ignore="MissingTranslation" />
+    <string name="cash_out">CASH OUT</string>
+    <string name="default_web_client_id">921171797069-03bo77bm3lh9dittddlb4o35cutnlb66.apps.googleusercontent.com</string>
+
+    <string-array name="transaction_categories">
+        <item>Select Category</item>
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Utilities</item>
+        <item>Rent</item>
+        <item>Salary</item>
+        <item>Freelance Income</item>
+        <item>Shopping</item>
+        <item>Entertainment</item>
+        <item>Health</item>
+        <item>Education</item>
+        <item>Other</item>
+    </string-array>
+
+</resources>

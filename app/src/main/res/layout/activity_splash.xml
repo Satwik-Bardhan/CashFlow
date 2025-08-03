@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#2B2B2B"
+    android:fitsSystemWindows="true">
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="165dp"
+        android:layout_marginTop="303dp"
+        android:layout_marginEnd="166dp"
+        android:contentDescription="App Logo"
+        android:src="@drawable/logo" />
+
+    <TextView
+        android:id="@+id/app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/logo"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"
+        android:text="Cash Flow"
+        android:fontFamily="@font/inter_bold"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/tagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/app_name"
+        android:layout_marginTop="5dp"
+        android:layout_centerHorizontal="true"
+        android:text="_Track Your Finance_"
+        android:fontFamily="@font/inter_italic"
+        android:textSize="14sp"
+        android:textColor="#DADADA" />
+
+    <ImageView
+        android:id="@+id/bottom_waves"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/background"
+        android:contentDescription="Bottom Design" />
+</RelativeLayout>

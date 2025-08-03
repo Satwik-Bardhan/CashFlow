@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#2B2B2B"
+    android:fitsSystemWindows="true"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#121212"
+            android:paddingTop="24dp"
+            android:paddingBottom="16dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="16dp">
+
+                <ImageView
+                    android:id="@+id/backButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_arrow_left"
+                    android:contentDescription="Back"
+                    android:tint="#FFFFFF"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="CASH FLOW"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:gravity="center_horizontal"
+                    android:layout_marginStart="-24dp" /> </LinearLayout>
+
+
+            <TextView
+                android:id="@+id/detailTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Entry Details"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_gravity="start"
+                android:layout_marginStart="16dp" />
+        </LinearLayout>
+
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@drawable/text_background">
+
+                <LinearLayout
+                    android:id="@+id/dateSelectorLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:id="@+id/dateTextView"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:drawableEnd="@drawable/ic_arrow_down"
+                        android:drawableTint="#000000"
+                        android:focusable="true"
+                        android:paddingEnd="8dp"
+                        android:text="June 17, 2025"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical">
+
+                    <EditText
+                        android:id="@+id/amountEditText"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/rounded_white"
+                        android:hint="Amount"
+                        android:inputType="numberDecimal"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#AAAAAA" />
+
+                    <RadioGroup
+                        android:id="@+id/inOutToggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" >
+                        <RadioButton
+                            android:id="@+id/radioIn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="IN"
+                            android:background="@drawable/button_cashin"
+                            android:button="@android:color/transparent"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="8dp"
+                            android:layout_marginEnd="5dp"
+                            android:checked="true" />
+
+                        <RadioButton
+                            android:id="@+id/radioOut"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="OUT"
+                            android:background="@drawable/button_cashout"
+                            android:button="@android:color/transparent"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="8dp" />
+                    </RadioGroup>
+                </LinearLayout>
+
+                <RadioGroup
+                    android:id="@+id/cashOnlineToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="end"
+                    android:layout_marginBottom="16dp" >
+
+                    <RadioButton
+                        android:id="@+id/radioCash"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cash"
+                        android:textColor="#000000"
+                        android:background="@drawable/button_blue"
+                        android:button="@android:color/transparent"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:layout_marginEnd="5dp"
+                        android:checked="true" />
+
+                    <RadioButton
+                        android:id="@+id/radioOnline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Online"
+                        android:textColor="#000000"
+                        android:background="@drawable/button_blue"
+                        android:button="@android:color/transparent"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp" />
+                </RadioGroup>
+
+                <EditText
+                    android:id="@+id/partyEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:hint="Party(Customer/Supplier)"
+                    android:background="@drawable/rounded_white"
+                    android:paddingHorizontal="12dp"
+                    android:textColor="#000000"
+                    android:textColorHint="#AAAAAA"
+                    android:layout_marginBottom="16dp"
+                    android:inputType="textPersonName" />
+
+                <EditText
+                    android:id="@+id/remarkEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:hint="Remark"
+                    android:background="@drawable/rounded_white"
+                    android:paddingHorizontal="12dp"
+                    android:textColor="#000000"
+                    android:textColorHint="#AAAAAA"
+                    android:layout_marginBottom="16dp"
+                    android:inputType="textMultiLine"
+                    android:maxLines="3" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="end|center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Attach Image or PDF"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageView
+                        android:id="@+id/attachFileButton"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_attach_file"
+                        android:contentDescription="Attach File"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <Spinner
+                        android:id="@+id/categorySpinner"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/rounded_white"
+                        android:spinnerMode="dropdown" />
+
+                    <View
+                        android:id="@+id/categoryColorIndicator"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/rounded_color_indicator" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginTop="16dp">
+
+                    <Button
+                        android:id="@+id/deleteEntryButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Delete"
+                        android:backgroundTint="#D32F2F"
+                        android:textColor="#FFFFFF"
+                        android:paddingHorizontal="24dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <Button
+                        android:id="@+id/saveChangesButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Save Changes"
+                        android:backgroundTint="#00796B"
+                        android:textColor="#FFFFFF"
+                        android:paddingHorizontal="24dp" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
