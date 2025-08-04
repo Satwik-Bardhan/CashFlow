@@ -1,18 +1,22 @@
 package com.example.cashflow;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -43,8 +47,10 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView uidTextView;
     private TextView dataLocationTextView;
     private TextView createdDateTextView;
-    // Removed: private View logoutButton; // This variable is no longer needed
     private ImageView editProfileButton;
+    private ImageView backButton; // New: Back button reference
+    private EditText editCashbookName; // New: EditText for cashbook name
+    private ImageView saveCashbookNameButton; // New: Button to save cashbook name
 
     private LinearLayout btnTransactions;
     private LinearLayout btnHome;
@@ -56,9 +62,9 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView aboutCashFlowTextView;
     private LinearLayout logoutSection;
 
-
     private ValueEventListener userProfileListener;
-
+    private ValueEventListener cashbookNameListener; // New: Listener for cashbook name
+    private String currentCashbookId; // The ID of the active cashbook
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,17 +80,15 @@ public class SettingsActivity extends AppCompatActivity {
         if (rootLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                // Apply top, left, right insets to the root layout
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0); // Remove bottom padding here
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
 
-                // Apply bottom inset to the fixedBottomContainer
                 LinearLayout fixedBottomContainer = findViewById(R.id.fixedBottomContainer);
                 if (fixedBottomContainer != null) {
                     fixedBottomContainer.setPadding(
                             fixedBottomContainer.getPaddingLeft(),
                             fixedBottomContainer.getPaddingTop(),
                             fixedBottomContainer.getPaddingRight(),
-                            systemBars.bottom // Apply system nav bar height as padding
+                            systemBars.bottom
                     );
                 }
                 return insets;
@@ -96,13 +100,19 @@ public class SettingsActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        // Get the active cashbook ID from SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        currentCashbookId = prefs.getString("active_cashbook_id", null);
+
         userNameTextView = findViewById(R.id.userName);
         uidTextView = findViewById(R.id.uidText);
         dataLocationTextView = findViewById(R.id.data_location);
         createdDateTextView = findViewById(R.id.created_date);
-        // Removed initialization of the old logoutButton
-        // logoutButton = findViewById(R.id.logout_button);
         editProfileButton = findViewById(R.id.editButton);
+        backButton = findViewById(R.id.backButton);
+        editCashbookName = findViewById(R.id.editCashbookName);
+        saveCashbookNameButton = findViewById(R.id.saveCashbookNameButton);
+
 
         helpSupportTextView = findViewById(R.id.helpSupport);
         appSettingsTextView = findViewById(R.id.appSettings);
@@ -115,9 +125,9 @@ public class SettingsActivity extends AppCompatActivity {
         btnSettingsNav = findViewById(R.id.btnSettings);
 
 
-        // Comprehensive null check for all UI elements
         if (userNameTextView == null || uidTextView == null || dataLocationTextView == null ||
-                createdDateTextView == null || editProfileButton == null ||
+                createdDateTextView == null || editProfileButton == null || backButton == null ||
+                editCashbookName == null || saveCashbookNameButton == null ||
                 helpSupportTextView == null || appSettingsTextView == null || yourProfileTextView == null ||
                 aboutCashFlowTextView == null || logoutSection == null ||
                 btnTransactions == null || btnHome == null || btnSettingsNav == null) {
@@ -131,15 +141,16 @@ public class SettingsActivity extends AppCompatActivity {
         setTextWithBoldTitle(yourProfileTextView, "Your Profile", "Name, Mobile Number, Email");
         setTextWithBoldTitle(aboutCashFlowTextView, "About Cash Flow", "Privacy Policy, T&C, About us");
 
-
-        // Removed old logoutButton listener
-        // logoutButton.setOnClickListener(v -> { ... });
-
+        // Set listeners for back and edit buttons
+        backButton.setOnClickListener(v -> finish());
         editProfileButton.setOnClickListener(v -> {
             Log.d(TAG, "Edit profile button clicked. Launching EditProfileActivity.");
             Intent intent = new Intent(SettingsActivity.this, EditProfileActivity.class);
             startActivity(intent);
         });
+
+        // Listener for saving cashbook name
+        saveCashbookNameButton.setOnClickListener(v -> saveCashbookName());
 
         helpSupportTextView.setOnClickListener(v -> Toast.makeText(SettingsActivity.this, "Help & Support Clicked", Toast.LENGTH_SHORT).show());
         appSettingsTextView.setOnClickListener(v -> Toast.makeText(SettingsActivity.this, "App Settings Clicked", Toast.LENGTH_SHORT).show());
@@ -162,6 +173,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         btnTransactions.setOnClickListener(v -> {
             Intent intent = new Intent(SettingsActivity.this, TransactionActivity.class);
+            intent.putExtra("cashbook_id", currentCashbookId);
             startActivity(intent);
             finish();
         });
@@ -184,12 +196,14 @@ public class SettingsActivity extends AppCompatActivity {
         if (currentUser != null) {
             Log.d(TAG, "onStart: User logged in, starting user profile listener.");
             startListeningForUserProfile(currentUser.getUid());
+            startListeningForCashbookName(currentUser.getUid(), currentCashbookId); // Start cashbook name listener
         } else {
             Log.d(TAG, "onStart: No user logged in for settings. Displaying guest/default info.");
             userNameTextView.setText("Guest User");
             uidTextView.setText("UID: GUEST");
             dataLocationTextView.setText("Local (Not Saved)");
             createdDateTextView.setText("Created: N/A");
+            editCashbookName.setText(""); // Clear cashbook name for guests
         }
     }
 
@@ -197,19 +211,25 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null && userProfileListener != null) {
-            mDatabase.child("users").child(currentUser.getUid()).removeEventListener(userProfileListener);
-            Log.d(TAG, "User profile listener removed in onStop.");
+        if (currentUser != null) {
+            if (userProfileListener != null) {
+                mDatabase.child("users").child(currentUser.getUid()).removeEventListener(userProfileListener);
+                Log.d(TAG, "User profile listener removed in onStop.");
+            }
+            if (cashbookNameListener != null && currentCashbookId != null) {
+                mDatabase.child("users").child(currentUser.getUid()).child("cashbooks").child(currentCashbookId).removeEventListener(cashbookNameListener);
+                Log.d(TAG, "Cashbook name listener removed in onStop.");
+            }
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private void startListeningForUserProfile(String userId) {
         if (userProfileListener != null) {
             mDatabase.child("users").child(userId).removeEventListener(userProfileListener);
         }
 
         userProfileListener = new ValueEventListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Users userProfile = dataSnapshot.getValue(Users.class);
@@ -227,7 +247,7 @@ public class SettingsActivity extends AppCompatActivity {
                         createdDateTextView.setText("Created: N/A");
                     }
                 } else {
-                    Log.d(TAG, "onDataChange: User profile not found in database. Setting default for HomePage.");
+                    Log.d(TAG, "onDataChange: User profile not found in database. Setting default for Settings.");
                     if (firebaseUser != null) {
                         userNameTextView.setText(firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : firebaseUser.getEmail());
                         uidTextView.setText("UID: " + firebaseUser.getUid());
@@ -254,6 +274,62 @@ public class SettingsActivity extends AppCompatActivity {
             }
         };
         mDatabase.child("users").child(userId).addValueEventListener(userProfileListener);
+    }
+
+    // New method to listen for cashbook name changes
+    private void startListeningForCashbookName(String userId, String cashbookId) {
+        if (cashbookNameListener != null) {
+            mDatabase.child("users").child(userId).child("cashbooks").child(cashbookId).removeEventListener(cashbookNameListener);
+        }
+
+        if (cashbookId == null) {
+            editCashbookName.setText("No Active Cashbook");
+            return;
+        }
+
+        cashbookNameListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                CashbookModel cashbook = dataSnapshot.getValue(CashbookModel.class);
+                if (cashbook != null && cashbook.getName() != null) {
+                    editCashbookName.setText(cashbook.getName());
+                } else {
+                    editCashbookName.setText("Cashbook Not Found");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, "Cashbook name load onCancelled: " + databaseError.getMessage(), databaseError.toException());
+                Toast.makeText(SettingsActivity.this, "Failed to load cashbook name.", Toast.LENGTH_SHORT).show();
+            }
+        };
+        mDatabase.child("users").child(userId).child("cashbooks").child(cashbookId).addValueEventListener(cashbookNameListener);
+    }
+
+    // New method to save the updated cashbook name
+    private void saveCashbookName() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null || currentCashbookId == null) {
+            Toast.makeText(this, "Cannot save. No user or cashbook selected.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String newName = editCashbookName.getText().toString().trim();
+        if (TextUtils.isEmpty(newName)) {
+            editCashbookName.setError("Name cannot be empty");
+            return;
+        }
+
+        mDatabase.child("users").child(currentUser.getUid()).child("cashbooks").child(currentCashbookId).child("name").setValue(newName)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(SettingsActivity.this, "Cashbook name saved!", Toast.LENGTH_SHORT).show();
+                    // The listener will automatically update the UI
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to save cashbook name: " + e.getMessage(), e);
+                    Toast.makeText(SettingsActivity.this, "Failed to save name.", Toast.LENGTH_LONG).show();
+                });
     }
 
     private void setTextWithBoldTitle(TextView textView, String title, String description) {
