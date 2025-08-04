@@ -3,7 +3,7 @@ package com.example.cashflow;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable; // For drawing colored dot
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +21,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     private final List<CategoryModel> categoryList;
     private final Context context;
     private final OnCategoryClickListener listener;
-    private int selectedPosition = RecyclerView.NO_POSITION; // To manage single selection
+    private int selectedPosition = RecyclerView.NO_POSITION;
 
     public interface OnCategoryClickListener {
         void onCategoryClick(CategoryModel category);
@@ -47,21 +47,19 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
         holder.categoryNameTextView.setText(category.getName());
 
-        // Set the color of the dot
         int color = Color.parseColor(category.getColorHex());
         GradientDrawable drawable = (GradientDrawable) holder.categoryColorDot.getBackground();
         if (drawable != null) {
             drawable.setColor(color);
         } else {
-            holder.categoryColorDot.setBackgroundColor(color); // Fallback
+            holder.categoryColorDot.setBackgroundColor(color);
         }
 
-        // Handle selection state
         if (selectedPosition == position) {
-            holder.categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.balance_blue)); // Highlight selected
+            holder.categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.balance_blue));
             holder.categoryNameTextView.setTextColor(Color.WHITE);
         } else {
-            holder.categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.white)); // Default background
+            holder.categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
             holder.categoryNameTextView.setTextColor(Color.BLACK);
         }
 
@@ -69,10 +67,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onCategoryClick(category);
-                // Update selection visually
-                notifyItemChanged(selectedPosition); // Deselect old
+                notifyItemChanged(selectedPosition);
                 selectedPosition = position;
-                notifyItemChanged(selectedPosition); // Select new
+                notifyItemChanged(selectedPosition);
             }
         });
     }
@@ -101,7 +98,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     public static class CategoryViewHolder extends RecyclerView.ViewHolder {
         TextView categoryNameTextView;
         View categoryColorDot;
-        LinearLayout categoryChipLayout; // Reference to the whole chip layout
+        LinearLayout categoryChipLayout;
 
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);

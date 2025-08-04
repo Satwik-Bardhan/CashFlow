@@ -4,20 +4,17 @@ import java.io.Serializable;
 
 public class TransactionModel implements Serializable {
     private String transactionId;
-    private String transactionCategory; // Renamed from 'category'
-    private String partyName;           // New: Field for Party/Customer/Supplier
+    private String transactionCategory;
+    private String partyName;
     private double amount;
-    private String date; // E.g., "MMM dd, yyyy"
-    private String type; // "IN" or "OUT"
-    private String paymentMode; // "Cash" or "Online"
+    private String date;
+    private String type;
+    private String paymentMode;
     private String remark;
-    private long timestamp; // New: Timestamp for sorting
+    private long timestamp;
 
-    public TransactionModel() {
-        // Default constructor required by Firebase
-    }
+    public TransactionModel() {}
 
-    // Full constructor including all new fields
     public TransactionModel(String transactionId, String transactionCategory, String partyName, double amount, String date, String type, String paymentMode, String remark, long timestamp) {
         this.transactionId = transactionId;
         this.transactionCategory = transactionCategory;
@@ -30,13 +27,11 @@ public class TransactionModel implements Serializable {
         this.timestamp = timestamp;
     }
 
-    // Overload constructor for simpler saving (new transaction)
     public TransactionModel(String transactionCategory, String partyName, double amount, String date, String type, String paymentMode, String remark) {
         this(null, transactionCategory, partyName, amount, date, type, paymentMode, remark, System.currentTimeMillis());
     }
 
 
-    // Getters
     public String getTransactionId() { return transactionId; }
     public String getTransactionCategory() { return transactionCategory; }
     public String getPartyName() { return partyName; }
@@ -47,7 +42,6 @@ public class TransactionModel implements Serializable {
     public String getRemark() { return remark; }
     public long getTimestamp() { return timestamp; }
 
-    // Setters (Firebase needs these)
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
     public void setTransactionCategory(String transactionCategory) { this.transactionCategory = transactionCategory; }
     public void setPartyName(String partyName) { this.partyName = partyName; }

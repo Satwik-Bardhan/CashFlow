@@ -4,8 +4,8 @@ import java.io.Serializable;
 
 public class CategoryModel implements Serializable {
     private String name;
-    private String colorHex; // Store color as a hex string (e.g., "#RRGGBB")
-    private boolean isCustom; // To distinguish from predefined categories
+    private String colorHex;
+    private boolean isCustom;
 
     public CategoryModel() {
         // Default constructor required for Firebase
@@ -17,7 +17,6 @@ public class CategoryModel implements Serializable {
         this.isCustom = isCustom;
     }
 
-    // Getters
     public String getName() {
         return name;
     }
@@ -30,7 +29,6 @@ public class CategoryModel implements Serializable {
         return isCustom;
     }
 
-    // Setters
     public void setName(String name) {
         this.name = name;
     }

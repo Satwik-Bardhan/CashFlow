@@ -83,10 +83,10 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     private ImageView clearCategoryFilterButton;
     private ImageView clearAllFiltersButton;
 
-    private String currentFilterType = "All";
-    private String currentFilterMode = "All";
-    private String currentFilterCategory = "All Categories";
-    private String currentFilterCategoryColor = "";
+    private String currentFilterType; // Initialized in onCreate
+    private String currentFilterMode; // Initialized in onCreate
+    private String currentFilterCategory; // Initialized in onCreate
+    private String currentFilterCategoryColor; // Initialized in onCreate
 
 
     private FirebaseAuth mAuth;
@@ -107,6 +107,13 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_transaction_activity);
+
+        // FIX: Initialize context-dependent variables here
+        currentFilterType = "All";
+        currentFilterMode = "All";
+        currentFilterCategory = "All Categories";
+        currentFilterCategoryColor = "";
+
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
@@ -338,52 +345,45 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         super.onStop();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null && transactionsListener != null) {
-            mDatabase.child("users").child(currentUser.getUid()).child("transactions").removeEventListener(transactionsListener);
+            mDatabase.child("users").child(currentUser.getUid()).child("cashbooks").child(currentCashbookId).child("transactions").removeEventListener(transactionsListener);
             Log.d(TAG, "Firebase listener removed in onStop.");
         }
     }
 
     private void startListeningForTransactions(String userId) {
-        if (transactionsListener != null) {
-            mDatabase.child("users").child(userId).child("transactions").removeEventListener(transactionsListener);
+        if (transactionsListener != null && currentCashbookId != null) {
+            mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").removeEventListener(transactionsListener);
             Log.d(TAG, "Removed existing listener before attaching new one.");
         }
 
-        mDatabase.child("users").child(userId).child("transactions").addValueEventListener(new ValueEventListener() {
+        if (currentCashbookId == null) {
+            Log.w(TAG, "startListeningForTransactions: currentCashbookId is null. Cannot attach listener.");
+            Toast.makeText(this, "Error: No active cashbook found.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.d(TAG, "onDataChange: Data received from Firebase for TransactionActivity. Raw count: " + dataSnapshot.getChildrenCount());
+                Log.d(TAG, "onDataChange: Data received from Firebase for cashbook: " + currentCashbookId + ". Raw count: " + dataSnapshot.getChildrenCount());
                 allTransactions.clear();
                 int deserializedCount = 0;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    TransactionModel transaction = snapshot.getValue(TransactionModel.class);
-                    if (transaction != null) {
-                        transaction.setTransactionId(snapshot.getKey());
-                        if (snapshot.hasChild("timestamp")) {
-                            transaction.setTimestamp(snapshot.child("timestamp").getValue(Long.class));
-                        } else {
-                            transaction.setTimestamp(0);
-                            Log.w(TAG, "Transaction " + snapshot.getKey() + " has no timestamp. Defaulting to 0.");
-                        }
-                        if (!snapshot.hasChild("paymentMode")) transaction.setPaymentMode("Cash");
-                        if (!snapshot.hasChild("remark")) transaction.setRemark("");
-                        if (!snapshot.hasChild("partyName")) transaction.setPartyName("");
-                        if (!snapshot.hasChild("transactionCategory") || transaction.getTransactionCategory() == null) {
-                            transaction.setTransactionCategory("Other");
-                        }
-                        if (!snapshot.hasChild("type") || transaction.getType() == null) {
-                            transaction.setType("OUT");
-                        }
-                        if (!snapshot.hasChild("amount") || transaction.getAmount() == 0.0) {
-                            transaction.setAmount(0.0);
-                        }
+                    TransactionModel transaction = new TransactionModel();
+                    transaction.setTransactionId(snapshot.getKey());
+
+                    transaction.setAmount(snapshot.child("amount").getValue(Double.class) != null ? snapshot.child("amount").getValue(Double.class) : 0.0);
+                    transaction.setDate(snapshot.child("date").getValue(String.class) != null ? snapshot.child("date").getValue(String.class) : "Unknown Date");
+                    transaction.setType(snapshot.child("type").getValue(String.class) != null ? snapshot.child("type").getValue(String.class) : "OUT");
+                    transaction.setPaymentMode(snapshot.child("paymentMode").getValue(String.class) != null ? snapshot.child("paymentMode").getValue(String.class) : "Cash");
+                    transaction.setRemark(snapshot.child("remark").getValue(String.class) != null ? snapshot.child("remark").getValue(String.class) : "");
+                    transaction.setPartyName(snapshot.child("partyName").getValue(String.class) != null ? snapshot.child("partyName").getValue(String.class) : "");
+                    transaction.setTransactionCategory(snapshot.child("transactionCategory").getValue(String.class) != null ? snapshot.child("transactionCategory").getValue(String.class) : "Other");
+                    transaction.setTimestamp(snapshot.child("timestamp").getValue(Long.class) != null ? snapshot.child("timestamp").getValue(Long.class) : 0L);
 
 
-                        allTransactions.add(transaction);
-                        deserializedCount++;
-                    } else {
-                        Log.w(TAG, "onDataChange: Transaction is null for snapshot: " + snapshot.getKey() + ". Skipping this entry.");
-                    }
+                    allTransactions.add(transaction);
+                    deserializedCount++;
                 }
                 Log.d(TAG, "onDataChange: Successfully deserialized " + deserializedCount + " out of " + dataSnapshot.getChildrenCount() + " raw transactions.");
                 Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
@@ -399,7 +399,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
                 Toast.makeText(TransactionActivity.this, "Failed to load transactions: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        Log.d(TAG, "Firebase listener attached for user: " + userId);
+        Log.d(TAG, "Firebase listener attached for user: " + userId + " to cashbook: " + currentCashbookId);
     }
 
     private void filterTransactions(String query) {
@@ -485,7 +485,9 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
                     category = "Uncategorized";
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    expenseByCategory.put(category, expenseByCategory.getOrDefault(category, 0f) + currentAmount);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        expenseByCategory.put(category, expenseByCategory.getOrDefault(category, 0f) + currentAmount);
+                    }
                 }
                 totalChartableExpense += currentAmount;
             }
@@ -551,6 +553,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         Intent intent = new Intent(TransactionActivity.this, TransactionDetailActivity.class);
         intent.putExtra("transaction_model", transaction);
         intent.putExtra("transaction_id", transactionId);
+        intent.putExtra("cashbook_id", currentCashbookId);
         startActivity(intent);
     }
 }

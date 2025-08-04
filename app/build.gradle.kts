@@ -33,7 +33,7 @@ android {
 
 dependencies {
     implementation(libs.appcompat)
-    implementation(libs.material) // ENSURE THIS IS PRESENT
+    implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
