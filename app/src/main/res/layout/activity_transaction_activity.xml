@@ -254,14 +254,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="IN"
-                            android:textColor="@color/homepage_income_amount_green" />
+                            android:textColor="@color/income_green" />
 
                         <RadioButton
                             android:id="@+id/filterOutType"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="OUT"
-                            android:textColor="@color/homepage_expense_amount_red" />
+                            android:textColor="@color/expense_red" />
                     </RadioGroup>
                 </LinearLayout>
 

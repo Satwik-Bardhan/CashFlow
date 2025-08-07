@@ -1,24 +1,18 @@
 package com.example.cashflow;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
+import android.util.Patterns;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -28,180 +22,155 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-
-import java.util.Objects;
-import java.util.regex.Pattern;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class Signup extends AppCompatActivity {
 
     private static final String TAG = "SignupActivity";
-    private static final int RC_SIGN_IN = 9001;
-
+    private static final int MIN_PASSWORD_LENGTH = 6;
     private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
     private GoogleSignInClient mGoogleSignInClient;
-
-    private EditText emailInput;
-    private EditText passwordInput;
-    private EditText confirmPasswordInput;
-    private ImageView btnGoogleSignUp;
+    private EditText emailInput, passwordInput, confirmPasswordInput;
     private ImageView togglePasswordVisibility;
-
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
     private boolean isPasswordVisible = false;
-
-    // Removed: Bottom Navigation Buttons
-    // private LinearLayout btnTransactions;
-    // private LinearLayout btnHome;
-    // private LinearLayout btnSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_signup);
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root_layout), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom); // Full padding as no fixed bar
-            return insets;
-        });
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        initializeUI();
+        setupGoogleSignIn();
+        setupClickListeners();
+        setupGoogleSignInLauncher();
+    }
+
+    private void initializeUI() {
+        emailInput = findViewById(R.id.email);
+        passwordInput = findViewById(R.id.password);
+        confirmPasswordInput = findViewById(R.id.confirm_password);
+        togglePasswordVisibility = findViewById(R.id.togglePasswordVisibility);
+    }
+
+    private void setupClickListeners() {
+        findViewById(R.id.btnSignUp).setOnClickListener(v -> attemptEmailSignUp());
+        findViewById(R.id.tvSignIn).setOnClickListener(v -> {
+            startActivity(new Intent(this, Signin.class));
+            finish();
+        });
+        findViewById(R.id.btnGoogleSignUp).setOnClickListener(v -> signInWithGoogle());
+        togglePasswordVisibility.setOnClickListener(v -> togglePasswordVisibility());
+    }
+
+    private void setupGoogleSignIn() {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+    }
 
-
-        emailInput = findViewById(R.id.email);
-        passwordInput = findViewById(R.id.password);
-        confirmPasswordInput = findViewById(R.id.confirm_password);
-        Button btnSignUp = findViewById(R.id.btnSignUp);
-        TextView tvSignIn = findViewById(R.id.tvSignIn);
-        btnGoogleSignUp = findViewById(R.id.btnGoogleSignUp);
-        togglePasswordVisibility = findViewById(R.id.togglePasswordVisibility);
-
-        // Removed initialization of bottom nav buttons
-        // btnTransactions = findViewById(R.id.btnTransactions);
-        // btnHome = findViewById(R.id.btnHome);
-        // btnSettings = findViewById(R.id.btnSettings);
-
-
-        final Pattern emailPattern = Pattern.compile("[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+");
-        final Pattern passwordPattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{4,}$");
-
-        if (emailInput == null || passwordInput == null || confirmPasswordInput == null || btnSignUp == null ||
-                tvSignIn == null || btnGoogleSignUp == null || togglePasswordVisibility == null) {
-            Log.e(TAG, "onCreate: One or more core UI components not found. Check activity_signup.xml IDs.");
-            Toast.makeText(this, "Application error: Missing core UI elements.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-
-        btnSignUp.setOnClickListener(v -> {
-            String email = emailInput.getText().toString().trim();
-            String password = passwordInput.getText().toString().trim();
-            String confirmPassword = confirmPasswordInput.getText().toString().trim();
-
-            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
-                Toast.makeText(Signup.this, "All fields are required", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (!emailPattern.matcher(email).matches()) {
-                emailInput.setError("Invalid email format");
-                emailInput.requestFocus();
-                return;
-            }
-
-            if (!passwordPattern.matcher(password).matches()) {
-                passwordInput.setError("Password must be strong (A-Z, a-z, 0-9, special char)");
-                passwordInput.requestFocus();
-                return;
-            }
-
-            if (!password.equals(confirmPassword)) {
-                confirmPasswordInput.setError("Passwords do not match");
-                confirmPasswordInput.requestFocus();
-                return;
-            }
-
-            mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "createUserWithEmailAndPassword:success");
-                            Toast.makeText(Signup.this, "Account created successfully", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(Signup.this, Signin.class));
-                            finish();
-                        } else {
-                            Log.w(TAG, "createUserWithEmailAndPassword:failure", task.getException());
-                            String errorMessage = "Error: " + Objects.requireNonNull(task.getException()).getMessage();
-                            Toast.makeText(Signup.this, errorMessage, Toast.LENGTH_LONG).show();
+    private void setupGoogleSignInLauncher() {
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                        try {
+                            GoogleSignInAccount account = task.getResult(ApiException.class);
+                            firebaseAuthWithGoogle(account);
+                        } catch (ApiException e) {
+                            Toast.makeText(this, "Google sign in failed.", Toast.LENGTH_LONG).show();
                         }
-                    });
-        });
-
-        tvSignIn.setOnClickListener(v -> {
-            Intent intent = new Intent(Signup.this, Signin.class);
-            startActivity(intent);
-            finish();
-        });
-
-        btnGoogleSignUp.setOnClickListener(v -> signInWithGoogle());
-
-        togglePasswordVisibility.setOnClickListener(v -> togglePasswordVisibility());
-
-        // Removed bottom navigation button listeners
-        // if (btnTransactions != null) { ... }
-        // if (btnHome != null) { ... }
-        // if (btnSettings != null) { ... }
-    }
-
-    private void signInWithGoogle() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d(TAG, "Google sign in success, ID Token: " + account.getIdToken());
-                firebaseAuthWithGoogle(account.getIdToken());
-            } catch (ApiException e) {
-                Log.w(TAG, "Google sign in failed", e);
-                Toast.makeText(this, "Google sign in failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "Firebase Google sign in success");
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        Toast.makeText(Signup.this, "Signed in with Google: " + user.getEmail(), Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(Signup.this, HomePage.class));
-                        finish();
-                    } else {
-                        Log.w(TAG, "Firebase Google sign in failed", task.getException());
-                        Toast.makeText(Signup.this, "Google Sign-Up failed: " + Objects.requireNonNull(task.getException()).getMessage(),
-                                Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void attemptEmailSignUp() {
+        String email = emailInput.getText().toString().trim();
+        String password = passwordInput.getText().toString().trim();
+        String confirmPassword = confirmPasswordInput.getText().toString().trim();
+
+        if (!validateInput(email, password, confirmPassword)) return;
+
+        mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                if (firebaseUser != null) {
+                    saveNewUserToDatabase(firebaseUser);
+                }
+            } else {
+                String message = "Sign up failed.";
+                if (task.getException() instanceof FirebaseAuthUserCollisionException) {
+                    message = "This email address is already in use.";
+                }
+                Toast.makeText(Signup.this, message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                if (firebaseUser != null) {
+                    // Check if the user is new to save their data to the database
+                    if (task.getResult().getAdditionalUserInfo().isNewUser()) {
+                        saveNewUserToDatabase(firebaseUser);
+                    } else {
+                        navigateToHomePage();
+                    }
+                }
+            } else {
+                Toast.makeText(Signup.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void saveNewUserToDatabase(FirebaseUser firebaseUser) {
+        Users newUser = new Users();
+        newUser.setUserId(firebaseUser.getUid());
+        newUser.setMail(firebaseUser.getEmail());
+        newUser.setUserName(firebaseUser.getDisplayName());
+
+        mDatabase.child("users").child(firebaseUser.getUid()).setValue(newUser)
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()) {
+                        navigateToHomePage();
+                    } else {
+                        Toast.makeText(Signup.this, "Failed to save user data.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private boolean validateInput(String email, String password, String confirmPassword) {
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailInput.setError("Please enter a valid email address.");
+            emailInput.requestFocus();
+            return false;
+        }
+        if (TextUtils.isEmpty(password) || password.length() < MIN_PASSWORD_LENGTH) {
+            passwordInput.setError("Password must be at least " + MIN_PASSWORD_LENGTH + " characters.");
+            passwordInput.requestFocus();
+            return false;
+        }
+        if (!password.equals(confirmPassword)) {
+            confirmPasswordInput.setError("Passwords do not match.");
+            confirmPasswordInput.requestFocus();
+            return false;
+        }
+        return true;
     }
 
     private void togglePasswordVisibility() {
@@ -214,8 +183,16 @@ public class Signup extends AppCompatActivity {
             confirmPasswordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             togglePasswordVisibility.setImageResource(R.drawable.ic_visibility_on);
         }
-        passwordInput.setSelection(passwordInput.getText().length());
-        confirmPasswordInput.setSelection(confirmPasswordInput.getText().length());
         isPasswordVisible = !isPasswordVisible;
+    }
+
+    private void navigateToHomePage() {
+        Intent intent = new Intent(this, HomePage.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    private void signInWithGoogle() {
+        googleSignInLauncher.launch(mGoogleSignInClient.getSignInIntent());
     }
 }

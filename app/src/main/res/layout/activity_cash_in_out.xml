@@ -12,63 +12,64 @@
         android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:layout_above="@+id/fixedBottomContainer">
+        android:fillViewport="true">
 
         <LinearLayout
-            android:id="@+id/main_content_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
+            <!-- Header Section with Back Button -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:layout_marginBottom="16dp"
                 android:background="#121212"
+                android:orientation="vertical"
                 android:paddingTop="24dp"
-                android:paddingBottom="16dp"
-                android:layout_marginBottom="16dp">
+                android:paddingBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="16dp"
-                    android:layout_marginBottom="16dp">
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
 
                     <ImageView
                         android:id="@+id/backButton"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_arrow_left"
-                        android:contentDescription="Back"
                         android:clickable="true"
+                        android:contentDescription="Back"
                         android:focusable="true"
+                        android:src="@drawable/ic_arrow_left"
                         app:tint="#FFFFFF" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="-24dp"
                         android:layout_weight="1"
+                        android:gravity="center_horizontal"
                         android:text="CASH FLOW"
                         android:textColor="#FFFFFF"
                         android:textSize="24sp"
-                        android:textStyle="bold"
-                        android:gravity="center_horizontal"
-                        android:layout_marginStart="-24dp" /> </LinearLayout>
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/cashInOutTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add Entry" android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
                     android:layout_gravity="start"
-                    android:layout_marginStart="16dp" />
+                    android:layout_marginStart="16dp"
+                    android:text="Add Entry"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <androidx.cardview.widget.CardView
@@ -82,182 +83,254 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/text_background"
                     android:orientation="vertical"
-                    android:padding="16dp"
-                    android:background="@drawable/text_background">
+                    android:padding="16dp">
 
+                    <!-- Date & Time Selector Layout -->
                     <LinearLayout
-                        android:id="@+id/dateSelectorLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="16dp">
+                        android:layout_marginBottom="16dp"
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:id="@+id/dateTextView"
+                        <!-- Date Selector -->
+                        <LinearLayout
+                            android:id="@+id/dateSelectorLayout"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            android:clickable="true"
-                            android:drawableEnd="@drawable/ic_arrow_down"
-                            android:drawableTint="#000000"
-                            android:focusable="true"
-                            android:paddingEnd="8dp"
-                            android:text="June 17, 2025"
-                            android:textColor="#000000"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/dateTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:drawableEnd="@drawable/ic_arrow_down"
+                                android:drawableTint="#000000"
+                                android:focusable="true"
+                                android:paddingEnd="8dp"
+                                android:text="June 17, 2025"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                tools:ignore="RtlSymmetry" />
+                        </LinearLayout>
+
+                        <!-- Time Selector -->
+                        <LinearLayout
+                            android:id="@+id/timeSelectorLayout"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="0.8"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/timeTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:gravity="center_vertical"
+                                android:paddingEnd="8dp"
+                                android:text="00:00 AM"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                tools:ignore="RtlSymmetry" />
+
+                            <ImageView
+                                android:id="@+id/timePickerIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:clickable="true"
+                                android:contentDescription="Time Picker"
+                                android:focusable="true"
+                                android:src="@drawable/ic_time"
+                                app:tint="#000000" />
+                        </LinearLayout>
+
                     </LinearLayout>
 
+
+                    <!-- Amount and IN/OUT Toggle Layout -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:layout_marginBottom="16dp"
-                        android:gravity="center_vertical">
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:orientation="horizontal">
+
+                            <RadioGroup
+                                android:id="@+id/inOutToggle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/radioIn"
+                                    android:layout_width="80dp"
+                                    android:layout_height="40dp"
+                                    android:layout_marginEnd="5dp"
+                                    android:background="@drawable/button_cashin"
+                                    android:button="@android:color/transparent"
+                                    android:checked="true"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="16dp"
+                                    android:paddingVertical="8dp"
+                                    android:text="IN" />
+
+                                <RadioButton
+                                    android:id="@+id/radioOut"
+                                    android:layout_width="80dp"
+                                    android:layout_height="40dp"
+                                    android:background="@drawable/button_cashout"
+                                    android:button="@android:color/transparent"
+                                    android:gravity="center"
+                                    android:paddingHorizontal="16dp"
+                                    android:paddingVertical="8dp"
+                                    android:text="OUT" />
+                            </RadioGroup>
+                        </LinearLayout>
 
                         <EditText
                             android:id="@+id/amountEditText"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
                             android:background="@drawable/rounded_white"
                             android:hint="Amount"
                             android:inputType="numberDecimal"
                             android:paddingHorizontal="12dp"
                             android:textColor="#000000"
                             android:textColorHint="#AAAAAA" />
-
-                        <RadioGroup
-                            android:id="@+id/inOutToggle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal" >
-                            <RadioButton
-                                android:id="@+id/radioIn"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="IN"
-                                android:background="@drawable/button_cashin"
-                                android:button="@android:color/transparent"
-                                android:paddingHorizontal="16dp"
-                                android:paddingVertical="8dp"
-                                android:layout_marginEnd="5dp"
-                                android:checked="true" />
-
-                            <RadioButton
-                                android:id="@+id/radioOut"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="OUT"
-                                android:background="@drawable/button_cashout"
-                                android:button="@android:color/transparent"
-                                android:paddingHorizontal="16dp"
-                                android:paddingVertical="8dp" />
-                        </RadioGroup>
                     </LinearLayout>
 
                     <RadioGroup
                         android:id="@+id/cashOnlineToggle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:layout_gravity="end"
-                        android:layout_marginBottom="16dp" >
+                        android:layout_marginBottom="16dp"
+                        android:orientation="horizontal">
 
                         <RadioButton
                             android:id="@+id/radioCash"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Cash"
-                            android:textColor="#000000"
+                            android:layout_width="80dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="5dp"
                             android:background="@drawable/button_blue"
                             android:button="@android:color/transparent"
+                            android:checked="true"
+                            android:gravity="center"
                             android:paddingHorizontal="16dp"
                             android:paddingVertical="8dp"
-                            android:layout_marginEnd="5dp"
-                            android:checked="true" />
+                            android:text="Cash"
+                            android:textColor="#000000" />
 
                         <RadioButton
                             android:id="@+id/radioOnline"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Online"
-                            android:textColor="#000000"
+                            android:layout_width="80dp"
+                            android:layout_height="40dp"
                             android:background="@drawable/button_blue"
                             android:button="@android:color/transparent"
+                            android:gravity="center"
                             android:paddingHorizontal="16dp"
-                            android:paddingVertical="8dp" />
+                            android:paddingVertical="8dp"
+                            android:text="Online"
+                            android:textColor="#000000" />
                     </RadioGroup>
 
-                    <EditText
-                        android:id="@+id/partyEditText"
+                    <!-- Party Dropdown/Contact Picker -->
+                    <LinearLayout
+                        android:id="@+id/partySelectorLayout"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
-                        android:hint="Party(Customer/Supplier)"
-                        android:background="@drawable/rounded_white"
-                        android:paddingHorizontal="12dp"
-                        android:textColor="#000000"
-                        android:textColorHint="#AAAAAA"
                         android:layout_marginBottom="16dp"
-                        android:inputType="textPersonName" />
+                        android:background="@drawable/rounded_white"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/partyTextView"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:paddingStart="12dp"
+                            android:text="Party (Customer/Supplier)"
+                            android:textColor="#000000"
+                            android:textSize="16sp" />
+
+                        <ImageView
+                            android:id="@+id/partyPickerIcon"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="8dp"
+                            android:clickable="true"
+                            android:contentDescription="Select Contact"
+                            android:focusable="true"
+                            android:src="@drawable/ic_arrow_down"
+                            app:tint="#888888" />
+                    </LinearLayout>
+
 
                     <EditText
                         android:id="@+id/remarkEditText"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
-                        android:hint="Remark"
+                        android:layout_marginBottom="16dp"
                         android:background="@drawable/rounded_white"
+                        android:hint="Remark"
+                        android:inputType="textMultiLine"
+                        android:maxLines="3"
                         android:paddingHorizontal="12dp"
                         android:textColor="#000000"
-                        android:textColorHint="#AAAAAA"
-                        android:layout_marginBottom="16dp"
-                        android:inputType="textMultiLine"
-                        android:maxLines="3" />
+                        android:textColorHint="#AAAAAA" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp"
                         android:gravity="end|center_vertical"
-                        android:layout_marginBottom="16dp">
+                        android:orientation="horizontal">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
                             android:text="Attach Image or PDF"
                             android:textColor="#FFFFFF"
-                            android:textSize="14sp"
-                            android:layout_marginEnd="8dp" />
+                            android:textSize="14sp" />
 
                         <ImageView
                             android:id="@+id/attachFileButton"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@drawable/ic_attach_file"
-                            android:contentDescription="Attach File"
                             android:clickable="true"
-                            android:focusable="true" />
+                            android:contentDescription="Attach File"
+                            android:focusable="true"
+                            android:src="@drawable/ic_attach_file" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="16dp">
-
-                        <Spinner
-                            android:id="@+id/categorySpinner"
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_weight="1"
-                            android:autofillHints="Category"
-                            android:background="@drawable/rounded_white"
-                            android:spinnerMode="dropdown"
-                            android:visibility="gone" />
+                        android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/selectedCategoryTextView"
@@ -265,16 +338,16 @@
                             android:layout_height="50dp"
                             android:layout_weight="1"
                             android:background="@drawable/rounded_white"
+                            android:clickable="true"
+                            android:drawableEnd="@drawable/ic_arrow_down"
+                            android:drawableTint="#000000"
+                            android:focusable="true"
                             android:gravity="center_vertical"
                             android:paddingStart="12dp"
                             android:paddingEnd="8dp"
                             android:text="Select Category"
                             android:textColor="#000000"
-                            android:textSize="16sp"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:drawableEnd="@drawable/ic_arrow_down"
-                            android:drawableTint="#000000" />
+                            android:textSize="16sp" />
 
                         <View
                             android:id="@+id/categoryColorIndicator"
@@ -286,127 +359,41 @@
                             android:focusable="true" />
                     </LinearLayout>
 
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:layout_marginTop="16dp"
                         android:gravity="center"
-                        android:layout_marginTop="16dp">
+                        android:orientation="horizontal">
 
                         <Button
                             android:id="@+id/saveAndAddNewButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1.2"
-                            android:text="SAVE &amp; ADD NEW"
-                            android:background="@drawable/button_save_add_new"
-                            android:textColor="#FFFFFF"
-                            android:paddingHorizontal="16dp"
                             android:layout_marginEnd="8dp"
-                            android:textStyle="bold"
-                            android:textSize="14sp" />
+                            android:layout_weight="1.2"
+                            android:background="@drawable/button_save_add_new"
+                            android:paddingHorizontal="16dp"
+                            android:text="SAVE &amp; ADD NEW"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
 
                         <Button
                             android:id="@+id/saveEntryButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Save Entry"
                             android:backgroundTint="#00C853"
-                            android:textColor="#FFFFFF"
                             android:paddingHorizontal="16dp"
-                            android:textStyle="bold"
-                            android:textSize="14sp" />
+                            android:text="Save Entry"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <LinearLayout
-        android:id="@+id/fixedBottomContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#1C1C1C"
-        android:orientation="horizontal"
-        android:paddingVertical="8dp"
-        android:paddingBottom="8dp"> <LinearLayout
-        android:id="@+id/btnTransactions"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="8dp">
-
-        <ImageView
-            android:layout_width="36dp"
-            android:layout_height="wrap_content"
-            android:contentDescription="Transactions Icon"
-            android:src="@drawable/ic_transactions" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Transactions"
-            android:textColor="#FFFFFF"
-            android:textSize="10sp" />
-    </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnHome"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="wrap_content"
-                android:contentDescription="Home Icon"
-                android:src="@drawable/ic_home" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnSettings"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="wrap_content"
-                android:contentDescription="Settings Icon"
-                android:src="@drawable/ic_settings" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Settings"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-    </LinearLayout>
 </RelativeLayout>

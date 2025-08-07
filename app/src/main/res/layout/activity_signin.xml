@@ -6,14 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#333333"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:context=".Signin">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
         android:fillViewport="true">
 
         <LinearLayout
@@ -32,7 +31,8 @@
                 android:fontFamily="@font/inter_bold"
                 android:text="CASH FLOW"
                 android:textColor="#FFFFFF"
-                android:textSize="28sp" />
+                android:textSize="28sp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/subtitle"
@@ -42,7 +42,8 @@
                 android:fontFamily="@font/inter_italic"
                 android:text="“Welcome Back User”"
                 android:textColor="#DDDDDD"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -52,19 +53,22 @@
                 android:text="Login to Account"
                 android:textColor="#FFFFFF"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <EditText
                 android:id="@+id/email"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:autofillHints="emailAddress"
                 android:background="@drawable/text_background"
                 android:hint="Email"
                 android:inputType="textEmailAddress"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:textColor="#FFFFFF"
-                android:textColorHint="#AAAAAA" />
+                android:textColorHint="#AAAAAA"
+                tools:ignore="HardcodedText" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -76,13 +80,15 @@
                     android:id="@+id/password"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:autofillHints="password"
                     android:background="@drawable/text_background"
                     android:hint="Password"
                     android:inputType="textPassword"
                     android:paddingStart="12dp"
                     android:paddingEnd="48dp"
                     android:textColor="#FFFFFF"
-                    android:textColorHint="#AAAAAA" />
+                    android:textColorHint="#AAAAAA"
+                    tools:ignore="HardcodedText" />
 
                 <ImageView
                     android:id="@+id/togglePasswordVisibility"
@@ -104,21 +110,22 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:layout_marginTop="0dp"
                 android:text="Forgot Password?"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                tools:ignore="HardcodedText" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/signinButton"
                 android:layout_width="200dp"
                 android:layout_height="55dp"
-                android:gravity="center"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/button_signin"
+                android:gravity="center"
                 android:text="Sign In"
                 android:textColor="#FFFFFF"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/guestButton"
@@ -126,10 +133,11 @@
                 android:layout_height="55dp"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/button_guest"
+                android:gravity="center"
                 android:text="Continue as Guest"
                 android:textColor="#FFFFFF"
-                android:gravity="center"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -137,7 +145,8 @@
                 android:layout_marginTop="60dp"
                 android:fontFamily="@font/tinos_regular"
                 android:text="Or Sign In with"
-                android:textColor="#FFFFFF" />
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
 
             <ImageView
                 android:id="@+id/btnGoogleSignIn"
@@ -153,17 +162,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="60dp"
                 android:text="Don’t have an account?"
-                android:textColor="#FFFFFF" />
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
 
+            <!-- Correction: Changed ID from 'SignUp' to 'signUpText' for convention -->
             <TextView
-                android:id="@+id/SignUp"
+                android:id="@+id/signUpText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="@font/inter_bold"
                 android:text="Sign Up"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                tools:ignore="HardcodedText" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -1,9 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#6200EE</color>
     <color name="purple_700">#3700B3</color>
     <color name="teal_200">#03DAC5</color>
@@ -13,24 +11,11 @@
     <color name="medium_dark_background">#2B2B2B</color>
     <color name="light_gray_text">#DDDDDD</color>
     <color name="hint_text_default">#AAAAAA</color>
-    <color name="card_background_light">#FFFFFF</color>
-    <color name="card_background_dark_gray">#444444</color>
-    <color name="stroke_color_gray">#666666</color>
-    <color name="divider_color">#DDDDDD</color>
     <color name="secondary_text_color">#777777</color>
-    <color name="error_red">#FF0000</color>
-    <color name="app_version_text_color">#BBBBBB</color>
 
-    <color name="cash_in_hint_green">#4CAF50</color>
-    <color name="cash_out_hint_red">#F44336</color>
-
+    <color name="income_green">#4CAF50</color>
+    <color name="expense_red">#F44336</color>
     <color name="balance_blue">#2196F3</color>
-    <color name="download_report_orange">#FF9800</color>
-    <color name="toggle_background_gray">#E0E0E0</color>
-    <color name="toggle_stroke_gray">#BDBDBD</color>
-
-    <color name="homepage_income_amount_green">#74C365</color>
-    <color name="homepage_expense_amount_red">#C21807</color>
 
     <color name="category_food">#FFB300</color>
     <color name="category_transport">#00BCD4</color>

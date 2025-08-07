@@ -1,16 +1,13 @@
 package com.example.cashflow;
 
 public class Users {
-    String profile, mail, userName, password, userId, lastMessage, status;
+    private String profile;
+    private String mail;
+    private String userName;
+    private String userId;
 
-    public Users() {}
-
-    public String getMail() {
-        return mail;
-    }
-
-    public void setMail(String mail) {
-        this.mail = mail;
+    public Users() {
+        // Default constructor required for Firebase
     }
 
     public String getProfile() {
@@ -21,6 +18,14 @@ public class Users {
         this.profile = profile;
     }
 
+    public String getMail() {
+        return mail;
+    }
+
+    public void setMail(String mail) {
+        this.mail = mail;
+    }
+
     public String getUserName() {
         return userName;
     }
@@ -29,35 +34,11 @@ public class Users {
         this.userName = userName;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getUserId() {
         return userId;
     }
 
     public void setUserId(String userId) {
         this.userId = userId;
-    }
-
-    public String getLastMessage() {
-        return lastMessage;
-    }
-
-    public void setLastMessage(String lastMessage) {
-        this.lastMessage = lastMessage;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 }

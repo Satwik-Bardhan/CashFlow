@@ -40,38 +40,10 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         return new CategoryViewHolder(view);
     }
 
-    @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull CategoryViewHolder holder, @SuppressLint("RecyclerView") int position) {
+    public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
         CategoryModel category = categoryList.get(position);
-
-        holder.categoryNameTextView.setText(category.getName());
-
-        int color = Color.parseColor(category.getColorHex());
-        GradientDrawable drawable = (GradientDrawable) holder.categoryColorDot.getBackground();
-        if (drawable != null) {
-            drawable.setColor(color);
-        } else {
-            holder.categoryColorDot.setBackgroundColor(color);
-        }
-
-        if (selectedPosition == position) {
-            holder.categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.balance_blue));
-            holder.categoryNameTextView.setTextColor(Color.WHITE);
-        } else {
-            holder.categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
-            holder.categoryNameTextView.setTextColor(Color.BLACK);
-        }
-
-
-        holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onCategoryClick(category);
-                notifyItemChanged(selectedPosition);
-                selectedPosition = position;
-                notifyItemChanged(selectedPosition);
-            }
-        });
+        holder.bind(category, position);
     }
 
     @Override
@@ -80,22 +52,19 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     }
 
     public void setSelectedPosition(int position) {
-        if (selectedPosition != RecyclerView.NO_POSITION) {
-            notifyItemChanged(selectedPosition);
-        }
-        this.selectedPosition = position;
-        notifyItemChanged(position);
+        int oldSelected = selectedPosition;
+        selectedPosition = position;
+        notifyItemChanged(oldSelected);
+        notifyItemChanged(selectedPosition);
     }
 
     public void clearSelection() {
-        if (selectedPosition != RecyclerView.NO_POSITION) {
-            int oldSelected = selectedPosition;
-            selectedPosition = RecyclerView.NO_POSITION;
-            notifyItemChanged(oldSelected);
-        }
+        int oldSelected = selectedPosition;
+        selectedPosition = RecyclerView.NO_POSITION;
+        notifyItemChanged(oldSelected);
     }
 
-    public static class CategoryViewHolder extends RecyclerView.ViewHolder {
+    class CategoryViewHolder extends RecyclerView.ViewHolder {
         TextView categoryNameTextView;
         View categoryColorDot;
         LinearLayout categoryChipLayout;
@@ -105,6 +74,33 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             categoryNameTextView = itemView.findViewById(R.id.categoryNameTextView);
             categoryColorDot = itemView.findViewById(R.id.categoryColorDot);
             categoryChipLayout = itemView.findViewById(R.id.categoryChipLayout);
+        }
+
+        void bind(final CategoryModel category, final int position) {
+            categoryNameTextView.setText(category.getName());
+
+            try {
+                int color = Color.parseColor(category.getColorHex());
+                // The view is a simple View, setting its background color is sufficient.
+                categoryColorDot.getBackground().mutate().setTint(color);
+            } catch (Exception e) {
+                categoryColorDot.getBackground().mutate().setTint(ContextCompat.getColor(context, R.color.category_default));
+            }
+
+            if (selectedPosition == position) {
+                categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.balance_blue));
+                categoryNameTextView.setTextColor(Color.WHITE);
+            } else {
+                categoryChipLayout.setBackgroundColor(Color.WHITE);
+                categoryNameTextView.setTextColor(Color.BLACK);
+            }
+
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onCategoryClick(category);
+                    // The activity will finish, so no need to update selection state here.
+                }
+            });
         }
     }
 }

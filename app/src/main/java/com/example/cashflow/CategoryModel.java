@@ -21,20 +21,20 @@ public class CategoryModel implements Serializable {
         return name;
     }
 
-    public String getColorHex() {
-        return colorHex;
-    }
-
-    public boolean isCustom() {
-        return isCustom;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
 
+    public String getColorHex() {
+        return colorHex;
+    }
+
     public void setColorHex(String colorHex) {
         this.colorHex = colorHex;
+    }
+
+    public boolean isCustom() {
+        return isCustom;
     }
 
     public void setCustom(boolean custom) {

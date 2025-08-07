@@ -6,74 +6,77 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#333333"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:context=".Signup">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true">
+        android:fillViewport="true">
 
         <LinearLayout
             android:id="@+id/main_content_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:gravity="center_horizontal"
+            android:orientation="vertical"
             android:padding="24dp">
 
             <TextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CASH FLOW"
+                android:layout_marginTop="40dp"
                 android:fontFamily="@font/inter_bold"
-                android:textSize="28sp"
-                android:textStyle="bold"
+                android:text="CASH FLOW"
                 android:textColor="#FFFFFF"
-                android:layout_marginTop="40dp" />
+                android:textSize="28sp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Create Your Account"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
                 android:layout_marginTop="50dp"
-                android:textSize="20sp" />
+                android:text="Create Your Account"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <EditText
                 android:id="@+id/email"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:hint="Email"
+                android:layout_marginTop="16dp"
+                android:autofillHints="emailAddress"
                 android:background="@drawable/text_background_signup"
+                android:hint="Email"
+                android:inputType="textEmailAddress"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#AAAAAA"
-                android:inputType="textEmailAddress" />
+                tools:ignore="HardcodedText" />
 
-            <!-- Password Input with Show/Hide Toggle -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="16dp">
 
                 <EditText
                     android:id="@+id/password"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:hint="Password"
+                    android:autofillHints="newPassword"
                     android:background="@drawable/text_background_signup"
+                    android:hint="Password"
+                    android:inputType="textPassword"
                     android:paddingStart="12dp"
                     android:paddingEnd="48dp"
                     android:textColor="#FFFFFF"
                     android:textColorHint="#AAAAAA"
-                    android:inputType="textPassword" />
+                    tools:ignore="HardcodedText" />
 
                 <ImageView
                     android:id="@+id/togglePasswordVisibility"
@@ -82,93 +85,95 @@
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:layout_marginEnd="8dp"
-                    android:padding="4dp"
-                    android:src="@drawable/ic_visibility_off"
-                    android:contentDescription="Toggle Password Visibility"
                     android:clickable="true"
-                    android:focusable="true" />
+                    android:contentDescription="Toggle Password Visibility"
+                    android:focusable="true"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_visibility_off" />
             </RelativeLayout>
-
 
             <EditText
                 android:id="@+id/confirm_password"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="16dp"
+                android:autofillHints="password"
                 android:background="@drawable/text_background_signup"
                 android:hint="Confirm Password"
                 android:inputType="textPassword"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:textColor="#FFFFFF"
-                android:textColorHint="#AAAAAA" />
+                android:textColorHint="#AAAAAA"
+                tools:ignore="HardcodedText" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnSignUp"
                 android:layout_width="@dimen/_150sdp"
                 android:layout_height="60dp"
-                android:text="Sign Up"
-                android:fontFamily="@font/inter_bold"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
                 android:layout_marginTop="24dp"
-                android:layout_gravity="center"
-                android:background="@drawable/button_signin" />
+                android:background="@drawable/button_signin"
+                android:fontFamily="@font/inter_bold"
+                android:text="Sign Up"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
                 android:text="“Welcome User”"
-                android:textStyle="italic"
                 android:textColor="#DDDDDD"
-                android:layout_marginTop="60dp"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:textStyle="italic"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:text="Setup your rest details in the profile menu"
                 android:textColor="#AAAAAA"
-                android:layout_marginTop="4dp"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
                 android:text="Or Sign Up with"
-                android:fontFamily="@font/tinos_regular"
                 android:textColor="#FFFFFF"
-                android:layout_marginTop="50dp" />
+                tools:ignore="HardcodedText" />
 
             <ImageView
                 android:id="@+id/btnGoogleSignUp"
                 android:layout_width="@dimen/_30sdp"
                 android:layout_height="@dimen/_30sdp"
-                android:src="@drawable/google"
                 android:layout_gravity="center"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="16dp"
+                android:contentDescription="Google Sign Up"
+                android:src="@drawable/google" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
                 android:text="Already have an account?"
                 android:textColor="#FFFFFF"
-                android:layout_marginTop="40dp" />
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/tvSignIn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sign In"
+                android:layout_marginTop="4dp"
                 android:fontFamily="@font/inter_bold"
-                android:textSize="18sp"
-                android:textStyle="bold"
+                android:text="Sign In"
                 android:textColor="#FFFFFF"
-                android:layout_marginTop="4dp" />
+                android:textSize="18sp"
+                tools:ignore="HardcodedText" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- Removed Fixed Bottom Navigation Bar -->
 
 </RelativeLayout>

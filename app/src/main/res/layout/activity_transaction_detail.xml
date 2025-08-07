@@ -1,142 +1,235 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/main_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#2B2B2B"
-    android:fitsSystemWindows="true"
-    android:fillViewport="true">
+    android:fitsSystemWindows="true">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#121212"
-            android:paddingTop="24dp"
-            android:paddingBottom="16dp"
-            android:layout_marginBottom="16dp">
+            android:gravity="center_horizontal">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:layout_marginBottom="16dp">
-
-                <ImageView
-                    android:id="@+id/backButton"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_arrow_left"
-                    android:contentDescription="Back"
-                    android:tint="#FFFFFF"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="CASH FLOW"
-                    android:textColor="#FFFFFF"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:gravity="center_horizontal"
-                    android:layout_marginStart="-24dp" /> </LinearLayout>
-
-
-            <TextView
-                android:id="@+id/detailTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Entry Details"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_gravity="start"
-                android:layout_marginStart="16dp" />
-        </LinearLayout>
-
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
-
+            <!-- Header Section with Back Button -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp"
-                android:background="@drawable/text_background">
+                android:background="#121212"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp"
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
-                    android:id="@+id/dateSelectorLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
                     android:layout_marginBottom="16dp">
 
-                    <TextView
-                        android:id="@+id/dateTextView"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
+                    <ImageView
+                        android:id="@+id/backButton"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_left"
+                        android:contentDescription="Back"
                         android:clickable="true"
-                        android:drawableEnd="@drawable/ic_arrow_down"
-                        android:drawableTint="#000000"
                         android:focusable="true"
-                        android:paddingEnd="8dp"
-                        android:text="June 17, 2025"
-                        android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        app:tint="#FFFFFF" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="CASH FLOW"
+                        android:textColor="#FFFFFF"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:gravity="center_horizontal"
+                        android:layout_marginStart="-24dp" />
                 </LinearLayout>
+
+
+                <TextView
+                    android:id="@+id/detailTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Entry Details"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="16dp" />
+            </LinearLayout>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@drawable/text_background">
 
-                    <EditText
-                        android:id="@+id/amountEditText"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/rounded_white"
-                        android:hint="Amount"
-                        android:inputType="numberDecimal"
-                        android:paddingHorizontal="12dp"
-                        android:textColor="#000000"
-                        android:textColorHint="#AAAAAA" />
+                    <!-- Date & Time Selector Layout -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp">
+
+                        <!-- Date Selector -->
+                        <LinearLayout
+                            android:id="@+id/dateSelectorLayout"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/dateTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:drawableEnd="@drawable/ic_arrow_down"
+                                android:drawableTint="#000000"
+                                android:focusable="true"
+                                android:paddingEnd="8dp"
+                                android:text="June 17, 2025"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Time Selector -->
+                        <LinearLayout
+                            android:id="@+id/timeSelectorLayout"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.8"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginStart="8dp">
+
+                            <TextView
+                                android:id="@+id/timeTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:gravity="center_vertical"
+                                android:paddingEnd="8dp"
+                                android:text="00:00 AM"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <ImageView
+                                android:id="@+id/timePickerIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_time"
+                                android:contentDescription="Time Picker"
+                                android:clickable="true"
+                                android:focusable="true"
+                                app:tint="#000000"/>
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+                    <!-- Amount and IN/OUT Toggle Layout -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="8dp">
+
+                            <RadioGroup
+                                android:id="@+id/inOutToggle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal" >
+                                <RadioButton
+                                    android:id="@+id/radioIn"
+                                    android:layout_width="80dp"
+                                    android:layout_height="40dp"
+                                    android:text="IN"
+                                    android:background="@drawable/button_cashin"
+                                    android:button="@android:color/transparent"
+                                    android:paddingHorizontal="16dp"
+                                    android:paddingVertical="8dp"
+                                    android:layout_marginEnd="5dp"
+                                    android:checked="true"
+                                    android:gravity="center" />
+
+                                <RadioButton
+                                    android:id="@+id/radioOut"
+                                    android:layout_width="80dp"
+                                    android:layout_height="40dp"
+                                    android:text="OUT"
+                                    android:gravity="center"
+                                    android:background="@drawable/button_cashout"
+                                    android:button="@android:color/transparent"
+                                    android:paddingHorizontal="16dp"
+                                    android:paddingVertical="8dp" />
+                            </RadioGroup>
+                        </LinearLayout>
+
+                        <EditText
+                            android:id="@+id/amountEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:hint="Amount"
+                            android:inputType="numberDecimal"
+                            android:background="@drawable/rounded_white"
+                            android:paddingHorizontal="12dp"
+                            android:textColor="#000000"
+                            android:textColorHint="#AAAAAA" />
+                    </LinearLayout>
 
                     <RadioGroup
-                        android:id="@+id/inOutToggle"
+                        android:id="@+id/cashOnlineToggle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal" >
+                        android:orientation="horizontal"
+                        android:layout_gravity="end"
+                        android:layout_marginBottom="16dp" >
+
                         <RadioButton
-                            android:id="@+id/radioIn"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="IN"
-                            android:background="@drawable/button_cashin"
+                            android:id="@+id/radioCash"
+                            android:layout_width="80dp"
+                            android:layout_height="40dp"
+                            android:text="Cash"
+                            android:gravity="center"
+                            android:textColor="#000000"
+                            android:background="@drawable/button_blue"
                             android:button="@android:color/transparent"
                             android:paddingHorizontal="16dp"
                             android:paddingVertical="8dp"
@@ -144,153 +237,147 @@
                             android:checked="true" />
 
                         <RadioButton
-                            android:id="@+id/radioOut"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="OUT"
-                            android:background="@drawable/button_cashout"
+                            android:id="@+id/radioOnline"
+                            android:layout_width="80dp"
+                            android:layout_height="40dp"
+                            android:text="Online"
+                            android:gravity="center"
+                            android:textColor="#000000"
+                            android:background="@drawable/button_blue"
                             android:button="@android:color/transparent"
                             android:paddingHorizontal="16dp"
                             android:paddingVertical="8dp" />
                     </RadioGroup>
-                </LinearLayout>
 
-                <RadioGroup
-                    android:id="@+id/cashOnlineToggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_gravity="end"
-                    android:layout_marginBottom="16dp" >
-
-                    <RadioButton
-                        android:id="@+id/radioCash"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Cash"
-                        android:textColor="#000000"
-                        android:background="@drawable/button_blue"
-                        android:button="@android:color/transparent"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:layout_marginEnd="5dp"
-                        android:checked="true" />
-
-                    <RadioButton
-                        android:id="@+id/radioOnline"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Online"
-                        android:textColor="#000000"
-                        android:background="@drawable/button_blue"
-                        android:button="@android:color/transparent"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp" />
-                </RadioGroup>
-
-                <EditText
-                    android:id="@+id/partyEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:hint="Party(Customer/Supplier)"
-                    android:background="@drawable/rounded_white"
-                    android:paddingHorizontal="12dp"
-                    android:textColor="#000000"
-                    android:textColorHint="#AAAAAA"
-                    android:layout_marginBottom="16dp"
-                    android:inputType="textPersonName" />
-
-                <EditText
-                    android:id="@+id/remarkEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:hint="Remark"
-                    android:background="@drawable/rounded_white"
-                    android:paddingHorizontal="12dp"
-                    android:textColor="#000000"
-                    android:textColorHint="#AAAAAA"
-                    android:layout_marginBottom="16dp"
-                    android:inputType="textMultiLine"
-                    android:maxLines="3" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="end|center_vertical"
-                    android:layout_marginBottom="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Attach Image or PDF"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        android:layout_marginEnd="8dp" />
-
-                    <ImageView
-                        android:id="@+id/attachFileButton"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_attach_file"
-                        android:contentDescription="Attach File"
-                        android:clickable="true"
-                        android:focusable="true" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
-
-                    <Spinner
-                        android:id="@+id/categorySpinner"
-                        android:layout_width="0dp"
+                    <!-- Party Dropdown/Contact Picker -->
+                    <LinearLayout
+                        android:id="@+id/partySelectorLayout"
+                        android:layout_width="match_parent"
                         android:layout_height="50dp"
-                        android:layout_weight="1"
+                        android:layout_marginBottom="16dp"
                         android:background="@drawable/rounded_white"
-                        android:spinnerMode="dropdown" />
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                    <View
-                        android:id="@+id/categoryColorIndicator"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/rounded_color_indicator" />
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/partyTextView"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:paddingStart="12dp"
+                            android:text="Party (Customer/Supplier)"
+                            android:textColor="#000000"
+                            android:textSize="16sp" />
+
+                        <ImageView
+                            android:id="@+id/partyPickerIcon"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="8dp"
+                            android:clickable="true"
+                            android:contentDescription="Select Contact"
+                            android:focusable="true"
+                            android:src="@drawable/ic_arrow_down"
+                            app:tint="#888888" />
+                    </LinearLayout>
 
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:layout_marginTop="16dp">
+                    <EditText
+                        android:id="@+id/remarkEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/rounded_white"
+                        android:hint="Remark"
+                        android:inputType="textMultiLine"
+                        android:maxLines="3"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#AAAAAA" />
 
-                    <Button
-                        android:id="@+id/deleteEntryButton"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Delete"
-                        android:backgroundTint="#D32F2F"
-                        android:textColor="#FFFFFF"
-                        android:paddingHorizontal="24dp"
-                        android:layout_marginEnd="16dp" />
+                        android:layout_marginBottom="16dp"
+                        android:gravity="end|center_vertical"
+                        android:orientation="horizontal">
 
-                    <Button
-                        android:id="@+id/saveChangesButton"
-                        android:layout_width="wrap_content"
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:text="Attach Image or PDF"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp" />
+
+                        <ImageView
+                            android:id="@+id/attachFileButton"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:clickable="true"
+                            android:contentDescription="Attach File"
+                            android:focusable="true"
+                            android:src="@drawable/ic_attach_file" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Save Changes"
-                        android:backgroundTint="#00796B"
-                        android:textColor="#FFFFFF"
-                        android:paddingHorizontal="24dp" />
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <Spinner
+                            android:id="@+id/categorySpinner"
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/rounded_white"
+                            android:spinnerMode="dropdown" />
+
+                        <View
+                            android:id="@+id/categoryColorIndicator"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/rounded_color_indicator" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/deleteEntryButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:backgroundTint="#D32F2F"
+                            android:paddingHorizontal="24dp"
+                            android:text="Delete"
+                            android:textColor="#FFFFFF" />
+
+                        <Button
+                            android:id="@+id/saveChangesButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:backgroundTint="#00796B"
+                            android:paddingHorizontal="24dp"
+                            android:text="Save Changes"
+                            android:textColor="#FFFFFF" />
+                    </LinearLayout>
+
                 </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-    </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+</RelativeLayout>

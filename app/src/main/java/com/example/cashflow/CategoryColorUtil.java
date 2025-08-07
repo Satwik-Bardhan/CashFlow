@@ -9,6 +9,7 @@ public class CategoryColorUtil {
 
     private static final Map<String, Integer> categoryColorMap = new HashMap<>();
 
+    // This block initializes the map with predefined category colors.
     static {
         categoryColorMap.put("Food", R.color.category_food);
         categoryColorMap.put("Transport", R.color.category_transport);
@@ -24,9 +25,16 @@ public class CategoryColorUtil {
         categoryColorMap.put("Select Category", R.color.category_default);
     }
 
+    /**
+     * Gets the color resource ID for a given category name.
+     * @param context The context to resolve the color.
+     * @param categoryName The name of the category.
+     * @return The resolved color integer.
+     */
     public static int getCategoryColor(Context context, String categoryName) {
         Integer colorResId = categoryColorMap.get(categoryName);
         if (colorResId == null) {
+            // Return a default color if the category name is not found.
             colorResId = R.color.category_default;
         }
         return ContextCompat.getColor(context, colorResId);

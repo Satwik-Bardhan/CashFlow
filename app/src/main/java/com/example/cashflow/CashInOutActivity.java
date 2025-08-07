@@ -3,32 +3,27 @@ package com.example.cashflow;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -43,111 +38,61 @@ public class CashInOutActivity extends AppCompatActivity {
 
     private static final String TAG = "CashInOutActivity";
 
-    private TextView dateTextView;
-    private EditText amountEditText, partyEditText, remarkEditText;
+    private TextView dateTextView, timeTextView, partyTextView, selectedCategoryTextView;
+    private EditText amountEditText, remarkEditText;
     private RadioGroup inOutToggle, cashOnlineToggle;
-    private RadioButton radioIn, radioOut, radioCash, radioOnline;
-    private ImageView attachFileButton;
-    private Spinner categorySpinner;
-    private TextView selectedCategoryTextView;
+    private RadioButton radioIn, radioOut;
     private View categoryColorIndicator;
-    private Button saveEntryButton;
-    private Button saveAndAddNewButton;
 
     private Calendar calendar;
-    private String selectedTransactionType = "IN";
-    private String selectedPaymentMode = "Cash";
     private String currentSelectedCategory = "Select Category";
-    private String currentSelectedCategoryColor;
+    private String currentSelectedCategoryColor = "";
+    private String currentCashbookId;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
 
-    private LinearLayout btnTransactions;
-    private LinearLayout btnHome;
-    private LinearLayout btnSettings;
-
-    private ImageView backButton;
-    private String currentCashbookId; // New: To store the active cashbook ID
-
     private ActivityResultLauncher<Intent> chooseCategoryLauncher;
+    private ActivityResultLauncher<Intent> pickContactLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_cash_in_out);
-
-        currentSelectedCategoryColor = String.format("#%06X", (0xFFFFFF & ContextCompat.getColor(this, R.color.category_default)));
-
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root_layout), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
-
-            LinearLayout fixedBottomContainer = findViewById(R.id.fixedBottomContainer);
-            if (fixedBottomContainer != null) {
-                fixedBottomContainer.setPadding(
-                        fixedBottomContainer.getPaddingLeft(),
-                        fixedBottomContainer.getPaddingTop(),
-                        fixedBottomContainer.getPaddingRight(),
-                        systemBars.bottom
-                );
-            }
-            return insets;
-        });
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // Get the current cashbook ID from the Intent
-        if (getIntent() != null) {
-            currentCashbookId = getIntent().getStringExtra("cashbook_id");
-            if (currentCashbookId == null) {
-                Log.e(TAG, "No cashbook ID received. This activity may not function correctly.");
-                Toast.makeText(this, "Error: No active cashbook found.", Toast.LENGTH_LONG).show();
-            }
+        currentCashbookId = getIntent().getStringExtra("cashbook_id");
+        if (currentCashbookId == null) {
+            Toast.makeText(this, "Error: No active cashbook found.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
         }
 
+        initializeUI();
+        setupLaunchers();
+        setupClickListeners();
+        setupInitialState();
+    }
 
+    private void initializeUI() {
         dateTextView = findViewById(R.id.dateTextView);
+        timeTextView = findViewById(R.id.timeTextView);
         amountEditText = findViewById(R.id.amountEditText);
-        partyEditText = findViewById(R.id.partyEditText);
         remarkEditText = findViewById(R.id.remarkEditText);
+        partyTextView = findViewById(R.id.partyTextView);
         inOutToggle = findViewById(R.id.inOutToggle);
         radioIn = findViewById(R.id.radioIn);
         radioOut = findViewById(R.id.radioOut);
         cashOnlineToggle = findViewById(R.id.cashOnlineToggle);
-        radioCash = findViewById(R.id.radioCash);
-        radioOnline = findViewById(R.id.radioOnline);
-        attachFileButton = findViewById(R.id.attachFileButton);
-        categorySpinner = findViewById(R.id.categorySpinner);
         selectedCategoryTextView = findViewById(R.id.selectedCategoryTextView);
         categoryColorIndicator = findViewById(R.id.categoryColorIndicator);
-        saveEntryButton = findViewById(R.id.saveEntryButton);
-        saveAndAddNewButton = findViewById(R.id.saveAndAddNewButton);
-        backButton = findViewById(R.id.backButton);
+        currentSelectedCategoryColor = String.format("#%06X", (0xFFFFFF & ContextCompat.getColor(this, R.color.category_default)));
+    }
 
-        btnTransactions = findViewById(R.id.btnTransactions);
-        btnHome = findViewById(R.id.btnHome);
-        btnSettings = findViewById(R.id.btnSettings);
-
-
-        if (dateTextView == null || amountEditText == null || partyEditText == null || remarkEditText == null ||
-                inOutToggle == null || radioIn == null || radioOut == null || cashOnlineToggle == null ||
-                radioCash == null || radioOnline == null || attachFileButton == null || categorySpinner == null ||
-                selectedCategoryTextView == null || categoryColorIndicator == null || saveEntryButton == null || saveAndAddNewButton == null ||
-                backButton == null ||
-                btnTransactions == null || btnHome == null || btnSettings == null) {
-            Log.e(TAG, "One or more UI components not found in activity_cash_in_out.xml");
-            Toast.makeText(this, "Error: Missing UI elements. Check layout IDs.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
+    private void setupLaunchers() {
         chooseCategoryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -155,199 +100,159 @@ public class CashInOutActivity extends AppCompatActivity {
                         currentSelectedCategory = result.getData().getStringExtra("selected_category_name");
                         currentSelectedCategoryColor = result.getData().getStringExtra("selected_category_color_hex");
                         updateSelectedCategoryDisplay();
-                        Log.d(TAG, "Category selected from ChooseCategoryActivity: " + currentSelectedCategory + ", Color: " + currentSelectedCategoryColor);
-                    } else {
-                        Log.d(TAG, "Category selection cancelled or failed.");
                     }
-                }
-        );
+                });
 
+        pickContactLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri contactUri = result.getData().getData();
+                        String[] projection = {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME};
+                        try (Cursor cursor = getContentResolver().query(contactUri, projection, null, null, null)) {
+                            if (cursor != null && cursor.moveToFirst()) {
+                                int nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                                partyTextView.setText(cursor.getString(nameIndex));
+                            }
+                        } catch (Exception e) {
+                            Toast.makeText(this, "Failed to get contact name.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    private void setupClickListeners() {
+        findViewById(R.id.backButton).setOnClickListener(v -> finish());
+        dateTextView.setOnClickListener(v -> showDatePickerDialog());
+        timeTextView.setOnClickListener(v -> showTimePickerDialog());
+        findViewById(R.id.partyPickerIcon).setOnClickListener(v -> pickContact());
+        partyTextView.setOnClickListener(v -> pickContact());
+        selectedCategoryTextView.setOnClickListener(v -> openChooseCategoryActivity());
+        categoryColorIndicator.setOnClickListener(v -> openChooseCategoryActivity());
+        findViewById(R.id.saveEntryButton).setOnClickListener(v -> saveTransactionEntry(true));
+        findViewById(R.id.saveAndAddNewButton).setOnClickListener(v -> saveTransactionEntry(false));
+    }
+
+    private void setupInitialState() {
         String initialTransactionType = getIntent().getStringExtra("transaction_type");
         if ("OUT".equals(initialTransactionType)) {
             radioOut.setChecked(true);
-            selectedTransactionType = "OUT";
-            amountEditText.setHintTextColor(ContextCompat.getColor(this, R.color.cash_out_hint_red));
         } else {
             radioIn.setChecked(true);
-            selectedTransactionType = "IN";
-            amountEditText.setHintTextColor(ContextCompat.getColor(this, R.color.cash_in_hint_green));
         }
 
         calendar = Calendar.getInstance();
         updateDateInView();
-        dateTextView.setOnClickListener(v -> showDatePickerDialog());
-
-        inOutToggle.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.radioIn) {
-                selectedTransactionType = "IN";
-                amountEditText.setHintTextColor(ContextCompat.getColor(this, R.color.cash_in_hint_green));
-            } else if (checkedId == R.id.radioOut) {
-                selectedTransactionType = "OUT";
-                amountEditText.setHintTextColor(ContextCompat.getColor(this, R.color.cash_out_hint_red));
-            }
-            Log.d(TAG, "Transaction Type: " + selectedTransactionType);
-        });
-
-        cashOnlineToggle.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.radioCash) {
-                selectedPaymentMode = "Cash";
-            } else if (checkedId == R.id.radioOnline) {
-                selectedPaymentMode = "Online";
-            }
-            Log.d(TAG, "Payment Mode: " + selectedPaymentMode);
-        });
-        if (radioCash.isChecked()) {
-            selectedPaymentMode = "Cash";
-        } else if (radioOnline.isChecked()) {
-            selectedPaymentMode = "Online";
-        }
-
-        categorySpinner.setVisibility(View.GONE);
+        updateTimeInView();
         updateSelectedCategoryDisplay();
-
-        selectedCategoryTextView.setOnClickListener(v -> openChooseCategoryActivity());
-        categoryColorIndicator.setOnClickListener(v -> openChooseCategoryActivity());
-
-        attachFileButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Attach File functionality coming soon!", Toast.LENGTH_SHORT).show();
-        });
-
-        saveEntryButton.setOnClickListener(v -> saveTransactionEntry(true));
-        saveAndAddNewButton.setOnClickListener(v -> saveTransactionEntry(false));
-
-        backButton.setOnClickListener(v -> finish());
-
-        btnTransactions.setOnClickListener(v -> {
-            Intent intent = new Intent(CashInOutActivity.this, TransactionActivity.class);
-            intent.putExtra("cashbook_id", currentCashbookId);
-            startActivity(intent);
-            finish();
-        });
-
-        btnHome.setOnClickListener(v -> {
-            Intent intent = new Intent(CashInOutActivity.this, HomePage.class);
-            startActivity(intent);
-            finish();
-        });
-
-        btnSettings.setOnClickListener(v -> {
-            Intent intent = new Intent(CashInOutActivity.this, SettingsActivity.class);
-            startActivity(intent);
-            finish();
-        });
     }
 
     private void openChooseCategoryActivity() {
-        Intent intent = new Intent(CashInOutActivity.this, ChooseCategoryActivity.class);
+        Intent intent = new Intent(this, ChooseCategoryActivity.class);
         intent.putExtra("selected_category_name", currentSelectedCategory);
         intent.putExtra("selected_category_color_hex", currentSelectedCategoryColor);
         chooseCategoryLauncher.launch(intent);
     }
 
-    @SuppressLint("SetTextI18n")
+    private void pickContact() {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
+        pickContactLauncher.launch(intent);
+    }
+
     private void updateSelectedCategoryDisplay() {
         selectedCategoryTextView.setText(currentSelectedCategory);
         try {
             categoryColorIndicator.setBackgroundColor(Color.parseColor(currentSelectedCategoryColor));
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Invalid color hex: " + currentSelectedCategoryColor + ", using default.", e);
+        } catch (Exception e) {
             categoryColorIndicator.setBackgroundColor(ContextCompat.getColor(this, R.color.category_default));
         }
     }
 
     private void showDatePickerDialog() {
-        new DatePickerDialog(this, (view, year, monthOfYear, dayOfMonth) -> {
+        new DatePickerDialog(this, (view, year, month, day) -> {
             calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.MONTH, monthOfYear);
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, day);
             updateDateInView();
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
+    private void showTimePickerDialog() {
+        new TimePickerDialog(this, (view, hour, minute) -> {
+            calendar.set(Calendar.HOUR_OF_DAY, hour);
+            calendar.set(Calendar.MINUTE, minute);
+            updateTimeInView();
+        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false).show();
+    }
+
     private void updateDateInView() {
-        String myFormat = "MMM dd, yyyy";
-        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         dateTextView.setText(sdf.format(calendar.getTime()));
     }
 
-    private void saveTransactionEntry(boolean shouldGoHome) {
+    private void updateTimeInView() {
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.US);
+        timeTextView.setText(sdf.format(calendar.getTime()));
+    }
+
+    private void saveTransactionEntry(boolean shouldFinish) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "Please sign in to save transactions.", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (currentCashbookId == null) {
-            Toast.makeText(this, "Error: No active cashbook selected.", Toast.LENGTH_LONG).show();
-            return;
-        }
 
-        String userId = currentUser.getUid();
         String amountStr = amountEditText.getText().toString().trim();
-        String partyName = partyEditText.getText().toString().trim();
-        String remark = remarkEditText.getText().toString().trim();
-        String transactionCategory = currentSelectedCategory;
-        String date = dateTextView.getText().toString();
-
-        if (TextUtils.isEmpty(amountStr)) {
-            amountEditText.setError("Amount is required");
-            amountEditText.requestFocus();
-            return;
-        }
-        double amount = Double.parseDouble(amountStr);
-        if (amount <= 0) {
+        if (TextUtils.isEmpty(amountStr) || Double.parseDouble(amountStr) <= 0) {
             amountEditText.setError("Amount must be greater than zero");
-            amountEditText.requestFocus();
+            return;
+        }
+        if ("Select Category".equals(currentSelectedCategory)) {
+            Toast.makeText(this, "Please select a category.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        long currentTimestamp = System.currentTimeMillis();
+        DatabaseReference transactionRef = mDatabase.child("users").child(currentUser.getUid())
+                .child("cashbooks").child(currentCashbookId).child("transactions");
+        String transactionId = transactionRef.push().getKey();
 
-        TransactionModel newTransaction = new TransactionModel(
-                null,
-                transactionCategory,
-                partyName,
-                amount,
-                date,
-                selectedTransactionType,
-                selectedPaymentMode,
-                remark,
-                currentTimestamp
-        );
+        TransactionModel newTransaction = new TransactionModel();
+        newTransaction.setTransactionId(transactionId);
+        newTransaction.setAmount(Double.parseDouble(amountStr));
+        newTransaction.setTimestamp(calendar.getTimeInMillis());
+        newTransaction.setType(inOutToggle.getCheckedRadioButtonId() == R.id.radioIn ? "IN" : "OUT");
+        newTransaction.setPaymentMode(cashOnlineToggle.getCheckedRadioButtonId() == R.id.radioCash ? "Cash" : "Online");
+        newTransaction.setTransactionCategory(currentSelectedCategory);
+        newTransaction.setPartyName(partyTextView.getText().toString());
+        newTransaction.setRemark(remarkEditText.getText().toString().trim());
 
-        // Updated path to save to the specific cashbook
-        String transactionId = mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").push().getKey();
         if (transactionId != null) {
-            newTransaction.setTransactionId(transactionId);
-            mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").child(transactionId).setValue(newTransaction)
+            transactionRef.child(transactionId).setValue(newTransaction)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(CashInOutActivity.this, "Transaction saved successfully!", Toast.LENGTH_SHORT).show();
-                        clearForm();
-                        if (shouldGoHome) {
-                            Intent intent = new Intent(CashInOutActivity.this, HomePage.class);
-                            startActivity(intent);
+                        Toast.makeText(this, "Transaction saved!", Toast.LENGTH_SHORT).show();
+                        if (shouldFinish) {
                             finish();
+                        } else {
+                            clearForm();
                         }
                     })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error saving transaction: " + e.getMessage());
-                        Toast.makeText(CashInOutActivity.this, "Failed to save transaction: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-        } else {
-            Toast.makeText(this, "Could not generate transaction ID.", Toast.LENGTH_SHORT).show();
+                    .addOnFailureListener(e -> Toast.makeText(this, "Failed to save transaction.", Toast.LENGTH_LONG).show());
         }
     }
 
     private void clearForm() {
         amountEditText.setText("");
-        partyEditText.setText("");
+        partyTextView.setText("Party (Customer/Supplier)");
         remarkEditText.setText("");
         currentSelectedCategory = "Select Category";
         currentSelectedCategoryColor = String.format("#%06X", (0xFFFFFF & ContextCompat.getColor(this, R.color.category_default)));
         updateSelectedCategoryDisplay();
-
         radioIn.setChecked(true);
-        radioCash.setChecked(true);
+        ((RadioGroup)findViewById(R.id.cashOnlineToggle)).check(R.id.radioCash);
         calendar = Calendar.getInstance();
         updateDateInView();
+        updateTimeInView();
+        amountEditText.requestFocus();
     }
 }
