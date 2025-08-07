@@ -1,13 +1,18 @@
 package com.example.cashflow;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -19,6 +24,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,7 +34,6 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.utils.ColorTemplate;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -35,9 +41,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -46,18 +58,21 @@ import java.util.Map;
 public class TransactionActivity extends AppCompatActivity implements TransactionAdapter.OnItemClickListener {
 
     private static final String TAG = "TransactionActivity";
+    private static final int STORAGE_PERMISSION_CODE = 101;
 
     private List<TransactionModel> allTransactions = new ArrayList<>();
     private List<TransactionModel> displayedTransactions = new ArrayList<>();
     private TransactionAdapter transactionAdapter;
     private RecyclerView transactionRecyclerView;
     private PieChart pieChart;
+    private Button downloadReportButton;
 
     private TextView incomeText, expenseText, balanceText;
     private EditText searchEditText;
     private LinearLayout filterOptionsLayout;
     private RadioGroup filterTypeToggle, filterModeToggle;
     private TextView filterCategoryTextView;
+    private LinearLayout btnHome, btnTransactions, btnSettings;
 
     private String currentFilterType = "All";
     private String currentFilterMode = "All";
@@ -102,17 +117,22 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         filterTypeToggle = findViewById(R.id.filterTypeToggle);
         filterModeToggle = findViewById(R.id.filterModeToggle);
         filterCategoryTextView = findViewById(R.id.filterCategoryTextView);
+        btnHome = findViewById(R.id.btnHome);
+        btnTransactions = findViewById(R.id.btnTransactions);
+        btnSettings = findViewById(R.id.btnSettings);
+        downloadReportButton = findViewById(R.id.downloadReportButton);
     }
 
     private void setupRecyclerView() {
         transactionRecyclerView = findViewById(R.id.transactionRecyclerView);
         transactionRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        // Correction: The constructor for TransactionAdapter takes two arguments.
         transactionAdapter = new TransactionAdapter(displayedTransactions, this);
         transactionRecyclerView.setAdapter(transactionAdapter);
     }
 
     private void setupClickListeners() {
+        downloadReportButton.setOnClickListener(v -> checkPermissionAndCreatePdf());
+        // ... (other click listeners remain the same) ...
         findViewById(R.id.toggleFilterButton).setOnClickListener(v -> toggleFilterOptionsVisibility());
         findViewById(R.id.clearAllFiltersButton).setOnClickListener(v -> clearAllFilters());
         findViewById(R.id.clearCategoryFilterButton).setOnClickListener(v -> clearCategoryFilter());
@@ -143,13 +163,12 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
             filterTransactions();
         });
 
-        // Using your original LinearLayout buttons for navigation
-        findViewById(R.id.btnHome).setOnClickListener(v -> {
+        btnHome.setOnClickListener(v -> {
             startActivity(new Intent(this, HomePage.class));
             finish();
         });
-        findViewById(R.id.btnTransactions).setOnClickListener(v -> Toast.makeText(this, "Already on Transactions", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.btnSettings).setOnClickListener(v -> {
+        btnTransactions.setOnClickListener(v -> Toast.makeText(this, "Already on Transactions", Toast.LENGTH_SHORT).show());
+        btnSettings.setOnClickListener(v -> {
             startActivity(new Intent(this, SettingsActivity.class));
             finish();
         });
@@ -167,6 +186,77 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
                 });
     }
 
+    // --- PDF GENERATION LOGIC ---
+
+    private void checkPermissionAndCreatePdf() {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) { // For Android 9 (Pie) and below
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+            } else {
+                createPdf();
+            }
+        } else { // For Android 10 and above, Scoped Storage is used, no special permission needed for Downloads folder
+            createPdf();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                createPdf();
+            } else {
+                Toast.makeText(this, "Storage permission denied.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void createPdf() {
+        String fileName = "Transaction_Report_" + System.currentTimeMillis() + ".pdf";
+        String filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + fileName;
+
+        try {
+            Document document = new Document();
+            PdfWriter.getInstance(document, new FileOutputStream(filePath));
+            document.open();
+
+            // Add Title
+            document.add(new Paragraph("Transaction Report"));
+            document.add(new Paragraph("Generated on: " + new Date().toString()));
+            document.add(new Paragraph(" ")); // Empty line
+
+            // Add Summary
+            document.add(new Paragraph("Summary:"));
+            document.add(new Paragraph("Total Income: " + incomeText.getText().toString()));
+            document.add(new Paragraph("Total Expense: " + expenseText.getText().toString()));
+            document.add(new Paragraph("Balance: " + balanceText.getText().toString()));
+            document.add(new Paragraph("--------------------------------------------------"));
+            document.add(new Paragraph(" "));
+
+            // Add Transaction Details
+            document.add(new Paragraph("Details:"));
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+            for (TransactionModel transaction : displayedTransactions) {
+                String type = "IN".equalsIgnoreCase(transaction.getType()) ? "(+)" : "(-)";
+                String line = String.format(Locale.US, "%s %s : ₹%.2f on %s",
+                        type,
+                        transaction.getTransactionCategory(),
+                        transaction.getAmount(),
+                        sdf.format(new Date(transaction.getTimestamp())));
+                document.add(new Paragraph(line));
+            }
+
+            document.close();
+            Toast.makeText(this, "PDF saved to Downloads folder.", Toast.LENGTH_LONG).show();
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Error creating PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+    }
+
+    // ... (All other methods like onStart, onStop, filterTransactions, etc., remain the same) ...
     @Override
     protected void onStart() {
         super.onStart();

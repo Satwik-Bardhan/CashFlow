@@ -2,23 +2,30 @@ package com.example.cashflow;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
-import android.view.Gravity;
+import android.view.Gravity; // Correction: Added the missing import for Gravity
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -49,11 +56,13 @@ public class HomePage extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
-    private ValueEventListener transactionsListener, userProfileListener, cashbooksListener;
+    private ValueEventListener transactionsListener, cashbooksListener;
 
     private ArrayList<TransactionModel> allTransactions = new ArrayList<>();
     private List<CashbookModel> cashbooks = new ArrayList<>();
     private String currentCashbookId;
+
+    private AlertDialog cashbookDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +103,7 @@ public class HomePage extends AppCompatActivity {
         cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
         cashOutButton.setOnClickListener(v -> openCashInOutActivity("OUT"));
         viewFullTransactionsButton.setOnClickListener(v -> navigateToTransactionList());
-        userBox.setOnClickListener(v -> showUserDropdown()); // This is the click that opens the dropdown
+        userBox.setOnClickListener(v -> showUserDropdown());
         btnHome.setOnClickListener(v -> Toast.makeText(HomePage.this, "Already on Home", Toast.LENGTH_SHORT).show());
         btnTransactions.setOnClickListener(v -> navigateToTransactionList());
         btnSettings.setOnClickListener(v -> startActivity(new Intent(HomePage.this, SettingsActivity.class)));
@@ -117,53 +126,179 @@ public class HomePage extends AppCompatActivity {
         removeFirebaseListeners();
     }
 
-    // --- DROPDOWN AND CASHBOOK LOGIC ---
 
-    /**
-     * This method is called when the user taps on the user box.
-     * It builds and displays the AlertDialog with the list of cashbooks.
-     */
     private void showUserDropdown() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null || cashbooks.isEmpty()) {
-            // If there are no cashbooks, prompt to create one instead of showing a list
-            showCreateFirstCashbookDialog(currentUser != null ? currentUser.getUid() : null);
-            return;
-        }
+        if (currentUser == null) return;
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_cashbook_switcher, null);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Switch or Add Cashbook");
+        builder.setView(dialogView);
 
-        List<String> options = new ArrayList<>();
-        final List<String> cashbookIds = new ArrayList<>();
+        ListView listView = dialogView.findViewById(R.id.cashbookListView);
+        Button addNewButton = dialogView.findViewById(R.id.addNewButton);
+        Button cancelButton = dialogView.findViewById(R.id.cancelButton);
 
-        for (CashbookModel cashbook : cashbooks) {
-            String displayText = cashbook.getName();
-            if (cashbook.getId().equals(currentCashbookId)) {
-                displayText += " (Active)";
-            }
-            options.add(displayText);
-            cashbookIds.add(cashbook.getId());
+        cashbookDialog = builder.create();
+
+        CashbookAdapter adapter = new CashbookAdapter(this, cashbooks, currentUser.getUid(), cashbookDialog);
+        listView.setAdapter(adapter);
+
+        addNewButton.setOnClickListener(v -> {
+            showCreateNewCashbookDialog();
+            cashbookDialog.dismiss();
+        });
+
+        cancelButton.setOnClickListener(v -> cashbookDialog.dismiss());
+
+        cashbookDialog.show();
+    }
+
+    private class CashbookAdapter extends ArrayAdapter<CashbookModel> {
+        private String userId;
+        private AlertDialog dialog;
+
+        public CashbookAdapter(Context context, List<CashbookModel> cashbooks, String userId, AlertDialog dialog) {
+            super(context, 0, cashbooks);
+            this.userId = userId;
+            this.dialog = dialog;
         }
-        options.add("+ Add New Cashbook");
 
-        builder.setItems(options.toArray(new String[0]), (dialog, which) -> {
-            if (which == options.size() - 1) {
-                // Last item ("+ Add New Cashbook") was clicked
-                showCreateNewCashbookDialog();
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_item_cashbook, parent, false);
+            }
+
+            CashbookModel cashbook = getItem(position);
+            TextView nameTextView = convertView.findViewById(R.id.cashbookNameTextView);
+            ImageView optionsMenu = convertView.findViewById(R.id.optionsMenuButton);
+
+            String displayName = cashbook.getName();
+            if (cashbook.getId().equals(currentCashbookId)) {
+                displayName += " (Active)";
+                nameTextView.setTypeface(null, Typeface.BOLD);
             } else {
-                // An existing cashbook was clicked
-                String selectedId = cashbookIds.get(which);
-                if (!selectedId.equals(currentCashbookId)) {
-                    switchCashbook(selectedId);
-                } else {
-                    Toast.makeText(HomePage.this, "This is already the active cashbook.", Toast.LENGTH_SHORT).show();
+                nameTextView.setTypeface(null, Typeface.NORMAL);
+            }
+            nameTextView.setText(displayName);
+
+            convertView.setOnClickListener(v -> {
+                if (!cashbook.getId().equals(currentCashbookId)) {
+                    switchCashbook(cashbook.getId());
                 }
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            });
+
+            optionsMenu.setOnClickListener(v -> {
+                PopupMenu popup = new PopupMenu(getContext(), v);
+                popup.getMenuInflater().inflate(R.menu.cashbook_options_menu, popup.getMenu());
+                popup.setOnMenuItemClickListener(item -> {
+                    int itemId = item.getItemId();
+                    if (itemId == R.id.menu_rename) {
+                        showRenameDialog(cashbook);
+                        dialog.dismiss();
+                        return true;
+                    } else if (itemId == R.id.menu_delete) {
+                        showDeleteDialog(cashbook);
+                        dialog.dismiss();
+                        return true;
+                    } else if (itemId == R.id.menu_duplicate) {
+                        duplicateCashbook(cashbook);
+                        dialog.dismiss();
+                        return true;
+                    }
+                    return false;
+                });
+                popup.show();
+            });
+
+            return convertView;
+        }
+    }
+
+    private void showRenameDialog(CashbookModel cashbook) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) return;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Rename Cashbook");
+
+        final EditText input = new EditText(this);
+        input.setText(cashbook.getName());
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("Rename", (dialog, which) -> {
+            String newName = input.getText().toString().trim();
+            if (!newName.isEmpty() && !newName.equals(cashbook.getName())) {
+                mDatabase.child("users").child(currentUser.getUid()).child("cashbooks")
+                        .child(cashbook.getId()).child("name").setValue(newName)
+                        .addOnSuccessListener(aVoid -> Toast.makeText(this, "Renamed successfully.", Toast.LENGTH_SHORT).show());
             }
         });
+        builder.setNegativeButton("Cancel", null);
         builder.show();
     }
 
+    private void showDeleteDialog(CashbookModel cashbook) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) return;
+
+        if (cashbooks.size() <= 1) {
+            Toast.makeText(this, "You cannot delete your only cashbook.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Cashbook")
+                .setMessage("Are you sure you want to delete '" + cashbook.getName() + "'? This will delete all its transactions.")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    mDatabase.child("users").child(currentUser.getUid()).child("cashbooks")
+                            .child(cashbook.getId()).removeValue()
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Cashbook deleted.", Toast.LENGTH_SHORT).show();
+                                if (cashbook.getId().equals(currentCashbookId)) {
+                                    switchCashbook(cashbooks.get(0).getId());
+                                }
+                            });
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void duplicateCashbook(CashbookModel cashbookToDuplicate) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) return;
+
+        String userId = currentUser.getUid();
+        DatabaseReference cashbooksRef = mDatabase.child("users").child(userId).child("cashbooks");
+        String newCashbookId = cashbooksRef.push().getKey();
+
+        if (newCashbookId != null) {
+            CashbookModel newCashbook = new CashbookModel(newCashbookId, cashbookToDuplicate.getName() + " (Copy)");
+            cashbooksRef.child(newCashbookId).setValue(newCashbook)
+                    .addOnSuccessListener(aVoid -> {
+                        DatabaseReference oldTransactionsRef = cashbooksRef.child(cashbookToDuplicate.getId()).child("transactions");
+                        DatabaseReference newTransactionsRef = cashbooksRef.child(newCashbookId).child("transactions");
+
+                        oldTransactionsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                newTransactionsRef.setValue(dataSnapshot.getValue())
+                                        .addOnSuccessListener(aVoid1 -> Toast.makeText(HomePage.this, "Cashbook duplicated.", Toast.LENGTH_SHORT).show());
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {}
+                        });
+                    });
+        }
+    }
     private void showCreateNewCashbookDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create New Cashbook");
@@ -184,7 +319,6 @@ public class HomePage extends AppCompatActivity {
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
     }
-
     private void createNewCashbook(String name) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
@@ -198,7 +332,6 @@ public class HomePage extends AppCompatActivity {
             cashbooksRef.child(cashbookId).setValue(newCashbook)
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(HomePage.this, "Cashbook '" + name + "' created!", Toast.LENGTH_SHORT).show();
-                        // Automatically switch to the new cashbook
                         switchCashbook(cashbookId);
                     })
                     .addOnFailureListener(e -> Toast.makeText(HomePage.this, "Failed to create cashbook.", Toast.LENGTH_LONG).show());
@@ -209,23 +342,15 @@ public class HomePage extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
 
-        // Detach the listener from the old cashbook's transactions
         if (transactionsListener != null && currentCashbookId != null) {
             mDatabase.child("users").child(currentUser.getUid()).child("cashbooks").child(currentCashbookId).child("transactions").removeEventListener(transactionsListener);
         }
 
         currentCashbookId = newCashbookId;
         saveActiveCashbookId(currentUser.getUid(), currentCashbookId);
-
-        // Update UI and attach listener to the new cashbook's transactions
         updateUserUI();
         startListeningForTransactions(currentUser.getUid());
-
-        Toast.makeText(this, "Switched to new cashbook.", Toast.LENGTH_SHORT).show();
     }
-
-    // --- OTHER METHODS ---
-
     private void handleGuestMode() {
         allTransactions.clear();
         updateTransactionTableAndSummary();

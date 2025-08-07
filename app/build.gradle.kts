@@ -55,4 +55,6 @@ dependencies {
     implementation("com.intuit.sdp:sdp-android:1.1.1")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.github.QuadFlask:colorpicker:0.0.15")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.itextpdf:itextg:5.5.10")
 }
