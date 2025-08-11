@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RadioGroup
+        android:id="@+id/entry_type_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/radio_all_types"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="All"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/radio_cash_in"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cash In" />
+
+        <RadioButton
+            android:id="@+id/radio_cash_out"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cash Out" />
+
+    </RadioGroup>
+
+</LinearLayout>

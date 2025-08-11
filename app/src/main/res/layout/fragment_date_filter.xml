@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RadioGroup
+        android:id="@+id/date_options_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/radio_all_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="All Time"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/radio_today"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Today" />
+
+        <RadioButton
+            android:id="@+id/radio_yesterday"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Yesterday" />
+
+        <RadioButton
+            android:id="@+id/radio_this_month"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="This Month" />
+
+        <RadioButton
+            android:id="@+id/radio_last_month"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Last Month" />
+
+        <RadioButton
+            android:id="@+id/radio_single_day"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Single Day" />
+
+        <RadioButton
+            android:id="@+id/radio_date_range"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Date Range" />
+
+    </RadioGroup>
+
+</LinearLayout>

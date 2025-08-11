@@ -8,10 +8,21 @@
     android:background="#2B2B2B"
     android:fitsSystemWindows="true">
 
+    <!-- 1. Search Bar (Fixed at the Top) using the simplified layout -->
+    <include
+        android:id="@+id/search_bar_container"
+        layout="@layout/layout_search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_margin="16dp" />
+
+    <!-- 2. Scrollable Content Area -->
     <ScrollView
         android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/search_bar_container"
         android:layout_above="@+id/fixedBottomContainer"
         android:fillViewport="true">
 
@@ -21,14 +32,13 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Summary Cards and Pie Chart -->
+            <!-- Summary Cards -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -46,7 +56,6 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -54,7 +63,6 @@
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
                             android:textStyle="bold" />
-
                         <TextView
                             android:id="@+id/incomeText"
                             android:layout_width="wrap_content"
@@ -64,7 +72,6 @@
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
-
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
@@ -74,7 +81,6 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -82,7 +88,6 @@
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
                             android:textStyle="bold" />
-
                         <TextView
                             android:id="@+id/expenseText"
                             android:layout_width="wrap_content"
@@ -92,7 +97,6 @@
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
-
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -102,7 +106,6 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -110,7 +113,6 @@
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
                             android:textStyle="bold" />
-
                         <TextView
                             android:id="@+id/balanceText"
                             android:layout_width="wrap_content"
@@ -123,224 +125,12 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- Pie Chart -->
             <com.github.mikephil.charting.charts.PieChart
                 android:id="@+id/pieChart"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:layout_marginBottom="16dp" />
-
-            <!-- Search and Filter Bar -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#FFFFFF"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="8dp">
-                    <ImageView
-                        android:id="@+id/searchButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:src="@drawable/ic_search" />
-
-                    <EditText
-                        android:id="@+id/searchEditText"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@android:color/transparent"
-                        android:hint="Search transactions..."
-                        android:paddingHorizontal="8dp" />
-
-                    <ImageView
-                        android:id="@+id/sortButton"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="8dp"
-                        android:src="@drawable/ic_sort"
-                        android:contentDescription="Sort Transactions" />
-
-                    <ImageView
-                        android:id="@+id/toggleFilterButton"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="8dp"
-                        android:src="@drawable/ic_filter" />
-
-                    <ImageView
-                        android:id="@+id/clearAllFiltersButton"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="8dp"
-                        android:src="@drawable/ic_clear_filters"
-                        android:contentDescription="Clear All Filters" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Filter Options (Modified) -->
-            <LinearLayout
-                android:id="@+id/filterOptionsLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/rounded_white"
-                android:orientation="vertical"
-                android:padding="12dp"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <!-- Type and Mode RadioGroups -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:text="Type:"
-                        android:textColor="#000000"/>
-                    <RadioGroup
-                        android:id="@+id/filterTypeToggle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="horizontal">
-                        <RadioButton
-                            android:id="@+id/filterAllType"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:text="All"/>
-                        <RadioButton
-                            android:id="@+id/filterInType"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="IN"/>
-                        <RadioButton
-                            android:id="@+id/filterOutType"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="OUT"/>
-                    </RadioGroup>
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:text="Mode:"
-                        android:textColor="#000000"/>
-                    <RadioGroup
-                        android:id="@+id/filterModeToggle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="horizontal">
-                        <RadioButton
-                            android:id="@+id/filterAllMode"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:text="All"/>
-                        <RadioButton
-                            android:id="@+id/filterCashMode"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Cash"/>
-                        <RadioButton
-                            android:id="@+id/filterOnlineMode"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Online"/>
-                    </RadioGroup>
-                </LinearLayout>
-
-                <!-- Date Range Filter -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Date Range:"
-                    android:textColor="#000000"
-                    android:layout_marginTop="8dp"/>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:id="@+id/startDateTextView"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Start Date"
-                        android:padding="8dp"
-                        android:background="@drawable/rounded_white_readonly"/>
-                    <TextView
-                        android:id="@+id/endDateTextView"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:text="End Date"
-                        android:padding="8dp"
-                        android:background="@drawable/rounded_white_readonly"/>
-                </LinearLayout>
-
-                <!-- Category Filter -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:text="Category:"
-                        android:textColor="#000000"/>
-
-                    <TextView
-                        android:id="@+id/filterCategoryTextView"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/rounded_white"
-                        android:clickable="true"
-                        android:drawableEnd="@drawable/ic_arrow_down"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="8dp"
-                        android:text="All Categories"/>
-
-                    <!-- Correction: Added the missing clear button back -->
-                    <ImageView
-                        android:id="@+id/clearCategoryFilterButton"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginStart="8dp"
-                        android:clickable="true"
-                        android:contentDescription="Clear Category Filter"
-                        android:focusable="true"
-                        android:src="@drawable/ic_clear"
-                        app:tint="#888888" />
-                </LinearLayout>
-
-            </LinearLayout>
 
             <!-- Transactions Title and Download Button -->
             <RelativeLayout
@@ -375,12 +165,12 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- 3. Bottom Navigation (Fixed at the Bottom) -->
     <LinearLayout
         android:id="@+id/fixedBottomContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true">
-        <!-- Bottom Navigation -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

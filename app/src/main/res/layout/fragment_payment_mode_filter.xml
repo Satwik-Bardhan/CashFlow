@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <EditText
+        android:id="@+id/search_payment_mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="8dp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Entries with"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <CheckBox
+        android:id="@+id/checkbox_no_mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No Payment Mode" />
+
+    <CheckBox
+        android:id="@+id/checkbox_cash"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cash" />
+
+    <CheckBox
+        android:id="@+id/checkbox_online"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Online" />
+
+</LinearLayout>

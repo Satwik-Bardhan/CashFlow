@@ -8,7 +8,6 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
-        android:name=".MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -40,6 +39,9 @@
         <activity android:name=".ForgotPassword" android:exported="false" />
         <activity android:name=".Signup" android:exported="false" />
         <activity android:name=".Signin" android:exported="false" />
+
+        <!-- Correction: Added the new FiltersActivity declaration -->
+        <activity android:name=".FiltersActivity" android:exported="false" />
 
         <!-- This activity routes the user and should not be exported -->
         <activity android:name=".MainActivity" android:exported="false" />
