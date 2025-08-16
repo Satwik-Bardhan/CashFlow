@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:fontFamily="@font/inter_italic"
-            android:text="Track Your Finance"
+            android:text="_Track Your Finance_"
             android:textColor="#DADADA"
             android:textSize="14sp" />
 

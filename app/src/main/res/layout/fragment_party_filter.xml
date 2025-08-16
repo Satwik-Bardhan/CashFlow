@@ -20,8 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="+ ADD NEW PARTY"
-        app:icon="@drawable/plus" />
+        android:text="+ ADD NEW PARTY" />
 
     <!-- A RecyclerView will be added here later to show the list of parties -->
     <androidx.recyclerview.widget.RecyclerView
