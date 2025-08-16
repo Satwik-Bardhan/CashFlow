@@ -8,351 +8,309 @@
     android:background="#333333"
     android:fitsSystemWindows="true">
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/main_scroll_view"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/fixedBottomContainer"
-        android:fillViewport="true">
+        android:orientation="vertical"
+        android:layout_above="@+id/fixedBottomContainer">
 
-        <LinearLayout
-            android:id="@+id/main_content_layout"
+        <!-- This top section will scroll -->
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/titleCashFlow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="1dp"
-                android:text="CASH FLOW"
-                android:textColor="#FFFFFF"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <!-- User Box with Dropdown Icon (Now Clickable) -->
-            <LinearLayout
-                android:id="@+id/userBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/rounded_white"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="12dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/userNameTop"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="User Name"
-                        android:textColor="#000000"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/dateToday"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Last Open Date and Time"
-                        android:textColor="#777"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/userDropdownIcon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="8dp"
-                    android:contentDescription="User Dropdown"
-                    android:src="@drawable/ic_arrow_down"
-                    app:tint="#777" />
-            </LinearLayout>
-
+            android:layout_height="wrap_content">
 
             <LinearLayout
-                android:id="@+id/balanceCard"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_150sdp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/cash_card"
-                android:gravity="center"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
 
                 <TextView
-                    android:id="@+id/uidText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#2C2A2A"
-                    android:text="UID User Unique Id"
-                    android:textColor="#CCCCCC"
-                    android:textSize="14sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Balance: "
-                        android:textColor="#FFFFFF"
-                        android:textSize="28sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/balanceText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="₹Amount"
-                        android:textColor="#FFFFFF"
-                        android:textSize="28sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_horizontal"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/inter_bold"
-                        android:text="Total In: "
-                        android:textColor="#FFFFFF" />
-
-                    <TextView
-                        android:id="@+id/moneyIn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="₹0.00"
-                        android:textColor="#FFFFFF" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_horizontal"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/inter_bold"
-                        android:text="Total Out: "
-                        android:textColor="#FFFFFF" />
-
-                    <TextView
-                        android:id="@+id/moneyOut"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="₹0.00"
-                        android:textColor="#FFFFFF" />
-
-                </LinearLayout>
-
-
-                <TextView
-                    android:id="@+id/userNameBottom"
+                    android:id="@+id/titleCashFlow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="User Name"
-                    android:textColor="#CCCCCC"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/buttonLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="@dimen/_20sdp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:id="@+id/cashInButton"
-                    android:layout_width="@dimen/_120sdp"
-                    android:layout_height="@dimen/_40sdp"
-                    android:layout_marginEnd="20dp"
-                    android:background="@drawable/button_cashin"
-                    android:gravity="center_vertical"
-                    android:minWidth="@dimen/_120sdp"
-                    android:minHeight="@dimen/_40sdp"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
-
-                    <ImageView
-                        android:layout_width="@dimen/_35sdp"
-                        android:layout_height="@dimen/_20sdp"
-                        android:paddingLeft="@dimen/_10sdp"
-                        android:src="@drawable/plus"
-                        android:textAlignment="center"
-                        tools:ignore="RtlSymmetry" />
-
-                    <TextView
-                        android:layout_width="@dimen/_60sdp"
-                        android:layout_height="@dimen/_30sdp"
-                        android:layout_gravity="center"
-                        android:fontFamily="@font/khand_medium"
-                        android:paddingStart="@dimen/_2sdp"
-                        android:text="CASH IN"
-                        android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_20sdp"
-                        tools:ignore="RtlSymmetry" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/cashOutButton"
-                    android:layout_width="@dimen/_120sdp"
-                    android:layout_height="@dimen/_40sdp"
-                    android:layout_marginStart="20dp"
-                    android:background="@drawable/button_cashout"
-                    android:gravity="center_vertical"
-                    android:minWidth="@dimen/_120sdp"
-                    android:minHeight="@dimen/_40sdp"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
-
-                    <ImageView
-                        android:layout_width="@dimen/_25sdp"
-                        android:layout_height="@dimen/_25sdp"
-                        android:paddingLeft="@dimen/_5sdp"
-                        android:src="@drawable/minus"
-                        android:textAlignment="center"
-                        tools:ignore="RtlSymmetry" />
-
-                    <TextView
-                        android:layout_width="@dimen/_80sdp"
-                        android:layout_height="@dimen/_30sdp"
-                        android:layout_gravity="center"
-                        android:fontFamily="@font/khand_medium"
-                        android:paddingStart="@dimen/_6sdp"
-                        android:text="CASH OUT"
-                        android:textColor="#FFFFFF"
-                        android:textSize="@dimen/_20sdp"
-                        tools:ignore="RtlSymmetry" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/viewFullTransactionsButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="15dp"
-                android:layout_marginTop="1sp"
-                android:background="@drawable/rounded_white"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="14dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="View full Transaction Details"
-                    android:textColor="#000000"
-                    android:textSize="16sp"
+                    android:layout_gravity="center_horizontal"
+                    android:text="CASH FLOW"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
-            </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/transactionDetailsLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/rounded_white"
-                android:orientation="vertical"
-                android:padding="@dimen/_3sdp">
-
-                <TableLayout
-                    android:id="@+id/transactionTable"
+                <!-- User Box -->
+                <LinearLayout
+                    android:id="@+id/userBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/table_border"
-                    android:padding="5dp">
+                    android:background="@drawable/rounded_white"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
 
-                    <TableRow android:background="#DDDDDD">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:id="@+id/userNameTop"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="2"
-                            android:padding="4dp"
-                            android:text="Transactions"
+                            android:text="User Name"
                             android:textColor="#000000"
-                            android:textStyle="bold" />
+                            android:textSize="18sp" />
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:id="@+id/dateToday"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:padding="4dp"
-                            android:text="Mode"
-                            android:textColor="#51b3ce"
-                            android:textStyle="bold" />
+                            android:text="Last Open Date and Time"
+                            android:textColor="#777"
+                            android:textSize="12sp" />
+                    </LinearLayout>
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:padding="4dp"
-                            android:text="Out"
-                            android:textColor="#C21807"
-                            android:textStyle="bold" />
+                    <ImageView
+                        android:id="@+id/userDropdownIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_down"
+                        app:tint="#777" />
+                </LinearLayout>
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:padding="4dp"
-                            android:text="In"
-                            android:textColor="#74C365"
-                            android:textStyle="bold" />
-                    </TableRow>
-
-                    <View
+                <!-- Balance Card -->
+                <LinearLayout
+                    android:id="@+id/balanceCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/cash_card"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:id="@+id/uidText"
                         android:layout_width="match_parent"
-                        android:layout_height="4dp"
-                        android:background="#AAAAAA" />
+                        android:layout_height="wrap_content"
+                        android:background="#2C2A2A"
+                        android:text="UID User Unique Id"
+                        android:textColor="#CCCCCC"
+                        android:textSize="14sp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="Balance: "
+                            android:textColor="#FFFFFF"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/balanceText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="₹Amount"
+                            android:textColor="#FFFFFF"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/inter_bold"
+                            android:text="Total In: "
+                            android:textColor="#FFFFFF" />
+                        <TextView
+                            android:id="@+id/moneyIn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹0.00"
+                            android:textColor="#FFFFFF" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/inter_bold"
+                            android:text="Total Out: "
+                            android:textColor="#FFFFFF" />
+                        <TextView
+                            android:id="@+id/moneyOut"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹0.00"
+                            android:textColor="#FFFFFF" />
+                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/userNameBottom"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="User Name"
+                        android:textColor="#CCCCCC"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
-                </TableLayout>
+                <!-- Cash In/Out Buttons -->
+                <LinearLayout
+                    android:id="@+id/buttonLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+                    <LinearLayout
+                        android:id="@+id/cashInButton"
+                        android:layout_width="@dimen/_120sdp"
+                        android:layout_height="@dimen/_40sdp"
+                        android:layout_marginEnd="20dp"
+                        android:background="@drawable/button_cashin"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="10dp">
+                        <ImageView
+                            android:layout_width="@dimen/_35sdp"
+                            android:layout_height="@dimen/_20sdp"
+                            android:src="@drawable/plus"
+                            android:paddingLeft="@dimen/_10sdp"
+                            tools:ignore="RtlSymmetry" />
+                        <TextView
+                            android:layout_width="@dimen/_60sdp"
+                            android:layout_height="@dimen/_30sdp"
+                            android:layout_gravity="center"
+                            android:fontFamily="@font/khand_medium"
+                            android:paddingStart="@dimen/_2sdp"
+                            android:text="CASH IN"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_20sdp"
+                            tools:ignore="RtlSymmetry" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/cashOutButton"
+                        android:layout_width="@dimen/_120sdp"
+                        android:layout_height="@dimen/_40sdp"
+                        android:layout_marginStart="20dp"
+                        android:background="@drawable/button_cashout"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="10dp">
+                        <ImageView
+                            android:layout_width="@dimen/_25sdp"
+                            android:layout_height="@dimen/_25sdp"
+                            android:src="@drawable/minus"
+                            android:paddingLeft="@dimen/_5sdp"
+                            tools:ignore="RtlSymmetry" />
+                        <TextView
+                            android:layout_width="@dimen/_80sdp"
+                            android:layout_height="@dimen/_30sdp"
+                            android:layout_gravity="center"
+                            android:fontFamily="@font/khand_medium"
+                            android:paddingStart="@dimen/_6sdp"
+                            android:text="CASH OUT"
+                            android:textColor="#FFFFFF"
+                            android:textSize="@dimen/_20sdp"
+                            tools:ignore="RtlSymmetry" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/viewFullTransactionsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="15dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/rounded_white"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="View full Transaction Details"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
+        </ScrollView>
 
-            <Space
+        <!-- This bottom section will fill the remaining space and be fixed -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_white_top_corners"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TableLayout
+                android:id="@+id/transactionTable"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize" />
+                android:layout_height="match_parent"
+                android:padding="5dp">
 
+                <TableRow android:background="#DDDDDD">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:padding="4dp"
+                        android:text="Transactions"
+                        android:textColor="#000000"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:padding="4dp"
+                        android:text="Mode"
+                        android:textColor="#51b3ce"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:padding="4dp"
+                        android:text="Out"
+                        android:textColor="#C21807"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:padding="4dp"
+                        android:text="In"
+                        android:textColor="#74C365"
+                        android:textStyle="bold" />
+                </TableRow>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="4dp"
+                    android:background="#AAAAAA" />
+            </TableLayout>
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/fixedBottomContainer"
@@ -361,9 +319,8 @@
         android:layout_alignParentBottom="true"
         android:background="#1C1C1C"
         android:orientation="horizontal"
-        android:paddingVertical="8dp"
-        android:paddingBottom="0dp">
-
+        android:paddingVertical="8dp">
+        <!-- Home, Transactions, Settings Buttons go here -->
         <LinearLayout
             android:id="@+id/btnHome"
             android:layout_width="0dp"
@@ -374,13 +331,10 @@
             android:gravity="center"
             android:orientation="vertical"
             android:padding="8dp">
-
             <ImageView
                 android:layout_width="36dp"
                 android:layout_height="wrap_content"
-                android:contentDescription="Home Icon"
                 android:src="@drawable/ic_home" />
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -388,7 +342,6 @@
                 android:textColor="#FFFFFF"
                 android:textSize="10sp" />
         </LinearLayout>
-
         <LinearLayout
             android:id="@+id/btnTransactions"
             android:layout_width="0dp"
@@ -399,13 +352,10 @@
             android:gravity="center"
             android:orientation="vertical"
             android:padding="8dp">
-
             <ImageView
                 android:layout_width="36dp"
                 android:layout_height="wrap_content"
-                android:contentDescription="Transactions Icon"
                 android:src="@drawable/ic_transactions" />
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -413,7 +363,6 @@
                 android:textColor="#FFFFFF"
                 android:textSize="10sp" />
         </LinearLayout>
-
         <LinearLayout
             android:id="@+id/btnSettings"
             android:layout_width="0dp"
@@ -424,13 +373,10 @@
             android:gravity="center"
             android:orientation="vertical"
             android:padding="8dp">
-
             <ImageView
                 android:layout_width="36dp"
                 android:layout_height="wrap_content"
-                android:contentDescription="Settings Icon"
                 android:src="@drawable/ic_settings" />
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

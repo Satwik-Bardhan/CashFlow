@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:background="@drawable/dialog_background"
     android:padding="16dp">
 
     <TextView
@@ -29,12 +30,13 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cancelButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="Cancel" />
+            android:text="Cancel"
+            android:textColor="@color/secondary_text_color"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/addNewButton"
@@ -42,7 +44,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="+ Add New" />
+            android:text="+ Add New"
+            app:backgroundTint="@color/balance_blue" />
     </LinearLayout>
 
 </LinearLayout>

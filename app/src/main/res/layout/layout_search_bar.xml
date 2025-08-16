@@ -28,6 +28,16 @@
             android:hint="Search transactions..."
             android:paddingHorizontal="8dp" />
 
+        <!-- New Clear Search Button -->
+        <ImageView
+            android:id="@+id/clearSearchButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_clear"
+            android:contentDescription="Clear Search"
+            android:visibility="gone"/> <!-- Initially hidden -->
+
         <ImageView
             android:id="@+id/filterButton"
             android:layout_width="32dp"
