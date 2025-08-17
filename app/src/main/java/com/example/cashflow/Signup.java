@@ -40,6 +40,23 @@ public class Signup extends AppCompatActivity {
     private ActivityResultLauncher<Intent> googleSignInLauncher;
     private boolean isPasswordVisible = false;
 
+    // A placeholder for the Users class structure.
+    // You should have a Users.java file with this structure.
+    public static class Users {
+        private String userId, mail, userName;
+
+        public Users() {
+            // Default constructor required for calls to DataSnapshot.getValue(Users.class)
+        }
+
+        public String getUserId() { return userId; }
+        public void setUserId(String userId) { this.userId = userId; }
+        public String getMail() { return mail; }
+        public void setMail(String mail) { this.mail = mail; }
+        public String getUserName() { return userName; }
+        public void setUserName(String userName) { this.userName = userName; }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,13 +75,13 @@ public class Signup extends AppCompatActivity {
     private void initializeUI() {
         emailInput = findViewById(R.id.email);
         passwordInput = findViewById(R.id.password);
-        confirmPasswordInput = findViewById(R.id.confirm_password);
+        confirmPasswordInput = findViewById(R.id.confirm_password); // Updated ID
         togglePasswordVisibility = findViewById(R.id.togglePasswordVisibility);
     }
 
     private void setupClickListeners() {
-        findViewById(R.id.btnSignUp).setOnClickListener(v -> attemptEmailSignUp());
-        findViewById(R.id.tvSignIn).setOnClickListener(v -> {
+        findViewById(R.id.btnSignUp).setOnClickListener(v -> attemptEmailSignUp()); // Updated ID
+        findViewById(R.id.tvSignIn).setOnClickListener(v -> { // Updated ID
             startActivity(new Intent(this, Signin.class));
             finish();
         });
@@ -142,7 +159,9 @@ public class Signup extends AppCompatActivity {
         Users newUser = new Users();
         newUser.setUserId(firebaseUser.getUid());
         newUser.setMail(firebaseUser.getEmail());
-        newUser.setUserName(firebaseUser.getDisplayName());
+        // For email signup, display name might be null initially.
+        // You might want to prompt the user to set a username later.
+        newUser.setUserName(firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "");
 
         mDatabase.child("users").child(firebaseUser.getUid()).setValue(newUser)
                 .addOnCompleteListener(task -> {
@@ -183,6 +202,8 @@ public class Signup extends AppCompatActivity {
             confirmPasswordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             togglePasswordVisibility.setImageResource(R.drawable.ic_visibility_on);
         }
+        passwordInput.setSelection(passwordInput.length());
+        confirmPasswordInput.setSelection(confirmPasswordInput.length());
         isPasswordVisible = !isPasswordVisible;
     }
 
@@ -190,9 +211,11 @@ public class Signup extends AppCompatActivity {
         Intent intent = new Intent(this, HomePage.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+        finish();
     }
 
     private void signInWithGoogle() {
-        googleSignInLauncher.launch(mGoogleSignInClient.getSignInIntent());
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        googleSignInLauncher.launch(signInIntent);
     }
 }

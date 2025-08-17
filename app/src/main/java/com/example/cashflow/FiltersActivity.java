@@ -25,6 +25,7 @@ public class FiltersActivity extends AppCompatActivity implements View.OnClickLi
 
     private TextView filterDate, filterEntryType, filterParty, filterCategory, filterPaymentMode;
     private View selectedView;
+    private Toolbar toolbar;
 
     // Variables to hold the selected filter values
     private long startDate = 0;
@@ -38,25 +39,33 @@ public class FiltersActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filters);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-
         initializeUI();
+        setupToolbar();
         unpackIntent();
         setupClickListeners();
 
         // Load the default filter (Date)
-        filterDate.performClick();
+        if (savedInstanceState == null) {
+            filterDate.performClick();
+        }
     }
 
     private void initializeUI() {
+        toolbar = findViewById(R.id.toolbar);
         filterDate = findViewById(R.id.filter_date);
         filterEntryType = findViewById(R.id.filter_entry_type);
         filterParty = findViewById(R.id.filter_party);
         filterCategory = findViewById(R.id.filter_category);
         filterPaymentMode = findViewById(R.id.filter_payment_mode);
+    }
+
+    private void setupToolbar() {
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     // Get any existing filters passed from TransactionActivity
@@ -92,7 +101,7 @@ public class FiltersActivity extends AppCompatActivity implements View.OnClickLi
             selectedView.setBackgroundResource(android.R.color.transparent);
         }
         selectedView = v;
-        v.setBackgroundColor(getResources().getColor(android.R.color.white));
+        v.setBackgroundColor(getResources().getColor(android.R.color.darker_gray)); // Highlight selection
 
         Fragment fragment = null;
         int viewId = v.getId();
@@ -102,7 +111,8 @@ public class FiltersActivity extends AppCompatActivity implements View.OnClickLi
         } else if (viewId == R.id.filter_entry_type) {
             fragment = EntryTypeFilterFragment.newInstance(entryType);
         } else if (viewId == R.id.filter_party) {
-            fragment = new PartyFilterFragment(); // Party fragment needs similar logic
+            // fragment = new PartyFilterFragment(); // Assuming you have this fragment
+            Toast.makeText(this, "Party filter not implemented yet.", Toast.LENGTH_SHORT).show();
         } else if (viewId == R.id.filter_category) {
             fragment = CategoryFilterFragment.newInstance(new ArrayList<>(selectedCategories));
         } else if (viewId == R.id.filter_payment_mode) {
@@ -133,24 +143,17 @@ public class FiltersActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void clearAllFilters() {
-        // Reset all filter variables
         startDate = 0;
         endDate = 0;
         entryType = "All";
         selectedCategories.clear();
         selectedPaymentModes.clear();
 
-        // Reload the current fragment to reset its UI
+        // Reload the current fragment to show the cleared state
         if(selectedView != null) {
             onClick(selectedView);
         }
         Toast.makeText(this, "Filters Cleared", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return true;
     }
 
     // --- Listener Implementations ---

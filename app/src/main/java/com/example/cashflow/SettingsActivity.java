@@ -39,7 +39,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private TextView userNameTextView, uidTextView, dataLocationTextView, createdDateTextView;
     private EditText editCashbookName;
-    private LinearLayout btnTransactions, btnHome, btnSettings;
+    private TextView btnTransactions, btnHome, btnSettings; // Changed to TextView to match layout
 
     private ValueEventListener userProfileListener;
     private ValueEventListener cashbookNameListener;
@@ -48,7 +48,8 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings); // Assuming you have an activity_settings.xml
+        // setContentView must be called before findViewById
+        setContentView(R.layout.activity_settings);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
@@ -62,6 +63,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         initializeUI();
         setupClickListeners();
+
+        // This is the correct place to set the button state
+        btnSettings.setSelected(true);
     }
 
     private void initializeUI() {
@@ -89,7 +93,6 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.logoutSection).setOnClickListener(v -> logoutUser());
         findViewById(R.id.deleteAccountButton).setOnClickListener(v -> showDeleteAccountConfirmation());
 
-        // Correction: Using your original LinearLayout buttons for navigation
         btnHome.setOnClickListener(v -> {
             startActivity(new Intent(this, HomePage.class));
             finish();

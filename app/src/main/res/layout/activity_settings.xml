@@ -6,14 +6,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#2E2E2E"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:context=".SettingsActivity">
+
+    <!-- This line includes your bottom navigation bar -->
+    <include
+        android:id="@+id/bottom_nav_bar"
+        layout="@layout/layout_bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:layout_above="@+id/fixedBottomContainer">
+        android:layout_above="@id/bottom_nav_bar">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -63,7 +72,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:backgroundTint="#FFFFFF"
+                    android:background="@color/white"
                     android:padding="16dp">
 
                     <LinearLayout
@@ -416,93 +425,4 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Fixed Bottom Navigation Bar -->
-    <LinearLayout
-        android:id="@+id/fixedBottomContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#1C1C1C"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingVertical="8dp"
-        android:paddingBottom="0dp">
-
-
-        <LinearLayout
-            android:id="@+id/btnHome"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="wrap_content"
-                android:contentDescription="Home Icon"
-                android:src="@drawable/ic_home" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnTransactions"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="wrap_content"
-                android:contentDescription="Transactions Icon"
-                android:src="@drawable/ic_transactions" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Transactions"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:id="@+id/btnSettings"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="wrap_content"
-                android:contentDescription="Settings Icon"
-                android:src="@drawable/ic_settings" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Settings"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-    </LinearLayout>
 </RelativeLayout>

@@ -52,7 +52,7 @@ public class HomePage extends AppCompatActivity {
     private TextView userNameTop, dateTodayText, uidText, balanceText, moneyInText, moneyOutText, userNameBottom;
     private TableLayout transactionTable;
     private LinearLayout cashInButton, cashOutButton, viewFullTransactionsButton, userBox;
-    private LinearLayout btnTransactions, btnHome, btnSettings;
+    private TextView btnTransactions, btnHome, btnSettings;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -66,7 +66,8 @@ public class HomePage extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        // Corrected the layout file name to match your project structure
+        setContentView(R.layout.activity_home_page);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
@@ -74,6 +75,9 @@ public class HomePage extends AppCompatActivity {
 
         initializeUI();
         setupClickListeners();
+
+        // This is the correct place to set the button state
+        btnHome.setSelected(true);
 
         if (getIntent().getBooleanExtra("isGuest", false)) {
             handleGuestMode();
@@ -218,6 +222,7 @@ public class HomePage extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void updateTransactionTableAndSummary() {
+        // Clear previous rows except the header
         if (transactionTable.getChildCount() > 2) {
             transactionTable.removeViews(2, transactionTable.getChildCount() - 2);
         }
@@ -236,10 +241,12 @@ public class HomePage extends AppCompatActivity {
         moneyOutText.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
 
         if (allTransactions.isEmpty()) {
-            // Display "No transactions" message
+            // Optionally display a "No transactions" message in the table
         } else {
-            for (TransactionModel transaction : allTransactions) {
-                addTransactionRow(transaction);
+            // Display a limited number of recent transactions
+            int limit = Math.min(allTransactions.size(), 5); // Show up to 5 transactions
+            for (int i = 0; i < limit; i++) {
+                addTransactionRow(allTransactions.get(i));
             }
         }
     }
@@ -508,7 +515,10 @@ public class HomePage extends AppCompatActivity {
                             .child(cashbook.getId()).removeValue()
                             .addOnSuccessListener(aVoid -> {
                                 if (cashbook.getId().equals(currentCashbookId)) {
-                                    switchCashbook(cashbooks.get(0).getId());
+                                    // Switch to the first available cashbook
+                                    if (!cashbooks.isEmpty()) {
+                                        switchCashbook(cashbooks.get(0).getId());
+                                    }
                                 }
                             });
                 })

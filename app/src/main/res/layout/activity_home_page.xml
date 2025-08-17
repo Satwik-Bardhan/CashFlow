@@ -6,15 +6,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#333333"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:context=".HomePage">
 
+    <!-- Bottom navigation is the lowest element -->
+    <include
+        android:id="@+id/bottom_nav_bar"
+        layout="@layout/layout_bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+
+    <!-- This LinearLayout holds the main content above the nav bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_above="@+id/fixedBottomContainer">
+        android:layout_above="@id/bottom_nav_bar"
+        android:orientation="vertical">
 
-        <!-- This top section will scroll -->
+        <!-- The top content now scrolls, taking up only the space it needs -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -89,6 +99,7 @@
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="16dp">
+
                     <TextView
                         android:id="@+id/uidText"
                         android:layout_width="match_parent"
@@ -97,11 +108,13 @@
                         android:text="UID User Unique Id"
                         android:textColor="#CCCCCC"
                         android:textSize="14sp" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
                         android:orientation="horizontal">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -110,6 +123,7 @@
                             android:textColor="#FFFFFF"
                             android:textSize="28sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/balanceText"
                             android:layout_width="wrap_content"
@@ -120,18 +134,21 @@
                             android:textSize="28sp"
                             android:textStyle="bold" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:gravity="center_horizontal"
                         android:orientation="horizontal">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/inter_bold"
                             android:text="Total In: "
                             android:textColor="#FFFFFF" />
+
                         <TextView
                             android:id="@+id/moneyIn"
                             android:layout_width="wrap_content"
@@ -139,18 +156,21 @@
                             android:text="₹0.00"
                             android:textColor="#FFFFFF" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:gravity="center_horizontal"
                         android:orientation="horizontal">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/inter_bold"
                             android:text="Total Out: "
                             android:textColor="#FFFFFF" />
+
                         <TextView
                             android:id="@+id/moneyOut"
                             android:layout_width="wrap_content"
@@ -158,6 +178,7 @@
                             android:text="₹0.00"
                             android:textColor="#FFFFFF" />
                     </LinearLayout>
+
                     <TextView
                         android:id="@+id/userNameBottom"
                         android:layout_width="wrap_content"
@@ -176,6 +197,7 @@
                     android:layout_marginTop="10dp"
                     android:gravity="center"
                     android:orientation="horizontal">
+
                     <LinearLayout
                         android:id="@+id/cashInButton"
                         android:layout_width="@dimen/_120sdp"
@@ -185,12 +207,14 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="10dp">
+
                         <ImageView
                             android:layout_width="@dimen/_35sdp"
                             android:layout_height="@dimen/_20sdp"
-                            android:src="@drawable/plus"
                             android:paddingLeft="@dimen/_10sdp"
+                            android:src="@drawable/plus"
                             tools:ignore="RtlSymmetry" />
+
                         <TextView
                             android:layout_width="@dimen/_60sdp"
                             android:layout_height="@dimen/_30sdp"
@@ -202,6 +226,7 @@
                             android:textSize="@dimen/_20sdp"
                             tools:ignore="RtlSymmetry" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:id="@+id/cashOutButton"
                         android:layout_width="@dimen/_120sdp"
@@ -211,12 +236,14 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="10dp">
+
                         <ImageView
                             android:layout_width="@dimen/_25sdp"
                             android:layout_height="@dimen/_25sdp"
-                            android:src="@drawable/minus"
                             android:paddingLeft="@dimen/_5sdp"
+                            android:src="@drawable/minus"
                             tools:ignore="RtlSymmetry" />
+
                         <TextView
                             android:layout_width="@dimen/_80sdp"
                             android:layout_height="@dimen/_30sdp"
@@ -242,6 +269,7 @@
                     android:gravity="center"
                     android:orientation="horizontal"
                     android:padding="14dp">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -250,13 +278,18 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
             </LinearLayout>
         </ScrollView>
 
-        <!-- This bottom section will fill the remaining space and be fixed -->
+        <!-- The mini transaction section fills the remaining vertical space -->
         <LinearLayout
+            android:id="@+id/transaction_section"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
             android:background="@drawable/rounded_white_top_corners"
             android:orientation="vertical"
             android:padding="8dp">
@@ -264,10 +297,11 @@
             <TableLayout
                 android:id="@+id/transactionTable"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:padding="5dp">
 
                 <TableRow android:background="#DDDDDD">
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -276,6 +310,7 @@
                         android:text="Transactions"
                         android:textColor="#000000"
                         android:textStyle="bold" />
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -285,6 +320,7 @@
                         android:text="Mode"
                         android:textColor="#51b3ce"
                         android:textStyle="bold" />
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -294,6 +330,7 @@
                         android:text="Out"
                         android:textColor="#C21807"
                         android:textStyle="bold" />
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -304,85 +341,14 @@
                         android:textColor="#74C365"
                         android:textStyle="bold" />
                 </TableRow>
+
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="4dp"
                     android:background="#AAAAAA" />
             </TableLayout>
         </LinearLayout>
+
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/fixedBottomContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#1C1C1C"
-        android:orientation="horizontal"
-        android:paddingVertical="8dp">
-        <!-- Home, Transactions, Settings Buttons go here -->
-        <LinearLayout
-            android:id="@+id/btnHome"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_home" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/btnTransactions"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_transactions" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Transactions"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/btnSettings"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_settings" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Settings"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-        </LinearLayout>
-    </LinearLayout>
 </RelativeLayout>

@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Abstracted Theme Colors (Light Mode) -->
-    <color name="textColorPrimary">#FF000000</color> <!-- Black text -->
-    <color name="textColorSecondary">#8A000000</color> <!-- Dark grey -->
-    <color name="backgroundColor">#F5F5F5</color> <!-- Light grey background -->
-    <color name="surfaceColor">#FFFFFFFF</color> <!-- White surface for cards -->
+    <!-- Abstracted Theme Colors (Dark Mode) -->
+    <color name="textColorPrimary">#FFFFFFFF</color> <!-- White text -->
+    <color name="textColorSecondary">#B3FFFFFF</color> <!-- Light grey -->
+    <color name="backgroundColor">#121212</color> <!-- Dark background -->
+    <color name="surfaceColor">#1E1E1E</color> <!-- Slightly lighter surface -->
 
     <!-- THEME-AWARE COLORS -->
-    <color name="bottom_nav_icon_text_color">#8A000000</color> <!-- Dark Grey for Light Theme -->
-    <color name="search_bar_icon_color">#8A000000</color> <!-- Dark Grey for Light Theme -->
-    <color name="secondary_text_color">#8A000000</color>
+    <color name="bottom_nav_icon_text_color">#B3FFFFFF</color> <!-- Light Grey for Dark Theme -->
+    <color name="search_bar_icon_color">#B3FFFFFF</color> <!-- Light Grey for Dark Theme -->
+    <color name="secondary_text_color">#B3FFFFFF</color>
+    <color name="category_text_color">#FFFFFFFF</color> <!-- ADDED THIS LINE -->
 
     <!-- Original App-Specific Colors -->
     <color name="black">#FF000000</color>
@@ -19,6 +20,7 @@
     <color name="balance_blue">#2196F3</color>
 
     <!-- MISSING COLORS ADDED BACK -->
+    <color name="purple_200">#BB86FC</color>
     <color name="purple_500">#6200EE</color>
     <color name="purple_700">#3700B3</color>
     <color name="teal_200">#03DAC5</color>

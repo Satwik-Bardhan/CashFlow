@@ -4,23 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/backgroundColor"
     tools:context=".FiltersActivity">
 
-    <!-- Toolbar -->
+    <!-- Toolbar for Back Button and Title -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/Theme.AppCompat.DayNight.DarkActionBar">
+        android:layout_alignParentTop="true">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/surfaceColor"
+            app:navigationIcon="@drawable/ic_arrow_left"
             app:title="Filters"
-            app:navigationIcon="@drawable/ic_arrow_left" />
+            app:titleTextColor="@color/textColorPrimary" />
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Main Content -->
@@ -36,7 +38,7 @@
             android:layout_width="120dp"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:background="#E0E0E0">
+            android:background="@color/surfaceColor">
 
             <TextView
                 android:id="@+id/filter_date"
@@ -44,6 +46,7 @@
                 android:layout_height="wrap_content"
                 android:text="Date"
                 android:padding="16dp"
+                android:textColor="@color/textColorPrimary"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -53,6 +56,7 @@
                 android:layout_height="wrap_content"
                 android:text="Entry Type"
                 android:padding="16dp"
+                android:textColor="@color/textColorPrimary"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -62,6 +66,7 @@
                 android:layout_height="wrap_content"
                 android:text="Party"
                 android:padding="16dp"
+                android:textColor="@color/textColorPrimary"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -71,6 +76,7 @@
                 android:layout_height="wrap_content"
                 android:text="Category"
                 android:padding="16dp"
+                android:textColor="@color/textColorPrimary"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -80,6 +86,7 @@
                 android:layout_height="wrap_content"
                 android:text="Payment Mode"
                 android:padding="16dp"
+                android:textColor="@color/textColorPrimary"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -91,6 +98,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="@color/backgroundColor"
             android:padding="16dp"/>
     </LinearLayout>
 
@@ -102,7 +110,7 @@
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:background="@color/white"
+        android:background="@color/surfaceColor"
         android:elevation="4dp">
 
         <com.google.android.material.button.MaterialButton
@@ -111,6 +119,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CLEAR ALL"
+            android:textColor="@color/expense_red"
+            app:iconTint="@color/expense_red"
             app:icon="@drawable/ic_clear" />
 
         <View
@@ -122,7 +132,8 @@
             android:id="@+id/apply_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="APPLY"/>
+            android:text="APPLY"
+            app:backgroundTint="@color/balance_blue"/>
     </LinearLayout>
 
 </RelativeLayout>

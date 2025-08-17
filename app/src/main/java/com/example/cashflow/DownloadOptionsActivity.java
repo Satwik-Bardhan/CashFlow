@@ -1,42 +1,44 @@
 package com.example.cashflow;
 
-import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.util.Pair;
-import com.google.android.material.datepicker.MaterialDatePicker;
+
+import com.google.android.material.button.MaterialButton;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 public class DownloadOptionsActivity extends AppCompatActivity {
 
     private TextView startDateTextView, endDateTextView;
     private RadioGroup filterTypeToggle, filterModeToggle;
-    private Button downloadReportButtonFinal;
+    private MaterialButton downloadReportButtonFinal;
+    private ImageView backButton; // Added back button
 
-    private long startDate = 0;
-    private long endDate = 0;
+    private Calendar startCalendar = Calendar.getInstance();
+    private Calendar endCalendar = Calendar.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download_options);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        // Hide the default action bar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         initializeUI();
+        setupInitialDates();
         setupClickListeners();
     }
 
@@ -46,71 +48,72 @@ public class DownloadOptionsActivity extends AppCompatActivity {
         filterTypeToggle = findViewById(R.id.filterTypeToggle);
         filterModeToggle = findViewById(R.id.filterModeToggle);
         downloadReportButtonFinal = findViewById(R.id.downloadReportButtonFinal);
+        backButton = findViewById(R.id.backButton); // Initialize back button
+    }
+
+    private void setupInitialDates() {
+        // Set start date to the beginning of the current month
+        startCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        updateDateLabel(startDateTextView, startCalendar);
+
+        // Set end date to the current day
+        updateDateLabel(endDateTextView, endCalendar);
     }
 
     private void setupClickListeners() {
-        startDateTextView.setOnClickListener(v -> showDateRangePicker());
-        endDateTextView.setOnClickListener(v -> showDateRangePicker());
-        downloadReportButtonFinal.setOnClickListener(v -> applyAndReturnFilters());
-    }
+        // Set up the new back button to finish the activity
+        backButton.setOnClickListener(v -> finish());
 
-    private void applyAndReturnFilters() {
-        // Get selected entry type
-        int selectedTypeId = filterTypeToggle.getCheckedRadioButtonId();
-        String entryType = "All";
-        if (selectedTypeId == R.id.filterInType) {
-            entryType = "IN";
-        } else if (selectedTypeId == R.id.filterOutType) {
-            entryType = "OUT";
-        }
+        startDateTextView.setOnClickListener(v -> showDatePickerDialog(startDateTextView, startCalendar));
+        endDateTextView.setOnClickListener(v -> showDatePickerDialog(endDateTextView, endCalendar));
 
-        // Get selected payment mode
-        int selectedModeId = filterModeToggle.getCheckedRadioButtonId();
-        String paymentMode = "All";
-        if (selectedModeId == R.id.filterCashMode) {
-            paymentMode = "Cash";
-        } else if (selectedModeId == R.id.filterOnlineMode) {
-            paymentMode = "Online";
-        }
+        downloadReportButtonFinal.setOnClickListener(v -> {
+            if (startCalendar.getTimeInMillis() > endCalendar.getTimeInMillis()) {
+                Toast.makeText(this, "Start date cannot be after end date.", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        // Create an intent to pass the data back
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra("startDate", startDate);
-        resultIntent.putExtra("endDate", endDate);
-        resultIntent.putExtra("entryType", entryType);
-        resultIntent.putExtra("paymentMode", paymentMode);
+            // Get selected filters
+            long startDate = startCalendar.getTimeInMillis();
+            // Set end time to the very end of the selected day
+            endCalendar.set(Calendar.HOUR_OF_DAY, 23);
+            endCalendar.set(Calendar.MINUTE, 59);
+            endCalendar.set(Calendar.SECOND, 59);
+            long endDate = endCalendar.getTimeInMillis();
 
-        setResult(Activity.RESULT_OK, resultIntent);
-        finish();
-    }
+            RadioButton selectedTypeButton = findViewById(filterTypeToggle.getCheckedRadioButtonId());
+            String entryType = selectedTypeButton.getText().toString();
 
-    private void showDateRangePicker() {
-        MaterialDatePicker<Pair<Long, Long>> dateRangePicker =
-                MaterialDatePicker.Builder.dateRangePicker()
-                        .setTitleText("Select Date Range")
-                        .build();
+            RadioButton selectedModeButton = findViewById(filterModeToggle.getCheckedRadioButtonId());
+            String paymentMode = selectedModeButton.getText().toString();
 
-        dateRangePicker.addOnPositiveButtonClickListener(selection -> {
-            // The selection comes in UTC, adjust to start and end of day
-            Calendar startCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            startCal.setTimeInMillis(selection.first);
-            startDate = startCal.getTimeInMillis();
-
-            Calendar endCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            endCal.setTimeInMillis(selection.second);
-            endDate = endCal.getTimeInMillis();
-
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-            startDateTextView.setText(sdf.format(new Date(startDate)));
-            endDateTextView.setText(sdf.format(new Date(endDate)));
+            // Return filters to the previous activity
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("startDate", startDate);
+            resultIntent.putExtra("endDate", endDate);
+            resultIntent.putExtra("entryType", entryType);
+            resultIntent.putExtra("paymentMode", paymentMode);
+            setResult(RESULT_OK, resultIntent);
+            finish();
         });
-
-        dateRangePicker.show(getSupportFragmentManager(), "DATE_RANGE_PICKER");
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return true;
+    private void showDatePickerDialog(TextView dateTextView, Calendar calendar) {
+        DatePickerDialog.OnDateSetListener dateSetListener = (view, year, month, dayOfMonth) -> {
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            updateDateLabel(dateTextView, calendar);
+        };
+
+        new DatePickerDialog(this, dateSetListener,
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private void updateDateLabel(TextView dateTextView, Calendar calendar) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
+        dateTextView.setText(sdf.format(calendar.getTime()));
     }
 }
