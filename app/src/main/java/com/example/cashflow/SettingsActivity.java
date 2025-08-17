@@ -48,7 +48,6 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // setContentView must be called before findViewById
         setContentView(R.layout.activity_settings);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
@@ -64,7 +63,6 @@ public class SettingsActivity extends AppCompatActivity {
         initializeUI();
         setupClickListeners();
 
-        // This is the correct place to set the button state
         btnSettings.setSelected(true);
     }
 
@@ -78,7 +76,6 @@ public class SettingsActivity extends AppCompatActivity {
         btnHome = findViewById(R.id.btnHome);
         btnSettings = findViewById(R.id.btnSettings);
 
-        // Setup styled text views
         setTextWithBoldTitle(findViewById(R.id.helpSupport), "Help & Support", "FAQ, Contact us");
         setTextWithBoldTitle(findViewById(R.id.appSettings), "App Settings", "Language, Theme, Security, Backup");
         setTextWithBoldTitle(findViewById(R.id.yourProfile), "Your Profile", "Name, Mobile Number, Email");
@@ -89,6 +86,10 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.backButton).setOnClickListener(v -> finish());
         findViewById(R.id.editButton).setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
         findViewById(R.id.yourProfile).setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
+
+        // --- ADD THIS CLICK LISTENER ---
+        findViewById(R.id.appSettings).setOnClickListener(v -> startActivity(new Intent(this, AppSettingsActivity.class)));
+
         findViewById(R.id.saveCashbookNameButton).setOnClickListener(v -> saveCashbookName());
         findViewById(R.id.logoutSection).setOnClickListener(v -> logoutUser());
         findViewById(R.id.deleteAccountButton).setOnClickListener(v -> showDeleteAccountConfirmation());
@@ -203,10 +204,8 @@ public class SettingsActivity extends AppCompatActivity {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
 
-        // Step 1: Delete data from Realtime Database
         mDatabase.child("users").child(user.getUid()).removeValue()
                 .addOnSuccessListener(aVoid -> {
-                    // Step 2: Delete user from Authentication
                     user.delete().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             Toast.makeText(this, "Account deleted.", Toast.LENGTH_LONG).show();

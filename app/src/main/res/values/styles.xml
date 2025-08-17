@@ -1,6 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- App theme without the Action Bar -->
+    <!-- Style for the section headers (e.g., "Data Security") -->
+    <style name="SettingsHeader">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/textColorSecondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+
+    <!-- Base style for all clickable setting items -->
+    <style name="SettingsItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingVertical">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Style for setting items that include a Switch -->
+    <style name="SettingsItemSwitch" parent="SettingsItem">
+        <item name="android:paddingVertical">8dp</item>
+    </style>
+
+    <!-- Style for containers of setting items, like the language row -->
+    <style name="SettingsItemContainer">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Style for the radio buttons in the FiltersActivity -->
+    <style name="FilterRadioButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <!-- Style for the bottom navigation bar items -->
+    <style name="BottomNavItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/bottom_nav_item_selector</item>
+        <item name="android:clickable">true</item>
+        <item name="android:drawablePadding">4dp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:textColor">@color/bottom_nav_icon_text_color</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:drawableTint">@color/bottom_nav_icon_text_color</item>
+    </style>
 
 </resources>
