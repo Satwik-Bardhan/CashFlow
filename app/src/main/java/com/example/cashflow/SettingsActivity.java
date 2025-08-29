@@ -11,13 +11,13 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -26,6 +26,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,7 +40,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private TextView userNameTextView, uidTextView, dataLocationTextView, createdDateTextView;
     private EditText editCashbookName;
-    private TextView btnTransactions, btnHome, btnSettings; // Changed to TextView to match layout
+    private TextView btnTransactions, btnHome, btnSettings;
 
     private ValueEventListener userProfileListener;
     private ValueEventListener cashbookNameListener;
@@ -86,10 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.backButton).setOnClickListener(v -> finish());
         findViewById(R.id.editButton).setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
         findViewById(R.id.yourProfile).setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
-
-        // --- ADD THIS CLICK LISTENER ---
         findViewById(R.id.appSettings).setOnClickListener(v -> startActivity(new Intent(this, AppSettingsActivity.class)));
-
         findViewById(R.id.saveCashbookNameButton).setOnClickListener(v -> saveCashbookName());
         findViewById(R.id.logoutSection).setOnClickListener(v -> logoutUser());
         findViewById(R.id.deleteAccountButton).setOnClickListener(v -> showDeleteAccountConfirmation());

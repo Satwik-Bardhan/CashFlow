@@ -4,64 +4,31 @@
     android:id="@+id/fixedBottomContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/surfaceColor"
+    android:background="@color/bottom_nav_background"
     android:orientation="horizontal"
     android:padding="8dp">
 
     <!-- HOME BUTTON -->
     <TextView
         android:id="@+id/btnHome"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="@drawable/bottom_nav_item_selector"
-        android:clickable="true"
+        style="@style/BottomNavItem"
         android:drawableTop="@drawable/ic_home"
-        android:drawablePadding="4dp"
-        android:focusable="true"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="Home"
-        android:textColor="@color/bottom_nav_icon_text_color"
-        android:textSize="10sp"
-        app:drawableTint="@color/bottom_nav_icon_text_color" />
+        android:text="Home" />
 
     <!-- TRANSACTIONS BUTTON -->
     <TextView
         android:id="@+id/btnTransactions"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        style="@style/BottomNavItem"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_weight="1"
-        android:background="@drawable/bottom_nav_item_selector"
-        android:clickable="true"
         android:drawableTop="@drawable/ic_transactions"
-        android:drawablePadding="4dp"
-        android:focusable="true"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="Transactions"
-        android:textColor="@color/bottom_nav_icon_text_color"
-        android:textSize="10sp"
-        app:drawableTint="@color/bottom_nav_icon_text_color" />
+        android:text="Transactions" />
 
     <!-- SETTINGS BUTTON -->
     <TextView
         android:id="@+id/btnSettings"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="@drawable/bottom_nav_item_selector"
-        android:clickable="true"
+        style="@style/BottomNavItem"
         android:drawableTop="@drawable/ic_settings"
-        android:drawablePadding="4dp"
-        android:focusable="true"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="Settings"
-        android:textColor="@color/bottom_nav_icon_text_color"
-        android:textSize="10sp"
-        app:drawableTint="@color/bottom_nav_icon_text_color" />
+        android:text="Settings" />
 
 </LinearLayout>

@@ -2,9 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Internet permission is essential for Firebase -->
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Permission to read contacts for the party picker feature -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
@@ -19,7 +18,7 @@
         android:theme="@style/Theme.CashFlow"
         tools:targetApi="31">
 
-        <!-- Splash screen is the entry point of the app -->
+        <!-- Splash screen is the entry point -->
         <activity
             android:name=".Splash"
             android:exported="true">
@@ -29,23 +28,20 @@
             </intent-filter>
         </activity>
 
-        <!-- Main app activities -->
-        <activity android:name=".CashInOutActivity" android:exported="false" />
-        <activity android:name=".TransactionDetailActivity" android:exported="false" />
-        <activity android:name=".EditProfileActivity" android:exported="false" />
-        <activity android:name=".ChooseCategoryActivity" android:exported="false" />
+        <!-- Your other activities -->
+        <activity android:name=".Signin" android:exported="false" />
+        <activity android:name=".Signup" android:exported="false" />
+        <activity android:name=".HomePage" android:exported="false" />
         <activity android:name=".TransactionActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
-        <activity android:name=".HomePage" android:exported="false" />
-        <activity android:name=".ForgotPassword" android:exported="false" />
-        <activity android:name=".Signup" android:exported="false" />
-        <activity android:name=".Signin" android:exported="false" />
-        <activity android:name=".FiltersActivity" android:exported="false" />
-        <activity android:name=".DownloadOptionsActivity" android:exported="false" />
         <activity android:name=".AppSettingsActivity" android:exported="false" />
-
-        <!-- This activity routes the user and should not be exported -->
         <activity android:name=".MainActivity" android:exported="false" />
+        <activity android:name=".EditProfileActivity" android:exported="false" />
+
+        <!-- ADD THIS LINE TO FIX THE CRASH -->
+        <activity android:name=".CashInOutActivity" android:exported="false" />
+
+        <!-- ... add all other activities here -->
 
     </application>
 

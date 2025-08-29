@@ -375,7 +375,7 @@
                             android:background="@drawable/button_save_add_new"
                             android:paddingHorizontal="16dp"
                             android:text="SAVE &amp; ADD NEW"
-                            android:textColor="#FFFFFF"
+                            app:backgroundTint="@null"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
@@ -384,9 +384,10 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:backgroundTint="#00C853"
+                            android:background="@drawable/button_save_entry"
+                            app:backgroundTint="@null"
                             android:paddingHorizontal="16dp"
-                            android:text="Save Entry"
+                            android:text="SAVE ENTRY"
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
                             android:textStyle="bold" />

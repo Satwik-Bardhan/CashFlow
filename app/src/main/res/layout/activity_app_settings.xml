@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2E2E2E"
     tools:context=".AppSettingsActivity">
 
     <!-- Toolbar -->
@@ -17,10 +16,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/surfaceColor"
             app:navigationIcon="@drawable/ic_arrow_left"
-            app:title="App Settings"
-            app:titleTextColor="@color/textColorPrimary" />
+            app:title="App Settings" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
@@ -37,13 +34,11 @@
             <!-- Data Security Section -->
             <TextView
                 style="@style/SettingsHeader"
-                android:text="Data Security"
-                android:textColor="@color/white" />
+                android:text="Data Security" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="12dp">
 
                 <LinearLayout
@@ -68,7 +63,9 @@
                         android:id="@+id/appLockSwitch"
                         style="@style/SettingsItemSwitch"
                         android:drawableStart="@drawable/ic_lock"
-                        android:text="App Lock" />
+                        android:text="App Lock"
+
+                        />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -77,13 +74,11 @@
             <TextView
                 style="@style/SettingsHeader"
                 android:layout_marginTop="24dp"
-                android:text="Features"
-                android:textColor="@color/white" />
+                android:text="Features" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="12dp">
 
                 <LinearLayout
@@ -96,7 +91,9 @@
                         android:id="@+id/amountFieldCalculatorSwitch"
                         style="@style/SettingsItemSwitch"
                         android:drawableStart="@drawable/ic_calculator"
-                        android:text="Amount Field Calculator" />
+                        android:text="Amount Field Calculator"
+
+                        />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -105,13 +102,12 @@
             <TextView
                 style="@style/SettingsHeader"
                 android:layout_marginTop="24dp"
-                android:text="General"
-                android:textColor="@color/white" />
+                android:text="General" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/white"
+
                 app:cardCornerRadius="12dp">
 
                 <LinearLayout
@@ -120,13 +116,16 @@
                     android:orientation="vertical"
                     android:paddingHorizontal="8dp">
 
-                    <RelativeLayout
-                        style="@style/SettingsItemContainer">
+                    <RelativeLayout style="@style/SettingsItemContainer">
+
                         <TextView
                             android:id="@+id/changeLanguage"
                             style="@style/SettingsItem"
                             android:drawableStart="@drawable/ic_language"
-                            android:text="Change Language" />
+                            android:text="Change Language"
+
+                            />
+
                         <TextView
                             android:id="@+id/currentLanguage"
                             android:layout_width="wrap_content"
@@ -134,7 +133,6 @@
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
                             android:text="English"
-                            android:textColor="@color/textColorSecondary"
                             android:textSize="14sp" />
                     </RelativeLayout>
 
@@ -147,7 +145,9 @@
                         android:id="@+id/darkThemeSwitch"
                         style="@style/SettingsItemSwitch"
                         android:drawableStart="@drawable/ic_dark_theme"
-                        android:text="Dark Theme" />
+                        android:text="Dark Theme"
+
+                        />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

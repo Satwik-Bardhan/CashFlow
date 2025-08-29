@@ -1,31 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Abstracted Theme Colors (Light Mode) -->
-    <color name="textColorPrimary">#FF000000</color> <!-- Black text -->
-    <color name="textColorSecondary">#8A000000</color> <!-- Dark grey -->
+    <!-- Main Theme Colors -->
     <color name="backgroundColor">#F5F5F5</color> <!-- Light grey background -->
-    <color name="surfaceColor">#FFFFFFFF</color> <!-- White surface for cards -->
+    <color name="surfaceColor">#FFFFFFFF</color> <!-- White for cards -->
+    <color name="textColorPrimary">#FF000000</color> <!-- Black text -->
+    <color name="textColorSecondary">#8A000000</color> <!-- Dark grey text -->
 
-    <!-- THEME-AWARE COLORS -->
-    <color name="bottom_nav_icon_text_color">#8A000000</color> <!-- Dark Grey for Light Theme -->
-    <color name="search_bar_icon_color">#8A000000</color> <!-- Dark Grey for Light Theme -->
-    <color name="secondary_text_color">#8A000000</color>
+    <!-- Bottom Navigation Colors for Light Theme -->
+    <color name="bottom_nav_background">#FFFFFFFF</color> <!-- White background -->
+    <color name="bottom_nav_item_selected">#E0E0E0</color> <!-- Light grey for selection -->
+    <color name="bottom_nav_item_unselected_border">#BDBDBD</color> <!-- Medium grey for border -->
+    <color name="bottom_nav_icon_text_color">#FF000000</color> <!-- Black for icon/text -->
 
-    <!-- Original App-Specific Colors -->
+    <!-- Other App-Specific Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="income_green">#4CAF50</color>
     <color name="expense_red">#F44336</color>
     <color name="balance_blue">#2196F3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
 
-    <!-- MISSING COLORS ADDED BACK -->
-    <color name="purple_500">#6200EE</color>
-    <color name="purple_700">#3700B3</color>
-    <color name="teal_200">#03DAC5</color>
-    <color name="teal_700">#018786</color>
+    <!-- MISSING THEME COLORS ADDED BACK -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
     <color name="category_default">#757575</color>
 
-    <!-- CATEGORY COLORS ADDED BACK -->
+    <!-- CATEGORY COLORS ADDED BACK TO FIX BUILD ERROR -->
     <color name="category_food">#FFB300</color>
     <color name="category_transport">#00BCD4</color>
     <color name="category_utilities">#9C27B0</color>
@@ -37,5 +39,4 @@
     <color name="category_health">#F44336</color>
     <color name="category_education">#3F51B5</color>
     <color name="category_other">#9E9E9E</color>
-
 </resources>

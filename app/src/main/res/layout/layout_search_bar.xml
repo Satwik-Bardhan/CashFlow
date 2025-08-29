@@ -13,8 +13,7 @@
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
         android:layout_marginStart="8dp"
-        android:src="@drawable/ic_search"
-        app:tint="@color/search_bar_icon_color" />
+        android:src="@drawable/ic_search" />
 
     <EditText
         android:id="@+id/searchEditText"
@@ -39,7 +38,6 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="8dp"
-        android:src="@drawable/ic_filter"
-        app:tint="@color/search_bar_icon_color" />
+        android:src="@drawable/ic_filter" />
 
 </RelativeLayout>

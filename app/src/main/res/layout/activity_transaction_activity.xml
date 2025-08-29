@@ -5,7 +5,7 @@
     android:id="@+id/main_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2B2B2B"
+    android:background="#333333"
     android:fitsSystemWindows="true">
 
     <!-- 1. Search Bar (Fixed at the Top) -->
