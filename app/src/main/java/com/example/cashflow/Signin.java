@@ -1,6 +1,5 @@
 package com.example.cashflow;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
@@ -22,14 +21,10 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseAuthInvalidUserException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 public class Signin extends AppCompatActivity {
 
-    private static final String TAG = "SignInActivity";
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
     private EditText emailInput, passwordInput;
@@ -50,15 +45,6 @@ public class Signin extends AppCompatActivity {
         setupGoogleSignInLauncher();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            navigateToHomePage(false);
-        }
-    }
-
     private void initializeUI() {
         emailInput = findViewById(R.id.email);
         passwordInput = findViewById(R.id.password);
@@ -67,11 +53,18 @@ public class Signin extends AppCompatActivity {
 
     private void setupClickListeners() {
         findViewById(R.id.signinButton).setOnClickListener(v -> attemptEmailSignIn());
-        findViewById(R.id.guestButton).setOnClickListener(v -> navigateToHomePage(true));
         findViewById(R.id.signUpText).setOnClickListener(v -> startActivity(new Intent(this, Signup.class)));
-        findViewById(R.id.forgotPassword).setOnClickListener(v -> navigateToForgotPassword());
         findViewById(R.id.btnGoogleSignIn).setOnClickListener(v -> signInWithGoogle());
+        findViewById(R.id.forgotPassword).setOnClickListener(v -> startActivity(new Intent(this, ForgotPassword.class)));
         togglePasswordVisibility.setOnClickListener(v -> togglePasswordVisibility());
+
+        // Guest Login Button
+        findViewById(R.id.guestButton).setOnClickListener(v -> {
+            Intent intent = new Intent(this, HomePage.class);
+            intent.putExtra("isGuest", true); // Add flag for guest mode
+            startActivity(intent);
+            finish();
+        });
     }
 
     private void setupGoogleSignIn() {
@@ -86,66 +79,61 @@ public class Signin extends AppCompatActivity {
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
+                    if (result.getResultCode() == RESULT_OK) {
                         Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
                         try {
                             GoogleSignInAccount account = task.getResult(ApiException.class);
                             firebaseAuthWithGoogle(account.getIdToken());
                         } catch (ApiException e) {
-                            Toast.makeText(this, "Google sign in failed.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Google sign in failed.", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
-    }
-
-    private void signInWithGoogle() {
-        googleSignInLauncher.launch(mGoogleSignInClient.getSignInIntent());
-    }
-
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
-            if (task.isSuccessful()) {
-                navigateToHomePage(false);
-            } else {
-                Toast.makeText(Signin.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void attemptEmailSignIn() {
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
-        if (!validateInput(email, password)) return;
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailInput.setError("Please enter a valid email address.");
+            return;
+        }
+        if (TextUtils.isEmpty(password)) {
+            passwordInput.setError("Password is required.");
+            return;
+        }
 
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
-                navigateToHomePage(false);
+                navigateToHomePage();
             } else {
-                String errorMessage = "Authentication failed.";
-                if (task.getException() instanceof FirebaseAuthInvalidUserException) {
-                    errorMessage = "No account found with this email.";
-                } else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-                    errorMessage = "Incorrect password.";
-                }
-                Toast.makeText(Signin.this, errorMessage, Toast.LENGTH_LONG).show();
+                Toast.makeText(Signin.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private boolean validateInput(String email, String password) {
-        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailInput.setError("Please enter a valid email.");
-            emailInput.requestFocus();
-            return false;
-        }
-        if (TextUtils.isEmpty(password)) {
-            passwordInput.setError("Password is required.");
-            passwordInput.requestFocus();
-            return false;
-        }
-        return true;
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                navigateToHomePage();
+            } else {
+                Toast.makeText(Signin.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void signInWithGoogle() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        googleSignInLauncher.launch(signInIntent);
+    }
+
+    private void navigateToHomePage() {
+        Intent intent = new Intent(this, HomePage.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void togglePasswordVisibility() {
@@ -156,23 +144,7 @@ public class Signin extends AppCompatActivity {
             passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             togglePasswordVisibility.setImageResource(R.drawable.ic_visibility_on);
         }
-        passwordInput.setSelection(passwordInput.length());
         isPasswordVisible = !isPasswordVisible;
-    }
-
-    private void navigateToHomePage(boolean isGuest) {
-        Intent intent = new Intent(this, HomePage.class);
-        intent.putExtra("isGuest", isGuest);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-    }
-
-    private void navigateToForgotPassword() {
-        String email = emailInput.getText().toString().trim();
-        Intent intent = new Intent(this, ForgotPassword.class);
-        if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            intent.putExtra("email", email);
-        }
-        startActivity(intent);
+        passwordInput.setSelection(passwordInput.length()); // Keep cursor at the end
     }
 }

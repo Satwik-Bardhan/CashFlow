@@ -2,42 +2,85 @@ package com.example.cashflow;
 
 import java.io.Serializable;
 
+// This is a Plain Old Java Object (POJO) to hold transaction data.
+// It implements Serializable so it can be passed between activities.
 public class TransactionModel implements Serializable {
     private String transactionId;
     private String transactionCategory;
     private String partyName;
     private double amount;
-    private String type;
-    private String paymentMode;
+    private String type; // "IN" or "OUT"
+    private String paymentMode; // e.g., "Cash", "Online"
     private String remark;
     private long timestamp;
 
+    // A default constructor is required for Firebase to work correctly.
     public TransactionModel() {
-        // Default constructor required for Firebase
     }
 
-    // Getters and Setters
-    public String getTransactionId() { return transactionId; }
-    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+    // --- Getters and Setters for all fields ---
 
-    public String getTransactionCategory() { return transactionCategory; }
-    public void setTransactionCategory(String transactionCategory) { this.transactionCategory = transactionCategory; }
+    public String getTransactionId() {
+        return transactionId;
+    }
 
-    public String getPartyName() { return partyName; }
-    public void setPartyName(String partyName) { this.partyName = partyName; }
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
 
-    public double getAmount() { return amount; }
-    public void setAmount(double amount) { this.amount = amount; }
+    public String getTransactionCategory() {
+        return transactionCategory;
+    }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public void setTransactionCategory(String transactionCategory) {
+        this.transactionCategory = transactionCategory;
+    }
 
-    public String getPaymentMode() { return paymentMode; }
-    public void setPaymentMode(String paymentMode) { this.paymentMode = paymentMode; }
+    public String getPartyName() {
+        return partyName;
+    }
 
-    public String getRemark() { return remark; }
-    public void setRemark(String remark) { this.remark = remark; }
+    public void setPartyName(String partyName) {
+        this.partyName = partyName;
+    }
 
-    public long getTimestamp() { return timestamp; }
-    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getPaymentMode() {
+        return paymentMode;
+    }
+
+    public void setPaymentMode(String paymentMode) {
+        this.paymentMode = paymentMode;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
 }

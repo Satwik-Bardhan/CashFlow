@@ -2,10 +2,12 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.google.gms.google.services) apply false
+    id("com.google.firebase.crashlytics") version "2.9.9" apply false
+    id("com.google.firebase.firebase-perf") version "1.4.2" apply false
 }
 
-buildscript {
-    dependencies {
-        classpath ("com.google.gms:google-services:4.4.1")
-    }
+// NO repositories block here anymore - moved to settings.gradle.kts
+
+tasks.register("clean", Delete::class) {
+    delete(rootProject.buildDir)
 }

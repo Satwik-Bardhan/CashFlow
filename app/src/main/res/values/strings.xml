@@ -26,4 +26,7 @@
         <item>Education</item>
         <item>Other</item>
     </string-array>
+
+    <string name="com.google.firebase.crashlytics.mapping_file_id">none</string>
+
 </resources>

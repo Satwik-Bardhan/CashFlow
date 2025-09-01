@@ -18,7 +18,7 @@ import java.util.Locale;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder> {
 
-    private final List<TransactionModel> transactionList;
+    private List<TransactionModel> transactionList;
     private final OnItemClickListener listener;
 
     public interface OnItemClickListener {
@@ -48,6 +48,13 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public int getItemCount() {
         return transactionList.size();
     }
+
+    // Method to update the list of transactions and refresh the adapter
+    public void updateTransactions(List<TransactionModel> newTransactions) {
+        this.transactionList = newTransactions;
+        // The notifyDataSetChanged() will be called from the Activity/Fragment
+    }
+
 
     class TransactionViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, amountTextView, partyTextView, dateTextView, remarkTextView, paymentModeTextView, transactionTimeTextView;

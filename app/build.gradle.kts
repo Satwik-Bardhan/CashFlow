@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
+    id ("com.google.firebase.crashlytics")
 }
 
 android {
@@ -23,9 +24,12 @@ android {
         }
     }
     compileOptions {
-        // Updated to Java 11 to avoid warnings about obsolete versions
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    // Enable View Binding
+    buildFeatures {
+        viewBinding = true
     }
 }
 
@@ -38,11 +42,19 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
 
+    // Lifecycle components for ViewModel and LiveData
+    implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-livedata:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.8.4")
+
+
+
     // Firebase Bill of Materials (manages versions for all Firebase libraries)
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-storage")
+    implementation ("com.google.firebase:firebase-crashlytics")
+    implementation ("com.google.firebase:firebase-analytics")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.3.0")
@@ -56,6 +68,11 @@ dependencies {
     implementation("com.intuit.sdp:sdp-android:1.1.1")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.github.QuadFlask:colorpicker:0.0.15")
-    implementation("com.google.firebase:firebase-appcheck-playintegrity")
-    implementation("com.itextpdf:itextg:5.5.10")
+
+    // Firebase BOM
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-database")
 }

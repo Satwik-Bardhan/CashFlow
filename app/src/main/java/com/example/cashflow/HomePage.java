@@ -16,10 +16,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +28,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.example.cashflow.databinding.ActivityHomePageBinding;
+import com.example.cashflow.databinding.LayoutBottomNavigationBinding;
+import com.example.cashflow.utils.ErrorHandler;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -49,10 +50,9 @@ public class HomePage extends AppCompatActivity {
 
     private static final String TAG = "HomePage";
 
-    private TextView userNameTop, dateTodayText, uidText, balanceText, moneyInText, moneyOutText, userNameBottom;
-    private TableLayout transactionTable;
-    private LinearLayout cashInButton, cashOutButton, viewFullTransactionsButton, userBox;
-    private TextView btnTransactions, btnHome, btnSettings;
+    // NEW: ViewBinding declarations
+    private ActivityHomePageBinding binding;
+    private LayoutBottomNavigationBinding bottomNavBinding;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -66,50 +66,40 @@ public class HomePage extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Corrected the layout file name to match your project structure
-        setContentView(R.layout.activity_home_page);
+
+        // NEW: Initialize ViewBinding
+        binding = ActivityHomePageBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // NEW: Initialize bottom navigation binding from included layout
+        bottomNavBinding = LayoutBottomNavigationBinding.bind(binding.bottomNavBar.getRoot());
+
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        initializeUI();
         setupClickListeners();
 
-        // This is the correct place to set the button state
-        btnHome.setSelected(true);
+        // NEW: Access bottom navigation through bottomNavBinding
+        bottomNavBinding.btnHome.setSelected(true);
 
         if (getIntent().getBooleanExtra("isGuest", false)) {
             handleGuestMode();
         }
     }
 
-    private void initializeUI() {
-        userNameTop = findViewById(R.id.userNameTop);
-        dateTodayText = findViewById(R.id.dateToday);
-        uidText = findViewById(R.id.uidText);
-        balanceText = findViewById(R.id.balanceText);
-        moneyInText = findViewById(R.id.moneyIn);
-        moneyOutText = findViewById(R.id.moneyOut);
-        userNameBottom = findViewById(R.id.userNameBottom);
-        transactionTable = findViewById(R.id.transactionTable);
-        cashInButton = findViewById(R.id.cashInButton);
-        cashOutButton = findViewById(R.id.cashOutButton);
-        viewFullTransactionsButton = findViewById(R.id.viewFullTransactionsButton);
-        userBox = findViewById(R.id.userBox);
-        btnTransactions = findViewById(R.id.btnTransactions);
-        btnHome = findViewById(R.id.btnHome);
-        btnSettings = findViewById(R.id.btnSettings);
-    }
-
     private void setupClickListeners() {
-        cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
-        cashOutButton.setOnClickListener(v -> openCashInOutActivity("OUT"));
-        viewFullTransactionsButton.setOnClickListener(v -> navigateToTransactionList());
-        userBox.setOnClickListener(v -> showUserDropdown());
-        btnHome.setOnClickListener(v -> Toast.makeText(HomePage.this, "Already on Home", Toast.LENGTH_SHORT).show());
-        btnTransactions.setOnClickListener(v -> navigateToTransactionList());
-        btnSettings.setOnClickListener(v -> startActivity(new Intent(HomePage.this, SettingsActivity.class)));
+        // NEW: Main activity views through binding
+        binding.cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
+        binding.cashOutButton.setOnClickListener(v -> openCashInOutActivity("OUT"));
+        binding.viewFullTransactionsButton.setOnClickListener(v -> navigateToTransactionList());
+        binding.userBox.setOnClickListener(v -> showUserDropdown());
+
+        // NEW: Bottom navigation views through bottomNavBinding
+        bottomNavBinding.btnHome.setOnClickListener(v -> Toast.makeText(HomePage.this, "Already on Home", Toast.LENGTH_SHORT).show());
+        bottomNavBinding.btnTransactions.setOnClickListener(v -> navigateToTransactionList());
+        bottomNavBinding.btnSettings.setOnClickListener(v -> startActivity(new Intent(HomePage.this, SettingsActivity.class)));
     }
 
     @Override
@@ -129,13 +119,24 @@ public class HomePage extends AppCompatActivity {
         removeFirebaseListeners();
     }
 
+    // NEW: Critical memory leak prevention
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        removeFirebaseListeners();
+        binding = null;
+        bottomNavBinding = null; // Also clean up bottom nav binding
+    }
+
     private void handleGuestMode() {
         allTransactions.clear();
         updateTransactionTableAndSummary();
-        userNameTop.setText("Guest User");
-        uidText.setText("UID: GUEST");
-        userNameBottom.setText("Guest User");
-        dateTodayText.setText("Last Open: Guest Session");
+
+        // NEW: Using binding for all UI updates (note: dateToday, not dateTodayText)
+        binding.userNameTop.setText("Guest User");
+        binding.uidText.setText("UID: GUEST");
+        binding.userNameBottom.setText("Guest User");
+        binding.dateToday.setText("Last Open: Guest Session");
     }
 
     private void loadActiveCashbookId(String userId) {
@@ -145,9 +146,11 @@ public class HomePage extends AppCompatActivity {
     }
 
     private void startListeningForCashbooks(String userId) {
+        // NEW: Properly remove existing listener before adding new one
         if (cashbooksListener != null) {
             mDatabase.child("users").child(userId).child("cashbooks").removeEventListener(cashbooksListener);
         }
+
         cashbooksListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -174,13 +177,18 @@ public class HomePage extends AppCompatActivity {
                 updateUserUI();
                 startListeningForTransactions(userId);
             }
+
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) { /* Handle error */ }
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // NEW: Proper error handling
+                ErrorHandler.handleFirebaseError(HomePage.this, databaseError);
+            }
         };
         mDatabase.child("users").child(userId).child("cashbooks").addValueEventListener(cashbooksListener);
     }
 
     private void startListeningForTransactions(String userId) {
+        // NEW: Properly remove existing listener before adding new one
         if (transactionsListener != null && currentCashbookId != null) {
             mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").removeEventListener(transactionsListener);
         }
@@ -192,13 +200,21 @@ public class HomePage extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 allTransactions.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    allTransactions.add(snapshot.getValue(TransactionModel.class));
+                    TransactionModel transaction = snapshot.getValue(TransactionModel.class);
+                    if (transaction != null) {
+                        transaction.setTransactionId(snapshot.getKey());
+                        allTransactions.add(transaction);
+                    }
                 }
                 Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
                 updateTransactionTableAndSummary();
             }
+
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) { /* Handle error */ }
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // NEW: Proper error handling
+                ErrorHandler.handleFirebaseError(HomePage.this, databaseError);
+            }
         });
     }
 
@@ -213,18 +229,20 @@ public class HomePage extends AppCompatActivity {
                     break;
                 }
             }
-            userNameTop.setText(cashbookName);
-            userNameBottom.setText(currentUser.getEmail());
-            uidText.setText("UID: " + currentUser.getUid());
-            dateTodayText.setText("Last Open: " + DateFormat.getDateTimeInstance().format(new Date()));
+            // NEW: Using binding with correct field names from XML
+            binding.userNameTop.setText(cashbookName);
+            binding.userNameBottom.setText(currentUser.getEmail());
+            binding.uidText.setText("UID: " + currentUser.getUid());
+            binding.dateToday.setText("Last Open: " + DateFormat.getDateTimeInstance().format(new Date()));
         }
     }
 
     @SuppressLint("SetTextI18n")
     private void updateTransactionTableAndSummary() {
+        // NEW: Using binding for TableLayout access
         // Clear previous rows except the header
-        if (transactionTable.getChildCount() > 2) {
-            transactionTable.removeViews(2, transactionTable.getChildCount() - 2);
+        if (binding.transactionTable.getChildCount() > 2) {
+            binding.transactionTable.removeViews(2, binding.transactionTable.getChildCount() - 2);
         }
 
         double totalIncome = 0, totalExpense = 0;
@@ -236,9 +254,10 @@ public class HomePage extends AppCompatActivity {
             }
         }
 
-        balanceText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome - totalExpense));
-        moneyInText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome));
-        moneyOutText.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
+        // NEW: Using binding for all TextView updates (note: moneyIn/moneyOut, not moneyInText/moneyOutText)
+        binding.balanceText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome - totalExpense));
+        binding.moneyIn.setText("₹" + String.format(Locale.US, "%.2f", totalIncome));
+        binding.moneyOut.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
 
         if (allTransactions.isEmpty()) {
             // Optionally display a "No transactions" message in the table
@@ -269,7 +288,9 @@ public class HomePage extends AppCompatActivity {
         row.addView(modeView);
         row.addView(outView);
         row.addView(inView);
-        transactionTable.addView(row);
+
+        // NEW: Using binding for table access
+        binding.transactionTable.addView(row);
     }
 
     private TextView createTableCell(String text, float weight, int style) {
@@ -296,15 +317,29 @@ public class HomePage extends AppCompatActivity {
         startActivity(intent);
     }
 
+    // NEW: Enhanced Firebase listener cleanup
     private void removeFirebaseListeners() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
+
         String userId = currentUser.getUid();
+
+        // Remove transactions listener
         if (transactionsListener != null && currentCashbookId != null) {
             mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions").removeEventListener(transactionsListener);
+            transactionsListener = null;
         }
+
+        // Remove cashbooks listener
         if (cashbooksListener != null) {
             mDatabase.child("users").child(userId).child("cashbooks").removeEventListener(cashbooksListener);
+            cashbooksListener = null;
+        }
+
+        // Remove user profile listener
+        if (userProfileListener != null) {
+            mDatabase.child("users").child(userId).removeEventListener(userProfileListener);
+            userProfileListener = null;
         }
     }
 
@@ -373,7 +408,10 @@ public class HomePage extends AppCompatActivity {
                         Toast.makeText(HomePage.this, "Cashbook '" + name + "' created!", Toast.LENGTH_SHORT).show();
                         switchCashbook(cashbookId);
                     })
-                    .addOnFailureListener(e -> Toast.makeText(HomePage.this, "Failed to create cashbook.", Toast.LENGTH_LONG).show());
+                    .addOnFailureListener(e -> {
+                        // NEW: Proper error handling
+                        ErrorHandler.handleExportError(HomePage.this, e);
+                    });
         }
     }
 
@@ -412,6 +450,7 @@ public class HomePage extends AppCompatActivity {
         builder.show();
     }
 
+    // Keep all your existing inner classes and methods (CashbookAdapter, etc.)
     private class CashbookAdapter extends ArrayAdapter<CashbookModel> {
         private AlertDialog dialog;
 
@@ -491,7 +530,8 @@ public class HomePage extends AppCompatActivity {
             String newName = input.getText().toString().trim();
             if (!newName.isEmpty() && !newName.equals(cashbook.getName())) {
                 mDatabase.child("users").child(currentUser.getUid()).child("cashbooks")
-                        .child(cashbook.getId()).child("name").setValue(newName);
+                        .child(cashbook.getId()).child("name").setValue(newName)
+                        .addOnFailureListener(e -> ErrorHandler.handleExportError(HomePage.this, e));
             }
         });
         builder.setNegativeButton("Cancel", null);
@@ -520,7 +560,8 @@ public class HomePage extends AppCompatActivity {
                                         switchCashbook(cashbooks.get(0).getId());
                                     }
                                 }
-                            });
+                            })
+                            .addOnFailureListener(e -> ErrorHandler.handleExportError(HomePage.this, e));
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -545,12 +586,16 @@ public class HomePage extends AppCompatActivity {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 newTransactionsRef.setValue(dataSnapshot.getValue())
-                                        .addOnSuccessListener(aVoid1 -> Toast.makeText(HomePage.this, "Cashbook duplicated.", Toast.LENGTH_SHORT).show());
+                                        .addOnSuccessListener(aVoid1 -> Toast.makeText(HomePage.this, "Cashbook duplicated.", Toast.LENGTH_SHORT).show())
+                                        .addOnFailureListener(e -> ErrorHandler.handleExportError(HomePage.this, e));
                             }
                             @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {}
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                ErrorHandler.handleFirebaseError(HomePage.this, databaseError);
+                            }
                         });
-                    });
+                    })
+                    .addOnFailureListener(e -> ErrorHandler.handleExportError(HomePage.this, e));
         }
     }
 }

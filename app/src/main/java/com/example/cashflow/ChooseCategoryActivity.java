@@ -2,9 +2,7 @@ package com.example.cashflow;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
@@ -16,8 +14,8 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cashflow.utils.CategoryColorUtil;
 import com.flask.colorpicker.ColorPickerView;
-import com.flask.colorpicker.builder.ColorPickerClickListener;
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,7 +27,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ChooseCategoryActivity extends AppCompatActivity implements CategoryAdapter.OnCategoryClickListener {

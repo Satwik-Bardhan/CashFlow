@@ -110,11 +110,11 @@
                                 android:layout_weight="1"
                                 android:clickable="true"
                                 android:drawableEnd="@drawable/ic_arrow_down"
-                                android:drawableTint="#000000"
+                                android:drawableTint="#FFFFFF"
                                 android:focusable="true"
                                 android:paddingEnd="8dp"
                                 android:text="June 17, 2025"
-                                android:textColor="#000000"
+                                android:textColor="#FFFFFF"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
                                 tools:ignore="RtlSymmetry" />
@@ -140,7 +140,7 @@
                                 android:gravity="center_vertical"
                                 android:paddingEnd="8dp"
                                 android:text="00:00 AM"
-                                android:textColor="#000000"
+                                android:textColor="#FFFFFF"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
                                 tools:ignore="RtlSymmetry" />
@@ -153,7 +153,7 @@
                                 android:contentDescription="Time Picker"
                                 android:focusable="true"
                                 android:src="@drawable/ic_time"
-                                app:tint="#000000" />
+                                app:tint="#FFFFFF" />
                         </LinearLayout>
 
                     </LinearLayout>
@@ -375,6 +375,7 @@
                             android:background="@drawable/button_save_add_new"
                             android:paddingHorizontal="16dp"
                             android:text="SAVE &amp; ADD NEW"
+                            android:textColor="#FFFFFF"
                             app:backgroundTint="@null"
                             android:textSize="14sp"
                             android:textStyle="bold" />

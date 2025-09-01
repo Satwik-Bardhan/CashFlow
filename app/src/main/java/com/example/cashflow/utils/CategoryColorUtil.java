@@ -1,7 +1,10 @@
-package com.example.cashflow;
+package com.example.cashflow.utils;
 
 import android.content.Context;
 import androidx.core.content.ContextCompat;
+
+import com.example.cashflow.R;
+
 import java.util.HashMap;
 import java.util.Map;
 

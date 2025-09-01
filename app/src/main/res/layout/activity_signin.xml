@@ -165,7 +165,6 @@
                 android:textColor="#FFFFFF"
                 tools:ignore="HardcodedText" />
 
-            <!-- Correction: Changed ID from 'SignUp' to 'signUpText' for convention -->
             <TextView
                 android:id="@+id/signUpText"
                 android:layout_width="wrap_content"
