@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Pressed state - when user touches the row -->
+    <item android:state_pressed="true"
+        android:drawable="@color/row_pressed" />
+
+    <!-- Focused state - when row has focus -->
+    <item android:state_focused="true"
+        android:drawable="@color/row_focused" />
+
+    <!-- Selected state - when row is selected -->
+    <item android:state_selected="true"
+        android:drawable="@color/row_selected" />
+
+    <!-- Default state - transparent background -->
+    <item android:drawable="@android:color/transparent" />
+
+</selector>

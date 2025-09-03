@@ -25,6 +25,7 @@
             android:layout_marginBottom="4dp">
 
             <!-- Nested LinearLayout for Category and Payment Mode Tag -->
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -43,14 +44,14 @@
 
                 <TextView
                     android:id="@+id/paymentModeTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/rounded_tag_background"
+                    android:background="@drawable/button_blue"
                     android:gravity="center"
                     android:paddingHorizontal="5dp"
                     android:paddingVertical="3dp"
-                    android:text="Cash"
+                    android:text="Mode"
                     android:textColor="#000000"
                     android:textSize="10sp" />
             </LinearLayout>

@@ -39,4 +39,8 @@
     <color name="category_health">#F44336</color>
     <color name="category_education">#3F51B5</color>
     <color name="category_other">#9E9E9E</color>
+
+    <color name="row_pressed">#1A2196F3</color>    <!-- Light blue with transparency -->
+    <color name="row_focused">#1A4CAF50</color>    <!-- Light green with transparency -->
+    <color name="row_selected">#1AFF9800</color>   <!-- Light orange with -->
 </resources>

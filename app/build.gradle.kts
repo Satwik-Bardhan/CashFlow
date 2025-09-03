@@ -75,4 +75,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
+
+    // SwipeRefreshLayout for pull-to-refresh functionality
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
