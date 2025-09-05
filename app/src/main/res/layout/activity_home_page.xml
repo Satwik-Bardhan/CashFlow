@@ -22,20 +22,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottom_nav_bar"
+        android:padding="12dp"
         android:orientation="vertical">
 
-        <!-- Scrollable Content -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="498dp"
+            android:layout_height="wrap_content"
             android:fillViewport="true"
             android:scrollbars="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="511dp"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:layout_marginBottom="8dp">
 
                 <!-- App Title -->
                 <TextView
@@ -47,7 +47,7 @@
                     android:fontFamily="@font/inter_bold"
                     android:text="CASH FLOW"
                     android:textColor="#FFFFFF"
-                    android:textSize="24sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
                     tools:ignore="HardcodedText" />
 
@@ -63,14 +63,14 @@
                     <LinearLayout
                         android:id="@+id/userBox"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:background="?android:attr/selectableItemBackground"
                         android:clickable="true"
                         android:contentDescription="User information and cashbook selector"
                         android:focusable="true"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="12dp">
+                        android:padding="10dp">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -85,7 +85,7 @@
                                 android:fontFamily="@font/inter_bold"
                                 android:text="User Name"
                                 android:textColor="#000000"
-                                android:textSize="18sp"
+                                android:textSize="16sp"
                                 android:textStyle="bold"
                                 tools:ignore="HardcodedText" />
 
@@ -97,7 +97,7 @@
                                 android:fontFamily="@font/inter_medium"
                                 android:text="Last Open Date and Time"
                                 android:textColor="#666666"
-                                android:textSize="12sp"
+                                android:textSize="10sp"
                                 tools:ignore="HardcodedText" />
 
                         </LinearLayout>
@@ -107,7 +107,7 @@
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:background="?android:attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"
+                            android:clickable="false"
                             android:contentDescription="Expand user menu"
                             android:focusable="true"
                             android:padding="12dp"
@@ -122,7 +122,7 @@
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="15dp"
+                    android:layout_marginTop="10dp"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="10dp">
 
@@ -382,7 +382,7 @@
                     <LinearLayout
                         android:id="@+id/viewFullTransactionsButton"
                         android:layout_width="match_parent"
-                        android:layout_height="56dp"
+                        android:layout_height="49dp"
                         android:background="?android:attr/selectableItemBackground"
                         android:clickable="true"
                         android:contentDescription="View all transactions"
@@ -428,7 +428,6 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_margin="12dp"
             app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp">
@@ -443,7 +442,7 @@
                 <!-- Scrollable Table Content -->
                 <ScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fillViewport="true">
 
@@ -456,7 +455,6 @@
 
                         <!-- Table Header Row -->
                         <TableRow
-                            android:layout_height="114dp"
                             android:background="@drawable/table_row_background">
 
                             <TextView
@@ -467,7 +465,7 @@
                                 android:fontFamily="@font/inter_bold"
                                 android:gravity="start"
                                 android:padding="12dp"
-                                android:text="Transactions"
+                                android:text="TRANSACTIONS"
                                 android:textColor="#000000"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
@@ -480,7 +478,7 @@
                                 android:fontFamily="@font/inter_bold"
                                 android:gravity="center"
                                 android:padding="12dp"
-                                android:text="Mode"
+                                android:text="MODE"
                                 android:textColor="#1976D2"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
@@ -493,7 +491,7 @@
                                 android:fontFamily="@font/inter_bold"
                                 android:gravity="center"
                                 android:padding="12dp"
-                                android:text="In"
+                                android:text="IN"
                                 android:textColor="#388E3C"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
@@ -506,7 +504,7 @@
                                 android:fontFamily="@font/inter_bold"
                                 android:gravity="center"
                                 android:padding="12dp"
-                                android:text="Out"
+                                android:text="OUT"
                                 android:textColor="#D32F2F"
                                 android:textSize="12sp"
                                 android:textStyle="bold"

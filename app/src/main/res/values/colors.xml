@@ -7,9 +7,9 @@
     <color name="textColorSecondary">#8A000000</color> <!-- Dark grey text -->
 
     <!-- Bottom Navigation Colors for Light Theme -->
-    <color name="bottom_nav_background">#FFFFFFFF</color> <!-- White background -->
-    <color name="bottom_nav_item_selected">#E0E0E0</color> <!-- Light grey for selection -->
-    <color name="bottom_nav_item_unselected_border">#BDBDBD</color> <!-- Medium grey for border -->
+    <color name="bottom_nav_background">#333333</color>
+    <color name="bottom_nav_item_selected">#BDBDBD</color> <!-- Light grey for selection -->
+    <color name="bottom_nav_item_unselected_border">#FFFFFF</color> <!-- Medium grey for border -->
     <color name="bottom_nav_icon_text_color">#FF000000</color> <!-- Black for icon/text -->
 
     <!-- Other App-Specific Colors -->
@@ -43,4 +43,8 @@
     <color name="row_pressed">#1A2196F3</color>    <!-- Light blue with transparency -->
     <color name="row_focused">#1A4CAF50</color>    <!-- Light green with transparency -->
     <color name="row_selected">#1AFF9800</color>   <!-- Light orange with -->
+
+    <color name="ic_home">#FFFFFF</color>
+    <color name="ic_transactions">#FFFFFF</color>
+    <color name="ic_settings">#FFFFFF</color>
 </resources>

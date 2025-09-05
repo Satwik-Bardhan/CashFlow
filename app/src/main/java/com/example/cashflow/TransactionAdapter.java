@@ -2,6 +2,7 @@ package com.example.cashflow;
 
 import android.annotation.SuppressLint;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import java.util.Locale;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder> {
 
+    private static final String TAG = "TransactionAdapter";
     private List<TransactionModel> transactionList;
     private final OnItemClickListener listener;
 
@@ -28,6 +30,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public TransactionAdapter(List<TransactionModel> transactionList, OnItemClickListener listener) {
         this.transactionList = transactionList;
         this.listener = listener;
+        Log.d(TAG, "TransactionAdapter initialized with " + transactionList.size() + " transactions");
     }
 
     @NonNull
@@ -40,27 +43,38 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull TransactionViewHolder holder, int position) {
-        TransactionModel transaction = transactionList.get(position);
-        holder.bind(transaction);
+        if (position < transactionList.size()) {
+            TransactionModel transaction = transactionList.get(position);
+            holder.bind(transaction);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return transactionList.size();
+        int count = transactionList != null ? transactionList.size() : 0;
+        Log.d(TAG, "getItemCount() returning: " + count);
+        return count;
     }
 
-    // Method to update the list of transactions and refresh the adapter
+    @SuppressLint("NotifyDataSetChanged")
     public void updateTransactions(List<TransactionModel> newTransactions) {
-        this.transactionList = newTransactions;
-        // The notifyDataSetChanged() will be called from the Activity/Fragment
+        if (newTransactions != null) {
+            this.transactionList = newTransactions;
+            Log.d(TAG, "updateTransactions: Updated with " + newTransactions.size() + " transactions");
+            notifyDataSetChanged();
+        }
     }
-
 
     class TransactionViewHolder extends RecyclerView.ViewHolder {
-        TextView titleTextView, amountTextView, partyTextView, dateTextView, remarkTextView, paymentModeTextView, transactionTimeTextView;
+        TextView titleTextView, amountTextView, partyTextView, dateTextView,
+                remarkTextView, paymentModeTextView, transactionTimeTextView;
 
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
+            initializeViews();
+        }
+
+        private void initializeViews() {
             titleTextView = itemView.findViewById(R.id.titleTextView);
             amountTextView = itemView.findViewById(R.id.amountTextView);
             partyTextView = itemView.findViewById(R.id.partyTextView);
@@ -72,41 +86,97 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
         @SuppressLint("SetTextI18n")
         void bind(final TransactionModel transaction) {
-            titleTextView.setText(transaction.getTransactionCategory());
-            paymentModeTextView.setText(transaction.getPaymentMode());
-            partyTextView.setText(transaction.getPartyName());
+            if (transaction == null) {
+                Log.w(TAG, "Binding null transaction at position: " + getAdapterPosition());
+                return;
+            }
 
-            // Set amount and color based on transaction type
-            if ("IN".equalsIgnoreCase(transaction.getType())) {
-                amountTextView.setText("₹" + String.format(Locale.US, "%.2f", transaction.getAmount()));
-                amountTextView.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.income_green));
+            try {
+                // Set transaction category/title
+                String category = transaction.getTransactionCategory();
+                titleTextView.setText(category != null ? category : "Unknown Category");
+
+                // Set payment mode with color coding
+                // In your TransactionAdapter.java bind() method:
+
+                String paymentMode = transaction.getPaymentMode();
+                paymentModeTextView.setText(paymentMode != null ? paymentMode : "N/A");
+
+                if ("Cash".equalsIgnoreCase(paymentMode)) {
+                    // Use your blue drawable
+                    paymentModeTextView.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.button_blue));
+                }
+
+
+
+                // Set party name
+                String partyName = transaction.getPartyName();
+                partyTextView.setText(partyName != null ? partyName : "No Party");
+
+                // Set amount and color based on transaction type
+                double amount = transaction.getAmount();
+                String formattedAmount = "₹" + String.format(Locale.US, "%.2f", amount);
+                amountTextView.setText(formattedAmount);
+
+                if ("IN".equalsIgnoreCase(transaction.getType())) {
+                    amountTextView.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.income_green));
+                } else {
+                    amountTextView.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.expense_red));
+                }
+
+                // Format and display timestamp
+                formatAndDisplayDateTime(transaction.getTimestamp());
+
+                // Handle remark visibility
+                handleRemarkDisplay(transaction.getRemark());
+
+                // Set up click listener
+                setupClickListener(transaction);
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error binding transaction: " + e.getMessage(), e);
+            }
+        }
+
+        private void formatAndDisplayDateTime(long timestamp) {
+            if (timestamp > 0) {
+                try {
+                    Date date = new Date(timestamp);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
+
+                    dateTextView.setText(dateFormat.format(date));
+                    transactionTimeTextView.setText(timeFormat.format(date));
+                } catch (Exception e) {
+                    Log.e(TAG, "Error formatting date: " + e.getMessage());
+                    dateTextView.setText("Invalid Date");
+                    transactionTimeTextView.setText("--:--");
+                }
             } else {
-                amountTextView.setText("₹" + String.format(Locale.US, "%.2f", transaction.getAmount()));
-                amountTextView.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.expense_red));
+                dateTextView.setText("No Date");
+                transactionTimeTextView.setText("--:--");
             }
+        }
 
-            // Format timestamp into separate date and time strings
-            if (transaction.getTimestamp() > 0) {
-                Date date = new Date(transaction.getTimestamp());
-                SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-                SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
-                dateTextView.setText(dateFormat.format(date));
-                transactionTimeTextView.setText(timeFormat.format(date));
-            }
-
-            // Show remark only if it exists
-            if (!TextUtils.isEmpty(transaction.getRemark())) {
-                remarkTextView.setText(transaction.getRemark());
+        private void handleRemarkDisplay(String remark) {
+            if (!TextUtils.isEmpty(remark) && !remark.trim().isEmpty()) {
+                remarkTextView.setText(remark);
                 remarkTextView.setVisibility(View.VISIBLE);
             } else {
                 remarkTextView.setVisibility(View.GONE);
             }
+        }
 
+        private void setupClickListener(final TransactionModel transaction) {
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
+                    Log.d(TAG, "Transaction clicked: " + transaction.getTransactionCategory());
                     listener.onItemClick(transaction);
                 }
             });
+
+            itemView.setClickable(true);
+            itemView.setFocusable(true);
         }
     }
 }

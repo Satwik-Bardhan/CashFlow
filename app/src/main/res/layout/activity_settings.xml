@@ -60,6 +60,15 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Primary Settings"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"

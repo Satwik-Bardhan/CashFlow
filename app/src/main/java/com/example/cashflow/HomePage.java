@@ -137,13 +137,44 @@ public class HomePage extends AppCompatActivity {
         binding.cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
         binding.cashOutButton.setOnClickListener(v -> openCashInOutActivity("OUT"));
         binding.viewFullTransactionsButton.setOnClickListener(v -> navigateToTransactionList());
-        binding.userBox.setOnClickListener(v -> showUserDropdown());
+        binding.userBox.setOnClickListener(v -> showUserDropdownFromRight(binding.userDropdownIcon));
+        binding.userDropdownIcon.setOnClickListener(v -> showUserDropdownFromRight(binding.userDropdownIcon));
 
         // Bottom navigation click listeners
         bottomNavBinding.btnHome.setOnClickListener(v ->
                 Toast.makeText(this, "Already on Home", Toast.LENGTH_SHORT).show());
         bottomNavBinding.btnTransactions.setOnClickListener(v -> navigateToTransactionList());
         bottomNavBinding.btnSettings.setOnClickListener(v -> navigateToSettings());
+    }
+
+
+    private void showUserDropdownFromRight(View anchorView) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null || isGuest) {
+            showGuestOptions();
+            return;
+        }
+        try {
+            PopupMenu popupMenu = new PopupMenu(this, anchorView);
+            popupMenu.getMenuInflater().inflate(R.menu.user_menu, popupMenu.getMenu());
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                popupMenu.setGravity(Gravity.END); // Force drop from right
+            }
+            popupMenu.setOnMenuItemClickListener(item -> {
+                int itemId = item.getItemId();
+                if (itemId == R.id.action_switch) { showCashbookSwitcher(); return true; }
+                if (itemId == R.id.action_add) { showCreateNewCashbookDialog(); return true; }
+                if (itemId == R.id.action_settings) { navigateToSettings(); return true; }
+                if (itemId == R.id.action_signout) { signOutUser(); return true; }
+                return false;
+            });
+            popupMenu.show();
+            logToAnalytics("HomePage: User dropdown shown (right side)");
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing user dropdown", e);
+            recordException(e);
+            showError("Unable to show user options");
+        }
     }
 
     @Override
@@ -598,6 +629,7 @@ public class HomePage extends AppCompatActivity {
 
         // Transaction category - LEFT aligned with custom padding for blue line alignment
         TextView entryView = createTableCellWithPadding(transaction.getTransactionCategory(), 2f, Typeface.NORMAL, Gravity.START, 10, 4);
+        entryView.setBackgroundResource(R.drawable.table_cell_border);
 
         // Mode - CENTER aligned
         TextView modeView = createPerfectCenterCell(transaction.getPaymentMode(), 1f);
@@ -605,9 +637,11 @@ public class HomePage extends AppCompatActivity {
 
         // IN column - START aligned (cash in entries on LEFT side)
         TextView inView = createTableCell("IN".equalsIgnoreCase(transaction.getType()) ? formatCurrency(transaction.getAmount()) : "-", 1f, Typeface.NORMAL, Gravity.CENTER);
+        inView.setBackgroundResource(R.drawable.table_cell_border);
 
         // OUT column - END aligned (cash out entries on RIGHT side)
         TextView outView = createTableCell("OUT".equalsIgnoreCase(transaction.getType()) ? formatCurrency(transaction.getAmount()) : "-", 1f, Typeface.NORMAL, Gravity.CENTER);
+        outView.setBackgroundResource(R.drawable.table_cell_border);
 
         // Set colors
         modeView.setTextColor(ContextCompat.getColor(this, R.color.balance_blue));

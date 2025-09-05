@@ -7,7 +7,7 @@
     <color name="textColorSecondary">#B3FFFFFF</color> <!-- Light grey text -->
 
     <!-- Bottom Navigation Colors for Dark Theme -->
-    <color name="bottom_nav_background">#1E1E1E</color> <!-- Dark grey background -->
+    <color name="bottom_nav_background">#333333</color>
     <color name="bottom_nav_item_selected">#424242</color> <!-- Medium grey for selection -->
     <color name="bottom_nav_item_unselected_border">#616161</color> <!-- Lighter grey for border -->
     <color name="bottom_nav_icon_text_color">#FFFFFFFF</color> <!-- White for icon/text -->
@@ -39,4 +39,8 @@
     <color name="category_health">#F44336</color>
     <color name="category_education">#3F51B5</color>
     <color name="category_other">#9E9E9E</color>
+
+    <color name="ic_home">#FFFFFF</color>
+    <color name="ic_transactions">#FFFFFF</color>
+    <color name="ic_settings">#FFFFFF</color>
 </resources>

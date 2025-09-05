@@ -15,30 +15,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_margin="16dp" />
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp" />
 
     <!-- 2. Scrollable Content Area -->
     <ScrollView
         android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/search_bar_container"
+        android:layout_marginTop="3dp"
         android:layout_above="@+id/fixedBottomContainer"
+        android:layout_below="@id/search_bar_container"
         android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="12dp">
 
             <!-- Summary Cards -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="10dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -56,6 +60,7 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -63,6 +68,7 @@
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/incomeText"
                             android:layout_width="wrap_content"
@@ -72,6 +78,7 @@
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
@@ -81,6 +88,7 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -88,6 +96,7 @@
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/expenseText"
                             android:layout_width="wrap_content"
@@ -97,6 +106,7 @@
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -106,6 +116,7 @@
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -113,6 +124,7 @@
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/balanceText"
                             android:layout_width="wrap_content"
@@ -125,14 +137,45 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Pie Chart -->
-            <com.github.mikephil.charting.charts.PieChart
-                android:id="@+id/pieChart"
+            <!-- PIE CHART SECTION (NEWLY ADDED) -->
+            <!-- PIE CHART SECTION (NEWLY ADDED) -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Pie Chart Title -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="12dp"
+                        android:text="Expense Breakdown"
+                        android:textColor="#333333"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <!-- Pie Chart -->
+                    <com.github.mikephil.charting.charts.PieChart
+                        android:id="@+id/pieChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="300dp" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
 
             <!-- Transactions Title and Download Button -->
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -154,20 +197,27 @@
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:background="@drawable/button_download"
-                    android:text="Download"
-                    android:gravity="center"
-                    android:textColor="@android:color/white"
                     android:drawableStart="@drawable/ic_download"
-                    android:paddingHorizontal="16dp"/>
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:text="Download"
+                    android:textColor="@android:color/white" />
 
             </RelativeLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/transactionRecyclerView"
+            <!-- Wrap your RecyclerView in a LinearLayout with weight -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_transaction"/>
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/transaction_fragment_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="500dp" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
