@@ -1,5 +1,7 @@
 package com.example.cashflow;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -10,27 +12,24 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.cashflow.databinding.ActivityHomePageBinding;
+import com.example.cashflow.databinding.ComponentBalanceCardBinding;
 import com.example.cashflow.databinding.LayoutBottomNavigationBinding;
 import com.example.cashflow.utils.ErrorHandler;
 import com.example.cashflow.utils.ThemeManager;
@@ -58,6 +57,7 @@ public class HomePage extends AppCompatActivity {
 
     // ViewBinding declarations
     private ActivityHomePageBinding binding;
+    private ComponentBalanceCardBinding balanceCardBinding;
     private LayoutBottomNavigationBinding bottomNavBinding;
 
     // Firebase components
@@ -80,6 +80,12 @@ public class HomePage extends AppCompatActivity {
     // Number formatting
     private NumberFormat currencyFormat;
 
+    // ===== ANIMATED BALANCE CARD =====
+    private AnimatedBalanceCard animatedBalanceCard;
+    private double currentBalance = 0.0;
+    private double currentIncome = 0.0;
+    private double currentExpense = 0.0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Apply theme before super.onCreate
@@ -90,6 +96,9 @@ public class HomePage extends AppCompatActivity {
         // Initialize ViewBinding
         binding = ActivityHomePageBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Initialize balance card binding
+        balanceCardBinding = ComponentBalanceCardBinding.bind(binding.balanceCardComponent.getRoot());
 
         // Initialize bottom navigation binding
         bottomNavBinding = LayoutBottomNavigationBinding.bind(binding.bottomNavBar.getRoot());
@@ -110,6 +119,7 @@ public class HomePage extends AppCompatActivity {
         logToAnalytics("HomePage: Activity started, guest=" + isGuest);
 
         setupUI();
+        setupAnimatedBalanceCard();
         setupClickListeners();
 
         // Set active bottom navigation
@@ -132,6 +142,85 @@ public class HomePage extends AppCompatActivity {
         binding.viewFullTransactionsButton.setContentDescription("View all transactions");
     }
 
+    // ===== ANIMATED BALANCE CARD SETUP =====
+    private void setupAnimatedBalanceCard() {
+        try {
+            // Initialize the animated balance card using the included layout
+            View balanceCardComponent = binding.balanceCardComponent.getRoot();
+            if (balanceCardComponent != null) {
+                animatedBalanceCard = new AnimatedBalanceCard(balanceCardComponent);
+
+                // Set initial user info
+                setupInitialBalanceCardData();
+
+                // Set click listener for balance card
+                animatedBalanceCard.setOnCardClickListener(v -> {
+                    // Navigate to detailed balance view or show balance breakdown
+                    showBalanceBreakdownDialog();
+                });
+
+                // Show card with entry animation
+                animatedBalanceCard.showWithAnimation();
+
+                Log.d(TAG, "Animated balance card initialized successfully");
+            } else {
+                Log.w(TAG, "Balance card component not found in layout");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting up animated balance card", e);
+            recordException(e);
+        }
+    }
+
+    private void setupInitialBalanceCardData() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null && !isGuest) {
+            String uid = "UID: " + currentUser.getUid().substring(0, 8) + "...";
+            String displayName = getDisplayName(currentUser);
+
+            // Set initial data in balance card views
+            balanceCardBinding.uidText.setText(uid);
+            balanceCardBinding.userNameBottom.setText(displayName);
+
+            if (animatedBalanceCard != null) {
+                animatedBalanceCard.setUserInfo(uid, displayName);
+            }
+        } else if (isGuest) {
+            balanceCardBinding.uidText.setText("UID: GUEST");
+            balanceCardBinding.userNameBottom.setText("Guest User");
+
+            if (animatedBalanceCard != null) {
+                animatedBalanceCard.setUserInfo("UID: GUEST", "Guest User");
+            }
+        }
+
+        // Set initial balance data (will be updated when Firebase data loads)
+        balanceCardBinding.balanceText.setText("₹0.00");
+        balanceCardBinding.moneyIn.setText("₹0.00");
+        balanceCardBinding.moneyOut.setText("₹0.00");
+
+        if (animatedBalanceCard != null) {
+            animatedBalanceCard.setBalanceData(0.0, 0.0, 0.0);
+        }
+    }
+
+    private void showBalanceBreakdownDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Balance Breakdown");
+
+        String message = String.format(Locale.US,
+                "Current Balance: ₹%.2f\n\n" +
+                        "Total Income: ₹%.2f\n" +
+                        "Total Expenses: ₹%.2f\n\n" +
+                        "Transactions: %d",
+                currentBalance, currentIncome, currentExpense, allTransactions.size());
+
+        builder.setMessage(message);
+        builder.setPositiveButton("View Transactions", (dialog, which) -> navigateToTransactionList());
+        builder.setNegativeButton("Close", null);
+        builder.show();
+    }
+
     private void setupClickListeners() {
         // Main activity click listeners
         binding.cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
@@ -146,7 +235,6 @@ public class HomePage extends AppCompatActivity {
         bottomNavBinding.btnTransactions.setOnClickListener(v -> navigateToTransactionList());
         bottomNavBinding.btnSettings.setOnClickListener(v -> navigateToSettings());
     }
-
 
     private void showUserDropdownFromRight(View anchorView) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -211,12 +299,14 @@ public class HomePage extends AppCompatActivity {
 
         // Clean up ViewBinding references
         binding = null;
+        balanceCardBinding = null;
         bottomNavBinding = null;
+        animatedBalanceCard = null;
 
         logToAnalytics("HomePage: Activity destroyed");
     }
 
-    // ===== USER DROPDOWN METHOD (SOLUTION TO THE ERROR) =====
+    // ===== USER DROPDOWN METHOD =====
     private void showUserDropdown() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null || isGuest) {
@@ -225,36 +315,29 @@ public class HomePage extends AppCompatActivity {
         }
 
         try {
-            // Create PopupMenu
             PopupMenu popupMenu = new PopupMenu(this, binding.userBox);
             popupMenu.getMenuInflater().inflate(R.menu.user_menu, popupMenu.getMenu());
 
-            // Set click listener
-            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    int itemId = item.getItemId();
+            popupMenu.setOnMenuItemClickListener(item -> {
+                int itemId = item.getItemId();
 
-                    if (itemId == R.id.action_switch) {
-                        showCashbookSwitcher();
-                        return true;
-                    } else if (itemId == R.id.action_add) {
-                        showCreateNewCashbookDialog();
-                        return true;
-                    } else if (itemId == R.id.action_settings) {
-                        navigateToSettings();
-                        return true;
-                    } else if (itemId == R.id.action_signout) {
-                        signOutUser();
-                        return true;
-                    }
-                    return false;
+                if (itemId == R.id.action_switch) {
+                    showCashbookSwitcher();
+                    return true;
+                } else if (itemId == R.id.action_add) {
+                    showCreateNewCashbookDialog();
+                    return true;
+                } else if (itemId == R.id.action_settings) {
+                    navigateToSettings();
+                    return true;
+                } else if (itemId == R.id.action_signout) {
+                    signOutUser();
+                    return true;
                 }
+                return false;
             });
 
-            // Show the popup menu
             popupMenu.show();
-
             logToAnalytics("HomePage: User dropdown shown");
 
         } catch (Exception e) {
@@ -312,12 +395,9 @@ public class HomePage extends AppCompatActivity {
                 .setMessage("Are you sure you want to sign out?")
                 .setPositiveButton("Sign Out", (dialog, which) -> {
                     try {
-                        // Sign out from Firebase
                         mAuth.signOut();
-
                         logToAnalytics("HomePage: User signed out");
 
-                        // Navigate to signin
                         Intent intent = new Intent(this, Signin.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
@@ -336,15 +416,25 @@ public class HomePage extends AppCompatActivity {
     // ===== GUEST MODE HANDLING =====
     private void handleGuestMode() {
         allTransactions.clear();
+        currentBalance = 0.0;
+        currentIncome = 0.0;
+        currentExpense = 0.0;
+
         updateTransactionTableAndSummary();
 
-        // Update UI for guest mode
-        binding.userNameTop.setText("Guest User");
-        binding.uidText.setText("UID: GUEST");
-        binding.userNameBottom.setText("Guest User");
-        binding.dateToday.setText("Guest Session - Data stored locally only");
+        // Update balance card views for guest mode
+        balanceCardBinding.uidText.setText("UID: GUEST");
+        balanceCardBinding.userNameBottom.setText("Guest User");
+        balanceCardBinding.balanceText.setText("₹0.00");
+        balanceCardBinding.moneyIn.setText("₹0.00");
+        balanceCardBinding.moneyOut.setText("₹0.00");
 
-        // Show guest mode info
+        // Update animated balance card for guest mode
+        if (animatedBalanceCard != null) {
+            animatedBalanceCard.setUserInfo("UID: GUEST", "Guest User");
+            animatedBalanceCard.setBalanceData(0.0, 0.0, 0.0);
+        }
+
         showGuestModeInfo();
     }
 
@@ -365,7 +455,6 @@ public class HomePage extends AppCompatActivity {
     private void startListeningForCashbooks(String userId) {
         setLoadingState(true);
 
-        // Remove existing listener
         if (cashbooksListener != null) {
             mDatabase.child("users").child(userId).child("cashbooks").removeEventListener(cashbooksListener);
         }
@@ -389,7 +478,6 @@ public class HomePage extends AppCompatActivity {
                         }
                     }
 
-                    // Handle cashbook selection logic
                     if (!activeCashbookFound && !cashbooks.isEmpty()) {
                         currentCashbookId = cashbooks.get(0).getId();
                         saveActiveCashbookId(userId, currentCashbookId);
@@ -425,7 +513,6 @@ public class HomePage extends AppCompatActivity {
     }
 
     private void startListeningForTransactions(String userId) {
-        // Remove existing listener
         if (transactionsListener != null && currentCashbookId != null) {
             mDatabase.child("users").child(userId).child("cashbooks")
                     .child(currentCashbookId).child("transactions")
@@ -454,7 +541,6 @@ public class HomePage extends AppCompatActivity {
                         }
                     }
 
-                    // Sort transactions by timestamp (newest first)
                     Collections.sort(allTransactions,
                             (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
 
@@ -480,13 +566,13 @@ public class HomePage extends AppCompatActivity {
         });
     }
 
-    // ===== UI UPDATES =====
+    // ===== UI UPDATES WITH ANIMATION =====
     @SuppressLint("SetTextI18n")
     private void updateUserUI() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             try {
-                String cashbookName = "My Cashbook"; // Default
+                String cashbookName = "My Cashbook"; // Default name
 
                 // Find current cashbook name
                 for (CashbookModel cashbook : cashbooks) {
@@ -496,13 +582,27 @@ public class HomePage extends AppCompatActivity {
                     }
                 }
 
-                // Update UI elements
-                binding.userNameTop.setText(cashbookName);
-                binding.userNameBottom.setText(getDisplayName(currentUser));
-                binding.uidText.setText("UID: " + currentUser.getUid().substring(0, 8) + "...");
-                binding.dateToday.setText("Last Updated: " +
-                        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-                                .format(new Date()));
+                // ===== UPDATE USER NAME TO SHOW CASHBOOK NAME =====
+                // This should show the cashbook name, not the user's display name
+                if (binding.userNameTop != null) {
+                    binding.userNameTop.setText(cashbookName); // Show cashbook name
+                }
+
+                // Update balance card views
+                if (balanceCardBinding != null) {
+                    balanceCardBinding.uidText.setText("UID: " + currentUser.getUid().substring(0, 8) + "...");
+                    balanceCardBinding.userNameBottom.setText(getDisplayName(currentUser)); // User name at bottom
+                }
+
+                // Update animated balance card user info
+                if (animatedBalanceCard != null) {
+                    animatedBalanceCard.setUserInfo(
+                            "UID: " + currentUser.getUid().substring(0, 8) + "...",
+                            getDisplayName(currentUser)
+                    );
+                }
+
+                Log.d(TAG, "UI updated with cashbook: " + cashbookName);
 
             } catch (Exception e) {
                 Log.e(TAG, "Error updating user UI", e);
@@ -510,6 +610,7 @@ public class HomePage extends AppCompatActivity {
             }
         }
     }
+
 
     private String getDisplayName(FirebaseUser user) {
         if (user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) {
@@ -542,17 +643,38 @@ public class HomePage extends AppCompatActivity {
 
             double balance = totalIncome - totalExpense;
 
-            // Update summary cards with formatted currency
-            binding.balanceText.setText(formatCurrency(balance));
-            binding.moneyIn.setText(formatCurrency(totalIncome));
-            binding.moneyOut.setText(formatCurrency(totalExpense));
+            // Update balance card views
+            balanceCardBinding.balanceText.setText(formatCurrency(balance));
+            balanceCardBinding.moneyIn.setText(formatCurrency(totalIncome));
+            balanceCardBinding.moneyOut.setText(formatCurrency(totalExpense));
 
             // Set balance text color based on positive/negative
             if (balance >= 0) {
-                binding.balanceText.setTextColor(ContextCompat.getColor(this, R.color.income_green));
+                balanceCardBinding.balanceText.setTextColor(ContextCompat.getColor(this, R.color.income_green));
             } else {
-                binding.balanceText.setTextColor(ContextCompat.getColor(this, R.color.expense_red));
+                balanceCardBinding.balanceText.setTextColor(ContextCompat.getColor(this, R.color.expense_red));
             }
+
+            // ===== ANIMATE BALANCE CARD WITH NEW VALUES =====
+            if (animatedBalanceCard != null) {
+                // Check if values have changed to trigger animation
+                boolean valuesChanged = (Math.abs(balance - currentBalance) > 0.01) ||
+                        (Math.abs(totalIncome - currentIncome) > 0.01) ||
+                        (Math.abs(totalExpense - currentExpense) > 0.01);
+
+                if (valuesChanged) {
+                    // Update with animation
+                    animatedBalanceCard.updateBalanceWithAnimation(balance, totalIncome, totalExpense);
+                } else {
+                    // Set without animation (for initial load)
+                    animatedBalanceCard.setBalanceData(balance, totalIncome, totalExpense);
+                }
+            }
+
+            // Update current values for future comparison
+            currentBalance = balance;
+            currentIncome = totalIncome;
+            currentExpense = totalExpense;
 
             // Add recent transactions to table
             if (allTransactions.isEmpty()) {
@@ -563,7 +685,6 @@ public class HomePage extends AppCompatActivity {
                     addTransactionRow(allTransactions.get(i));
                 }
 
-                // Show "View More" indicator if there are more transactions
                 if (allTransactions.size() > MAX_VISIBLE_TRANSACTIONS) {
                     addViewMoreRow(allTransactions.size() - MAX_VISIBLE_TRANSACTIONS);
                 }
@@ -580,6 +701,21 @@ public class HomePage extends AppCompatActivity {
         return "₹" + String.format(Locale.US, "%.2f", amount);
     }
 
+    // ===== TRANSACTION HIGHLIGHT METHOD =====
+    public void onNewTransactionAdded() {
+        // Call this method when a new transaction is added to highlight the balance card
+        if (animatedBalanceCard != null) {
+            animatedBalanceCard.highlightNewTransaction();
+        }
+    }
+
+    public void onBalanceError() {
+        // Call this method for error states to shake the balance card
+        if (animatedBalanceCard != null) {
+            animatedBalanceCard.shakeAnimation();
+        }
+    }
+
     private void addNoTransactionsRow() {
         TableRow row = new TableRow(this);
         row.setBackgroundResource(R.drawable.table_row_border);
@@ -594,7 +730,7 @@ public class HomePage extends AppCompatActivity {
 
         TableRow.LayoutParams params = new TableRow.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
-        params.span = 4; // Span across all 4 columns
+        params.span = 4;
         noDataView.setLayoutParams(params);
 
         row.addView(noDataView);
@@ -624,31 +760,27 @@ public class HomePage extends AppCompatActivity {
         binding.transactionTable.addView(row);
     }
 
-    // ===== UPDATED TRANSACTION ROW WITH PROPER ALIGNMENT =====
-    private void addTransactionRow(TransactionModel transaction) {TableRow row = new TableRow(this);row.setBackgroundResource(R.drawable.table_border);row.setPadding(0, 0, 0, 0);
+    private void addTransactionRow(TransactionModel transaction) {
+        TableRow row = new TableRow(this);
+        row.setBackgroundResource(R.drawable.table_border);
+        row.setPadding(0, 0, 0, 0);
 
-        // Transaction category - LEFT aligned with custom padding for blue line alignment
         TextView entryView = createTableCellWithPadding(transaction.getTransactionCategory(), 2f, Typeface.NORMAL, Gravity.START, 10, 4);
         entryView.setBackgroundResource(R.drawable.table_cell_border);
 
-        // Mode - CENTER aligned
         TextView modeView = createPerfectCenterCell(transaction.getPaymentMode(), 1f);
         modeView.setBackgroundResource(R.drawable.table_cell_border);
 
-        // IN column - START aligned (cash in entries on LEFT side)
         TextView inView = createTableCell("IN".equalsIgnoreCase(transaction.getType()) ? formatCurrency(transaction.getAmount()) : "-", 1f, Typeface.NORMAL, Gravity.CENTER);
         inView.setBackgroundResource(R.drawable.table_cell_border);
 
-        // OUT column - END aligned (cash out entries on RIGHT side)
         TextView outView = createTableCell("OUT".equalsIgnoreCase(transaction.getType()) ? formatCurrency(transaction.getAmount()) : "-", 1f, Typeface.NORMAL, Gravity.CENTER);
         outView.setBackgroundResource(R.drawable.table_cell_border);
 
-        // Set colors
         modeView.setTextColor(ContextCompat.getColor(this, R.color.balance_blue));
         inView.setTextColor(ContextCompat.getColor(this, R.color.income_green));
         outView.setTextColor(ContextCompat.getColor(this, R.color.expense_red));
 
-        // Add views to row in correct order: Transactions, Mode, In, Out
         row.addView(entryView);
         row.addView(modeView);
         row.addView(inView);
@@ -660,26 +792,14 @@ public class HomePage extends AppCompatActivity {
     }
 
     // ===== HELPER METHODS FOR TABLE CREATION =====
-
-    /**
-     * Convert dp to pixels
-     */
     private int dpToPx(int dp) {
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
-    /**
-     * Create table cell with basic padding and gravity
-     */
-    /**
-     * Create table cell with border
-     */
     private TextView createTableCell(String text, float weight, int style, int gravity) {
         TextView textView = new TextView(this);
         textView.setText(text);
         textView.setPadding(dpToPx(8), dpToPx(12), dpToPx(8), dpToPx(12));
-
-        // Add border to each cell
         textView.setBackgroundResource(R.drawable.table_cell_border);
 
         TableRow.LayoutParams params = new TableRow.LayoutParams(
@@ -696,30 +816,18 @@ public class HomePage extends AppCompatActivity {
         }
 
         textView.setTextSize(14);
-
         return textView;
     }
 
-
-    /**
-     * Create table cell with custom padding and margin for alignment
-     */
-    /**
-     * Create table cell with custom padding and border
-     */
     private TextView createTableCellWithPadding(String text, float weight, int style, int gravity, int leftPaddingDp, int leftMarginDp) {
         TextView textView = new TextView(this);
         textView.setText(text);
 
-        // Set custom padding
         int leftPadding = dpToPx(leftPaddingDp);
         int normalPadding = dpToPx(12);
         textView.setPadding(leftPadding, normalPadding, dpToPx(8), normalPadding);
-
-        // Add border to each cell
         textView.setBackgroundResource(R.drawable.table_cell_border);
 
-        // Set layout params with margin
         TableRow.LayoutParams params = new TableRow.LayoutParams(
                 0, TableRow.LayoutParams.WRAP_CONTENT, weight);
         params.setMargins(dpToPx(leftMarginDp), 0, 0, 0);
@@ -733,29 +841,22 @@ public class HomePage extends AppCompatActivity {
         return textView;
     }
 
-
     private TextView createPerfectCenterCell(String text, float weight) {
         TextView textView = new TextView(this);
         textView.setText(text);
-
-        // Set padding
         textView.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
 
-        // MATCH_PARENT height is crucial for vertical centering in TableRow
         TableRow.LayoutParams params = new TableRow.LayoutParams(
                 0, TableRow.LayoutParams.MATCH_PARENT, weight);
         textView.setLayoutParams(params);
 
-        // Perfect center alignment - both horizontal AND vertical
         textView.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
-
         textView.setTextColor(Color.BLACK);
         textView.setTypeface(null, Typeface.NORMAL);
         textView.setTextSize(14);
 
         return textView;
     }
-
 
     // ===== NAVIGATION METHODS =====
     private void openTransactionDetail(TransactionModel transaction) {
@@ -897,20 +998,17 @@ public class HomePage extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
 
-        // Remove old transaction listener
         if (transactionsListener != null && currentCashbookId != null) {
             mDatabase.child("users").child(currentUser.getUid())
                     .child("cashbooks").child(currentCashbookId).child("transactions")
                     .removeEventListener(transactionsListener);
         }
 
-        // Update current cashbook
         currentCashbookId = newCashbookId;
         saveActiveCashbookId(currentUser.getUid(), currentCashbookId);
 
         logToAnalytics("HomePage: Switched to cashbook - " + newCashbookId);
 
-        // Refresh UI and data
         updateUserUI();
         startListeningForTransactions(currentUser.getUid());
     }
@@ -921,25 +1019,20 @@ public class HomePage extends AppCompatActivity {
     }
 
     // ===== UTILITY METHODS =====
-
-    // Loading state management
     private void setLoadingState(boolean loading) {
         isLoading = loading;
 
-        // Disable/enable interactive elements during loading
         binding.cashInButton.setEnabled(!loading);
         binding.cashOutButton.setEnabled(!loading);
         binding.viewFullTransactionsButton.setEnabled(!loading);
         binding.userBox.setEnabled(!loading);
     }
 
-    // Error handling
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         Log.e(TAG, "Error shown to user: " + message);
     }
 
-    // Analytics and logging
     private void logToAnalytics(String message) {
         Log.d(TAG, message);
         try {
@@ -957,14 +1050,12 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    // Firebase listener cleanup
     private void removeFirebaseListeners() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
 
         String userId = currentUser.getUid();
 
-        // Remove transactions listener
         if (transactionsListener != null && currentCashbookId != null) {
             mDatabase.child("users").child(userId).child("cashbooks")
                     .child(currentCashbookId).child("transactions")
@@ -972,14 +1063,12 @@ public class HomePage extends AppCompatActivity {
             transactionsListener = null;
         }
 
-        // Remove cashbooks listener
         if (cashbooksListener != null) {
             mDatabase.child("users").child(userId).child("cashbooks")
                     .removeEventListener(cashbooksListener);
             cashbooksListener = null;
         }
 
-        // Remove user profile listener
         if (userProfileListener != null) {
             mDatabase.child("users").child(userId)
                     .removeEventListener(userProfileListener);
