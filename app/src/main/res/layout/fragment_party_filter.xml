@@ -1,32 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="#2B2B2B">
 
-    <TextView
-        android:id="@+id/no_parties_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="You don't have any Parties in this book"
-        android:textSize="16sp" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/add_new_party_button"
-        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="+ ADD NEW PARTY" />
-
-    <!-- A RecyclerView will be added here later to show the list of parties -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/parties_recycler_view"
+    <!-- Parties List (when available) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/partiesListCard"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#1E1E1E"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- List Header -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Available Parties"
+                android:textColor="#2196F3"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:padding="8dp" />
+
+            <!-- Parties RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/parties_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:scrollbars="vertical"
+                android:padding="4dp"
+                android:overScrollMode="never" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/emptyStateLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_group_outline"
+            android:layout_marginBottom="24dp"
+            android:contentDescription="No parties icon"
+            app:tint="#666666" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No Parties Found"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/no_parties_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="You don't have any parties in this cashbook"
+            android:textColor="#AAAAAA"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginBottom="24dp"
+            android:lineSpacingMultiplier="1.2" />
+
+        <Button
+            android:id="@+id/add_new_party_button"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:text="ADD NEW PARTY"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:background="@drawable/add_party_button"
+            android:drawableStart="@drawable/ic_person_add"
+            android:drawablePadding="8dp"
+            android:paddingHorizontal="24dp"
+            app:drawableTint="#FFFFFF" />
+
+        <!-- Quick Info -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Parties help you track transactions with specific people or businesses"
+            android:textColor="#666666"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:lineSpacingMultiplier="1.2" />
+    </LinearLayout>
+
+    <!-- Floating Add Button (when list has content) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddParty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:contentDescription="Add new party"
+        app:backgroundTint="#4CAF50"
+        app:srcCompat="@drawable/ic_person_add"
+        app:tint="#FFFFFF"
+        app:elevation="8dp"
         android:visibility="gone" />
 
-</LinearLayout>
+</RelativeLayout>

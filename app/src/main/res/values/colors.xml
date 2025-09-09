@@ -7,7 +7,6 @@
     <color name="textColorSecondary">#8A000000</color> <!-- Dark grey text -->
 
     <!-- Bottom Navigation Colors for Light Theme -->
-    <color name="bottom_nav_background">#333333</color>
     <color name="bottom_nav_item_selected">#BDBDBD</color> <!-- Light grey for selection -->
     <color name="bottom_nav_item_unselected_border">#FFFFFF</color> <!-- Medium grey for border -->
     <color name="bottom_nav_icon_text_color">#FF000000</color> <!-- Black for icon/text -->
@@ -47,4 +46,12 @@
     <color name="ic_home">#FFFFFF</color>
     <color name="ic_transactions">#FFFFFF</color>
     <color name="ic_settings">#FFFFFF</color>
+
+    <color name="bottom_nav_background">#121212</color>
+    <color name="bottom_nav_icon">#FFFFFF</color>
+    <color name="bottom_nav_text">#FFFFFF</color>
+    <color name="bottom_nav_selected">#2196F3</color>
+
+    <color name="radio_text_color">#FFFFFF</color>
+
 </resources>

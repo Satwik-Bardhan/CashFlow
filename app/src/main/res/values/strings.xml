@@ -27,6 +27,10 @@
         <item>Other</item>
     </string-array>
 
+    <string name="back_button_desc">Back</string>
+    <string name="menu_button_desc">Menu</string>
+
+
     <string name="com.google.firebase.crashlytics.mapping_file_id">none</string>
 
 </resources>

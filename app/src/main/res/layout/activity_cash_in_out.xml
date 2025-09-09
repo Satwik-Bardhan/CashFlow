@@ -2,400 +2,131 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_root_layout"
+    android:id="@+id/main_settings_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#2B2B2B"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:padding="12dp"
+    tools:context=".CashInOutActivity"
+    android:importantForAccessibility="yes">
 
+    <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/main_scroll_view"
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="16dp"
+        android:importantForAccessibility="yes">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:importantForAccessibility="yes">
 
-            <!-- Header Section with Back Button -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:background="#121212"
-                android:orientation="vertical"
-                android:paddingTop="24dp"
-                android:paddingBottom="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp">
-
-                    <ImageView
-                        android:id="@+id/backButton"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:clickable="true"
-                        android:contentDescription="Back"
-                        android:focusable="true"
-                        android:src="@drawable/ic_arrow_left"
-                        app:tint="#FFFFFF" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="-24dp"
-                        android:layout_weight="1"
-                        android:gravity="center_horizontal"
-                        android:text="CASH FLOW"
-                        android:textColor="#FFFFFF"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/cashInOutTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:layout_marginStart="16dp"
-                    android:text="Add Entry"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
+            <!-- Modernized Card Header -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardBackgroundColor="#1E1E1E"
+                app:cardCornerRadius="20dp"
+                android:layout_marginBottom="14dp"
+                app:cardElevation="8dp">
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/text_background"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="18dp"
+                    android:gravity="center_vertical">
 
-                    <!-- Date & Time Selector Layout -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal">
-
-                        <!-- Date Selector -->
-                        <LinearLayout
-                            android:id="@+id/dateSelectorLayout"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/dateTextView"
-                                android:layout_width="0dp"
-                                android:layout_height="match_parent"
-                                android:layout_weight="1"
-                                android:clickable="true"
-                                android:drawableEnd="@drawable/ic_arrow_down"
-                                android:drawableTint="#FFFFFF"
-                                android:focusable="true"
-                                android:paddingEnd="8dp"
-                                android:text="June 17, 2025"
-                                android:textColor="#FFFFFF"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                tools:ignore="RtlSymmetry" />
-                        </LinearLayout>
-
-                        <!-- Time Selector -->
-                        <LinearLayout
-                            android:id="@+id/timeSelectorLayout"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="0.8"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/timeTextView"
-                                android:layout_width="0dp"
-                                android:layout_height="match_parent"
-                                android:layout_weight="1"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:gravity="center_vertical"
-                                android:paddingEnd="8dp"
-                                android:text="00:00 AM"
-                                android:textColor="#FFFFFF"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                tools:ignore="RtlSymmetry" />
-
-                            <ImageView
-                                android:id="@+id/timePickerIcon"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:clickable="true"
-                                android:contentDescription="Time Picker"
-                                android:focusable="true"
-                                android:src="@drawable/ic_time"
-                                app:tint="#FFFFFF" />
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-
-                    <!-- Amount and IN/OUT Toggle Layout -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="vertical">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:orientation="horizontal">
-
-                            <RadioGroup
-                                android:id="@+id/inOutToggle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <RadioButton
-                                    android:id="@+id/radioIn"
-                                    android:layout_width="80dp"
-                                    android:layout_height="40dp"
-                                    android:layout_marginEnd="5dp"
-                                    android:background="@drawable/button_cashin"
-                                    android:button="@android:color/transparent"
-                                    android:checked="true"
-                                    android:gravity="center"
-                                    android:paddingHorizontal="16dp"
-                                    android:paddingVertical="8dp"
-                                    android:text="IN" />
-
-                                <RadioButton
-                                    android:id="@+id/radioOut"
-                                    android:layout_width="80dp"
-                                    android:layout_height="40dp"
-                                    android:background="@drawable/button_cashout"
-                                    android:button="@android:color/transparent"
-                                    android:gravity="center"
-                                    android:paddingHorizontal="16dp"
-                                    android:paddingVertical="8dp"
-                                    android:text="OUT" />
-                            </RadioGroup>
-                        </LinearLayout>
-
-                        <EditText
-                            android:id="@+id/amountEditText"
-                            android:layout_width="match_parent"
-                            android:layout_height="50dp"
-                            android:background="@drawable/rounded_white"
-                            android:hint="Amount"
-                            android:inputType="numberDecimal"
-                            android:paddingHorizontal="12dp"
-                            android:textColor="#000000"
-                            android:textColorHint="#AAAAAA" />
-                    </LinearLayout>
-
-                    <RadioGroup
-                        android:id="@+id/cashOnlineToggle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal">
-
-                        <RadioButton
-                            android:id="@+id/radioCash"
-                            android:layout_width="80dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="5dp"
-                            android:background="@drawable/button_blue"
-                            android:button="@android:color/transparent"
-                            android:checked="true"
-                            android:gravity="center"
-                            android:paddingHorizontal="16dp"
-                            android:paddingVertical="8dp"
-                            android:text="Cash"
-                            android:textColor="#000000" />
-
-                        <RadioButton
-                            android:id="@+id/radioOnline"
-                            android:layout_width="80dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/button_blue"
-                            android:button="@android:color/transparent"
-                            android:gravity="center"
-                            android:paddingHorizontal="16dp"
-                            android:paddingVertical="8dp"
-                            android:text="Online"
-                            android:textColor="#000000" />
-                    </RadioGroup>
-
-                    <!-- Party Dropdown/Contact Picker -->
-                    <LinearLayout
-                        android:id="@+id/partySelectorLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="@drawable/rounded_white"
+                    <!-- Back button, left -->
+                    <ImageView
+                        android:id="@+id/back_button"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_arrow_left"
+                        android:contentDescription="@string/back_button_desc"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:clickable="true"
                         android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        app:tint="#FFFFFF"
+                        android:padding="6dp"
+                        android:importantForAccessibility="yes" />
 
-                        <TextView
-                            android:id="@+id/partyTextView"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="center_vertical"
-                            android:paddingStart="12dp"
-                            android:text="Party (Customer/Supplier)"
-                            android:textColor="#000000"
-                            android:textSize="16sp" />
-
-                        <ImageView
-                            android:id="@+id/partyPickerIcon"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:layout_marginEnd="8dp"
-                            android:clickable="true"
-                            android:contentDescription="Select Contact"
-                            android:focusable="true"
-                            android:src="@drawable/ic_arrow_down"
-                            app:tint="#888888" />
-                    </LinearLayout>
-
-
-                    <EditText
-                        android:id="@+id/remarkEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="@drawable/rounded_white"
-                        android:hint="Remark"
-                        android:inputType="textMultiLine"
-                        android:maxLines="3"
-                        android:paddingHorizontal="12dp"
-                        android:textColor="#000000"
-                        android:textColorHint="#AAAAAA" />
-
+                    <!-- Title & Subtitle, centered -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:id="@+id/header_text_layout"
+                        android:orientation="vertical"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:gravity="end|center_vertical"
-                        android:orientation="horizontal">
+                        android:layout_centerInParent="true"
+                        android:gravity="center_horizontal">
 
                         <TextView
+                            android:id="@+id/headerTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:text="Attach Image or PDF"
+                            android:text="Add Entry"
                             android:textColor="#FFFFFF"
-                            android:textSize="14sp" />
-
-                        <ImageView
-                            android:id="@+id/attachFileButton"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:clickable="true"
-                            android:contentDescription="Attach File"
-                            android:focusable="true"
-                            android:src="@drawable/ic_attach_file" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
 
                         <TextView
-                            android:id="@+id/selectedCategoryTextView"
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/rounded_white"
-                            android:clickable="true"
-                            android:drawableEnd="@drawable/ic_arrow_down"
-                            android:drawableTint="#000000"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="8dp"
-                            android:text="Select Category"
-                            android:textColor="#000000"
-                            android:textSize="16sp" />
-
-                        <View
-                            android:id="@+id/categoryColorIndicator"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:layout_marginStart="8dp"
-                            android:background="@drawable/rounded_color_indicator"
-                            android:clickable="true"
-                            android:focusable="true" />
+                            android:id="@+id/headerSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Record income or expense"
+                            android:textColor="#BBBBBB"
+                            android:textSize="13sp"
+                            android:layout_marginTop="3dp"
+                            android:fontFamily="sans-serif"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/saveAndAddNewButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1.2"
-                            android:background="@drawable/button_save_add_new"
-                            android:paddingHorizontal="16dp"
-                            android:text="SAVE &amp; ADD NEW"
-                            android:textColor="#FFFFFF"
-                            app:backgroundTint="@null"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <Button
-                            android:id="@+id/saveEntryButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:background="@drawable/button_save_entry"
-                            app:backgroundTint="@null"
-                            android:paddingHorizontal="16dp"
-                            android:text="SAVE ENTRY"
-                            android:textColor="#FFFFFF"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                </LinearLayout>
+                    <!-- Menu button, right -->
+                    <ImageView
+                        android:id="@+id/menu_button"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_more_vert"
+                        android:contentDescription="@string/menu_button_desc"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:tint="#2196F3"
+                        android:padding="6dp"
+                        android:importantForAccessibility="yes" />
+                </RelativeLayout>
             </androidx.cardview.widget.CardView>
+
+            <!-- Include modularized entry sections -->
+            <include layout="@layout/layout_date_time" />
+            <include layout="@layout/layout_transaction_type" />
+            <include layout="@layout/layout_amount" />
+            <include layout="@layout/layout_quick_amounts" />
+            <include layout="@layout/layout_payment_method" />
+            <include layout="@layout/layout_remark_voice" />
+            <include layout="@layout/layout_category" />
+            <include layout="@layout/layout_attachments" />
+            <include layout="@layout/layout_party_reference" />
+            <include layout="@layout/layout_tags_location" />
+            <include layout="@layout/layout_tax_amount" />
+            <include layout="@layout/layout_action_buttons" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </RelativeLayout>
