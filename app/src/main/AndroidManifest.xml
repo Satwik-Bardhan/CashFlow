@@ -22,9 +22,9 @@
         android:theme="@style/Theme.CashFlow"
         tools:targetApi="31">
 
-        <!-- Splash screen is the entry point of the app -->
+        <!-- SplashActivity screen is the entry point of the app -->
         <activity
-            android:name=".Splash"
+            android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,13 +34,13 @@
 
         <!-- Main app activities -->
         <activity
-            android:name=".Signin"
+            android:name=".SigninActivity"
             android:exported="false" />
         <activity
-            android:name=".Signup"
+            android:name=".SignupActivity"
             android:exported="false" />
         <activity
-            android:name=".ForgotPassword"
+            android:name=".ForgotPasswordActivity"
             android:exported="false" />
         <activity
             android:name=".HomePage"
@@ -73,7 +73,6 @@
             android:name=".MainActivity"
             android:exported="false" />
 
-        <!-- ADD THIS LINE TO FIX THE CRASH -->
         <activity
             android:name=".DownloadOptionsActivity"
             android:exported="false" />
@@ -86,3 +85,4 @@
     </application>
 
 </manifest>
+

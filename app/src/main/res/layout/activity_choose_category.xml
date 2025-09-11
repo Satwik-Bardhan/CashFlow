@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#2B2B2B"
     android:fitsSystemWindows="true"
-    tools:context=".CategorySelectionActivity">
+    tools:context=".ChooseCategoryActivity">
 
     <!-- Modernized Card Header Section -->
     <androidx.cardview.widget.CardView
@@ -193,7 +193,7 @@
                     android:id="@+id/categoryCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="12 items"
+                    android:text="0 items"
                     android:textColor="#AAAAAA"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -292,3 +292,4 @@
         app:elevation="8dp" />
 
 </RelativeLayout>
+

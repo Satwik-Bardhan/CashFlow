@@ -5,10 +5,17 @@ import java.io.Serializable;
 public class CategoryModel implements Serializable {
     private String name;
     private String colorHex;
-    private boolean isCustom;
+    private boolean isCustom; // To distinguish between predefined and user-added
 
     public CategoryModel() {
         // Default constructor required for Firebase
+    }
+
+    // --- [ADDED] Constructor for easier object creation ---
+    public CategoryModel(String name, String colorHex) {
+        this.name = name;
+        this.colorHex = colorHex;
+        this.isCustom = false; // Default to not custom
     }
 
     public CategoryModel(String name, String colorHex, boolean isCustom) {
@@ -17,6 +24,7 @@ public class CategoryModel implements Serializable {
         this.isCustom = isCustom;
     }
 
+    // --- Getters and Setters ---
     public String getName() {
         return name;
     }

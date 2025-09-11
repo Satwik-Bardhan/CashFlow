@@ -27,7 +27,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    // Enable View Binding
     buildFeatures {
         viewBinding = true
     }
@@ -47,14 +46,14 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata:2.8.4")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.8.4")
 
-
-
     // Firebase Bill of Materials (manages versions for all Firebase libraries)
-    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
-    implementation("com.google.firebase:firebase-database")
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
     implementation("com.google.firebase:firebase-auth")
-    implementation ("com.google.firebase:firebase-crashlytics")
-    implementation ("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
+
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.3.0")
@@ -65,17 +64,13 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 
     // Third-party libraries
-    implementation("com.intuit.sdp:sdp-android:1.1.1")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    // --- [FIX] Added the missing dependency for the Color Picker ---
     implementation("com.github.QuadFlask:colorpicker:0.0.15")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
-    // Firebase BOM
-    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
-    implementation("com.google.firebase:firebase-crashlytics")
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-database")
 
     // SwipeRefreshLayout for pull-to-refresh functionality
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
+

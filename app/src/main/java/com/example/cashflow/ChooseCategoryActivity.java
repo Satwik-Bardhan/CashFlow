@@ -1,5 +1,6 @@
 package com.example.cashflow;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -44,7 +45,7 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
     private List<CategoryModel> allCategories = new ArrayList<>();
     private CategoryAdapter categoryAdapter;
 
-    private String selectedCategoryName = "";
+    private String previouslySelectedCategoryName = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +60,9 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
         setupRecyclerView();
         setupListeners();
 
-        selectedCategoryName = getIntent().getStringExtra("selected_category_name");
-        if (isNoCategory(selectedCategoryName)) {
+        // Get the category name passed from the previous activity
+        previouslySelectedCategoryName = getIntent().getStringExtra("selected_category");
+        if (isNoCategory(previouslySelectedCategoryName)) {
             radioNoCategory.setChecked(true);
         }
     }
@@ -68,10 +70,11 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
     private void initializeUI() {
         radioNoCategory = findViewById(R.id.radioNoCategory);
         categoriesRecyclerView = findViewById(R.id.categoriesRecyclerView);
-        addNewCategoryButton = findViewById(R.id.add_new_category_button);
+        addNewCategoryButton = findViewById(R.id.addNewCategoryButton);
     }
 
     private void setupRecyclerView() {
+        // Use a grid layout with 2 columns
         categoriesRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         categoryAdapter = new CategoryAdapter(allCategories, this, this);
         categoriesRecyclerView.setAdapter(categoryAdapter);
@@ -83,8 +86,8 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
 
         radioNoCategory.setOnClickListener(v -> {
             if (radioNoCategory.isChecked()) {
-                categoryAdapter.clearSelection();
-                returnCategory("No Category", String.format("#%06X", (0xFFFFFF & ContextCompat.getColor(this, R.color.category_default))));
+                // Return a special "No Category" value
+                returnCategory("No Category");
             }
         });
     }
@@ -96,6 +99,7 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
         if (currentUser != null) {
             startListeningForCategories(currentUser.getUid());
         } else {
+            // If user is a guest, only show the predefined categories
             populatePredefinedCategoriesOnly();
         }
     }
@@ -105,6 +109,7 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
         super.onStop();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null && categoriesListener != null) {
+            // Remove listener to prevent memory leaks
             mDatabase.child("users").child(currentUser.getUid()).child("customCategories").removeEventListener(categoriesListener);
         }
     }
@@ -113,10 +118,10 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
         allCategories.clear();
         String[] predefinedNames = getResources().getStringArray(R.array.transaction_categories);
         for (String name : predefinedNames) {
-            if (!"Select Category".equals(name)) {
+            if (!"Select Category".equals(name)) { // Ignore placeholder
                 int colorInt = CategoryColorUtil.getCategoryColor(this, name);
                 String colorHex = String.format("#%06X", (0xFFFFFF & colorInt));
-                allCategories.add(new CategoryModel(name, colorHex, false));
+                allCategories.add(new CategoryModel(name, colorHex));
             }
         }
         categoryAdapter.notifyDataSetChanged();
@@ -126,9 +131,10 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
     private void startListeningForCategories(String userId) {
         DatabaseReference customCategoriesRef = mDatabase.child("users").child(userId).child("customCategories");
         categoriesListener = customCategoriesRef.addValueEventListener(new ValueEventListener() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                populatePredefinedCategoriesOnly(); // Start with a fresh list of predefined
+                populatePredefinedCategoriesOnly(); // Always start with the base list
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     CategoryModel customCategory = snapshot.getValue(CategoryModel.class);
                     if (customCategory != null) {
@@ -141,16 +147,16 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(ChooseCategoryActivity.this, "Failed to load custom categories.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ChooseCategoryActivity.this, "Failed to load categories.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void selectInitialCategory() {
-        if (!isNoCategory(selectedCategoryName)) {
-            for (int i = 0; i < allCategories.size(); i++) {
-                if (allCategories.get(i).getName().equals(selectedCategoryName)) {
-                    categoryAdapter.setSelectedPosition(i);
+        if (!isNoCategory(previouslySelectedCategoryName)) {
+            for (CategoryModel category : allCategories) {
+                if (category.getName().equals(previouslySelectedCategoryName)) {
+                    categoryAdapter.setSelectedCategory(category);
                     radioNoCategory.setChecked(false);
                     return;
                 }
@@ -160,37 +166,34 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
 
     @Override
     public void onCategoryClick(CategoryModel category) {
-        returnCategory(category.getName(), category.getColorHex());
+        returnCategory(category.getName());
     }
 
-    private void returnCategory(String name, String colorHex) {
+    private void returnCategory(String name) {
         Intent resultIntent = new Intent();
-        resultIntent.putExtra("selected_category_name", name);
-        resultIntent.putExtra("selected_category_color_hex", colorHex);
+        resultIntent.putExtra("selected_category", name);
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
 
     private void showAddCategoryDialog() {
         final EditText categoryNameEditText = new EditText(this);
-        categoryNameEditText.setHint("New Category Name");
+        categoryNameEditText.setHint("Category Name");
+        categoryNameEditText.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS);
 
-        final int[] selectedColor = {ContextCompat.getColor(this, R.color.category_default)};
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Add New Category");
-        builder.setView(categoryNameEditText);
-
-        builder.setPositiveButton("Add", (dialog, which) -> {
-            String newCategoryName = categoryNameEditText.getText().toString().trim();
-            if (!newCategoryName.isEmpty()) {
-                showColorPickerDialog(newCategoryName);
-            } else {
-                Toast.makeText(this, "Category name cannot be empty.", Toast.LENGTH_SHORT).show();
-            }
-        });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-        builder.show();
+        new AlertDialog.Builder(this)
+                .setTitle("Add New Category")
+                .setView(categoryNameEditText)
+                .setPositiveButton("Choose Color", (dialog, which) -> {
+                    String newCategoryName = categoryNameEditText.getText().toString().trim();
+                    if (!newCategoryName.isEmpty()) {
+                        showColorPickerDialog(newCategoryName);
+                    } else {
+                        Toast.makeText(this, "Category name cannot be empty.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void showColorPickerDialog(String categoryName) {
@@ -202,23 +205,23 @@ public class ChooseCategoryActivity extends AppCompatActivity implements Categor
                 .density(12)
                 .setPositiveButton("OK", (dialog, chosenColor, allColors) -> {
                     String colorHex = String.format("#%06X", (0xFFFFFF & chosenColor));
-                    addNewCategory(categoryName, colorHex);
+                    addNewCategoryToFirebase(categoryName, colorHex);
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> {})
                 .build()
                 .show();
     }
 
-    private void addNewCategory(String name, String colorHex) {
+    private void addNewCategoryToFirebase(String name, String colorHex) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "You must be logged in to add categories.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        CategoryModel newCategory = new CategoryModel(name, colorHex, true);
+        CategoryModel newCategory = new CategoryModel(name, colorHex);
         mDatabase.child("users").child(currentUser.getUid()).child("customCategories").push().setValue(newCategory)
-                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Category added!", Toast.LENGTH_SHORT).show())
+                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Category '" + name + "' added!", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to add category.", Toast.LENGTH_LONG).show());
     }
 

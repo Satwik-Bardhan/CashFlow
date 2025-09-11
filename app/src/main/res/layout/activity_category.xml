@@ -1,67 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#2B2B2B"
-    android:padding="16dp">
+    android:fitsSystemWindows="true"
+    tools:context=".CategoryActivity">
 
-    <!-- Section Header -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Categories"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="12dp" />
-
-    <!-- Categories Card Container -->
+    <!-- Header Section -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/headerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#1E1E1E">
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="#1E1E1E"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/categoryChipGroup"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            app:chipSpacing="8dp"
-            app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="6dp"
-            app:singleSelection="false"
-            app:selectionRequired="false">
+            android:padding="20dp">
 
-            <!-- Example static chips (optional) -->
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipFood"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
+            <ImageView
+                android:id="@+id/back_button"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:clickable="true"
+                android:contentDescription="Back"
+                android:focusable="true"
+                android:padding="8dp"
+                android:src="@drawable/ic_arrow_left"
+                app:tint="#FFFFFF" />
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Food"
+                android:layout_centerInParent="true"
+                android:text="Manage Categories"
                 android:textColor="#FFFFFF"
-                app:chipBackgroundColor="@color/chip_background_selector"
-                app:chipIcon="@drawable/ic_circle"
-                app:chipIconTint="#4CAF50"
-                android:checkable="true" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipTravel"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Travel"
-                android:textColor="#FFFFFF"
-                app:chipBackgroundColor="@color/chip_background_selector"
-                app:chipIcon="@drawable/ic_circle"
-                app:chipIconTint="#2196F3"
-                android:checkable="true" />
-
-        </com.google.android.material.chip.ChipGroup>
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
     </androidx.cardview.widget.CardView>
 
-</LinearLayout>
+    <!-- Scrollable ChipGroup -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/headerCard"
+        android:paddingHorizontal="16dp">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#1E1E1E"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/categoryChipGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                app:chipSpacing="8dp" />
+
+        </androidx.cardview.widget.CardView>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Floating Action Button to Add New Categories -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="24dp"
+        android:contentDescription="Add New Category"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/balance_blue"
+        app:tint="@color/white" />
+
+</RelativeLayout>

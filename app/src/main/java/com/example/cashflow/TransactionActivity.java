@@ -16,9 +16,11 @@ import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,7 +33,6 @@ import androidx.core.content.ContextCompat;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
@@ -66,7 +67,6 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     private List<TransactionModel> allTransactions = new ArrayList<>();
     private List<TransactionModel> displayedTransactions = new ArrayList<>();
 
-    // Fragment-based approach - removed RecyclerView variables
     private TransactionItemFragment transactionFragment;
     private PieChart pieChart;
 
@@ -74,7 +74,11 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     private EditText searchEditText;
     private ImageView filterButton;
     private Button btnDownload;
-    private TextView btnHome, btnTransactions, btnSettings;
+
+    // Bottom Navigation Views
+    private LinearLayout btnHome, btnTransactions, btnSettings;
+    private ImageView iconHome, iconTransactions, iconSettings;
+    private TextView textHome, textTransactions, textSettings;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -94,7 +98,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_transaction_activity);
+        setContentView(R.layout.activity_transaction);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         currentCashbookId = getIntent().getStringExtra("cashbook_id");
@@ -108,21 +112,19 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         initializeUI();
-        setupTransactionFragment(); // Replace setupRecyclerView with fragment setup
+        setupTransactionFragment();
         setupClickListeners();
         setupFilterLauncher();
         setupDownloadLauncher();
         initializePieChart();
+        updateBottomNavigationSelection(btnTransactions); // Set initial selected state
 
-        // Debug long click listener to clear all filters
         btnDownload.setOnLongClickListener(v -> {
             clearAllFilters();
             debugTransactionData();
-            Toast.makeText(this, "All filters cleared - showing all transactions", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "All filters cleared", Toast.LENGTH_SHORT).show();
             return true;
         });
-
-        btnTransactions.setSelected(true);
     }
 
     private void initializeUI() {
@@ -133,19 +135,51 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         searchEditText = findViewById(R.id.searchEditText);
         filterButton = findViewById(R.id.filterButton);
         btnDownload = findViewById(R.id.downloadReportButton);
+
+        // Initialize Bottom Navigation Views
         btnHome = findViewById(R.id.btnHome);
         btnTransactions = findViewById(R.id.btnTransactions);
         btnSettings = findViewById(R.id.btnSettings);
+        iconHome = findViewById(R.id.iconHome);
+        iconTransactions = findViewById(R.id.iconTransactions);
+        iconSettings = findViewById(R.id.iconSettings);
+        textHome = findViewById(R.id.textHome);
+        textTransactions = findViewById(R.id.textTransactions);
+        textSettings = findViewById(R.id.textSettings);
 
         Log.d(TAG, "UI components initialized successfully");
     }
 
+    private void updateBottomNavigationSelection(View selectedButton) {
+        // Reset all buttons to default (unselected) state
+        iconHome.setColorFilter(Color.WHITE);
+        textHome.setTextColor(Color.WHITE);
+        iconTransactions.setColorFilter(Color.WHITE);
+        textTransactions.setTextColor(Color.WHITE);
+        iconSettings.setColorFilter(Color.WHITE);
+        textSettings.setTextColor(Color.WHITE);
+
+        // [FIXED] Use a valid color. This blue is used elsewhere in your app.
+        int activeColor = Color.parseColor("#2196F3");
+
+        // Set the selected button to the active state
+        if (selectedButton.getId() == R.id.btnHome) {
+            iconHome.setColorFilter(activeColor);
+            textHome.setTextColor(activeColor);
+        } else if (selectedButton.getId() == R.id.btnTransactions) {
+            iconTransactions.setColorFilter(activeColor);
+            textTransactions.setTextColor(activeColor);
+        } else if (selectedButton.getId() == R.id.btnSettings) {
+            iconSettings.setColorFilter(activeColor);
+            textSettings.setTextColor(activeColor);
+        }
+    }
+
     private void setupTransactionFragment() {
-        // Create fragment with empty transaction list initially
         transactionFragment = TransactionItemFragment.newInstance(new ArrayList<>());
         transactionFragment.setOnItemClickListener(this);
 
-        // Add fragment to container
+        // [FIXED] This now correctly finds the FrameLayout added to your XML.
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.transaction_fragment_container, transactionFragment, "TRANSACTION_FRAGMENT")
@@ -184,6 +218,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
             public void afterTextChanged(Editable s) {}
         });
 
+        // Bottom Navigation Click Listeners
         btnHome.setOnClickListener(v -> {
             startActivity(new Intent(this, HomePage.class));
             finish();
@@ -268,42 +303,28 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     }
 
     private void startListeningForTransactions(String userId) {
-        Log.d(TAG, "Starting to listen for transactions for user: " + userId + ", cashbook: " + currentCashbookId);
-
         DatabaseReference transactionsRef = mDatabase.child("users").child(userId)
                 .child("cashbooks").child(currentCashbookId).child("transactions");
 
         transactionsListener = transactionsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.d(TAG, "Firebase data received. Snapshot count: " + dataSnapshot.getChildrenCount());
-
                 allTransactions.clear();
-
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     TransactionModel transaction = snapshot.getValue(TransactionModel.class);
                     if (transaction != null) {
                         transaction.setTransactionId(snapshot.getKey());
                         allTransactions.add(transaction);
-                    } else {
-                        Log.w(TAG, "Null transaction found in Firebase data for key: " + snapshot.getKey());
                     }
                 }
-
-                Log.d(TAG, "Successfully loaded " + allTransactions.size() + " transactions from Firebase");
-
-                // Sort by timestamp (newest first)
                 Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
-
-                // Apply current filters and update UI
                 filterTransactions();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "Firebase listener cancelled: " + databaseError.getMessage());
-                Toast.makeText(TransactionActivity.this,
-                        "Failed to load transactions: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(TransactionActivity.this, "Failed to load transactions.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -315,8 +336,6 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         categoryFilter.clear();
         paymentModeFilter.clear();
         searchEditText.setText("");
-
-        Log.d(TAG, "All filters cleared - will show all transactions");
         filterTransactions();
     }
 
@@ -324,49 +343,20 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         displayedTransactions.clear();
         String query = searchEditText.getText().toString().toLowerCase(Locale.getDefault());
 
-        if (allTransactions.isEmpty()) {
-            Log.w(TAG, "filterTransactions: No transactions to filter from Firebase");
-            updateUI();
-            return;
-        }
-
-        Log.d(TAG, "Filtering " + allTransactions.size() + " transactions with query: '" + query + "'");
-
-        int matchCount = 0;
         for (TransactionModel transaction : allTransactions) {
-            if (transaction == null) {
-                Log.w(TAG, "Null transaction encountered during filtering");
-                continue;
-            }
-
             boolean matchesSearch = query.isEmpty() ||
-                    (transaction.getTransactionCategory() != null &&
-                            transaction.getTransactionCategory().toLowerCase(Locale.getDefault()).contains(query)) ||
-                    (transaction.getPartyName() != null &&
-                            transaction.getPartyName().toLowerCase(Locale.getDefault()).contains(query)) ||
-                    (transaction.getRemark() != null &&
-                            transaction.getRemark().toLowerCase(Locale.getDefault()).contains(query));
-
-            boolean matchesDate = (startDateFilter == 0 && endDateFilter == 0) ||
-                    (transaction.getTimestamp() >= startDateFilter && transaction.getTimestamp() <= endDateFilter);
-
-            boolean matchesEntryType = "All".equals(entryTypeFilter) ||
-                    entryTypeFilter.equalsIgnoreCase(transaction.getType());
-
-            boolean matchesCategory = categoryFilter.isEmpty() ||
-                    categoryFilter.contains(transaction.getTransactionCategory());
-
-            boolean matchesPaymentMode = paymentModeFilter.isEmpty() ||
-                    paymentModeFilter.contains(transaction.getPaymentMode());
+                    (transaction.getTransactionCategory() != null && transaction.getTransactionCategory().toLowerCase(Locale.getDefault()).contains(query)) ||
+                    (transaction.getPartyName() != null && transaction.getPartyName().toLowerCase(Locale.getDefault()).contains(query)) ||
+                    (transaction.getRemark() != null && transaction.getRemark().toLowerCase(Locale.getDefault()).contains(query));
+            boolean matchesDate = (startDateFilter == 0 && endDateFilter == 0) || (transaction.getTimestamp() >= startDateFilter && transaction.getTimestamp() <= endDateFilter);
+            boolean matchesEntryType = "All".equals(entryTypeFilter) || entryTypeFilter.equalsIgnoreCase(transaction.getType());
+            boolean matchesCategory = categoryFilter.isEmpty() || categoryFilter.contains(transaction.getTransactionCategory());
+            boolean matchesPaymentMode = paymentModeFilter.isEmpty() || paymentModeFilter.contains(transaction.getPaymentMode());
 
             if (matchesSearch && matchesDate && matchesEntryType && matchesCategory && matchesPaymentMode) {
                 displayedTransactions.add(transaction);
-                matchCount++;
             }
         }
-
-        Log.d(TAG, "After filtering: " + matchCount + " transactions match criteria");
-        debugTransactionData();
         updateUI();
     }
 
@@ -374,45 +364,19 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         Log.d(TAG, "=== TRANSACTION DEBUG INFO ===");
         Log.d(TAG, "Total allTransactions: " + allTransactions.size());
         Log.d(TAG, "Total displayedTransactions: " + displayedTransactions.size());
-        Log.d(TAG, "Fragment status: " + (transactionFragment != null ? "initialized" : "null"));
-        Log.d(TAG, "Current filters:");
-        Log.d(TAG, "  - Search query: '" + searchEditText.getText().toString() + "'");
-        Log.d(TAG, "  - Entry type: " + entryTypeFilter);
-        Log.d(TAG, "  - Date range: " + startDateFilter + " to " + endDateFilter);
-        Log.d(TAG, "  - Category filter size: " + categoryFilter.size());
-        Log.d(TAG, "  - Payment mode filter size: " + paymentModeFilter.size());
-
-        // Log first few transactions for verification
-        for (int i = 0; i < Math.min(3, allTransactions.size()); i++) {
-            TransactionModel t = allTransactions.get(i);
-            Log.d(TAG, "Transaction " + i + ": " + t.getTransactionCategory() + " - ₹" + t.getAmount() + " (" + t.getType() + ")");
-        }
-        Log.d(TAG, "===============================");
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private void updateUI() {
-        Log.d(TAG, "updateUI: Updating UI with " + displayedTransactions.size() + " transactions");
-
-        // Update fragment instead of adapter
         if (transactionFragment != null) {
             transactionFragment.updateTransactions(displayedTransactions);
-        } else {
-            Log.w(TAG, "updateUI: transactionFragment is null!");
         }
-
         calculateTotals();
         setupPieChart();
-
-        if (displayedTransactions.isEmpty()) {
-            Log.i(TAG, "No transactions to display - showing empty state");
-        }
     }
 
     @SuppressLint("SetTextI18n")
     private void calculateTotals() {
         double totalIncome = 0, totalExpense = 0;
-
         for (TransactionModel transaction : displayedTransactions) {
             if ("IN".equalsIgnoreCase(transaction.getType())) {
                 totalIncome += transaction.getAmount();
@@ -420,91 +384,61 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
                 totalExpense += transaction.getAmount();
             }
         }
-
         double balance = totalIncome - totalExpense;
-
         incomeText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome));
         expenseText.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
         balanceText.setText("₹" + String.format(Locale.US, "%.2f", balance));
-
-        Log.d(TAG, "Totals calculated - Income: ₹" + totalIncome + ", Expense: ₹" + totalExpense + ", Balance: ₹" + balance);
     }
 
     private void initializePieChart() {
         pieChart.setUsePercentValues(true);
         pieChart.getDescription().setEnabled(false);
         pieChart.setExtraOffsets(5, 10, 5, 5);
-
-        // Center hole configuration
         pieChart.setDrawHoleEnabled(true);
         pieChart.setHoleColor(Color.WHITE);
         pieChart.setHoleRadius(45f);
         pieChart.setTransparentCircleRadius(50f);
-
-        // Center text
         pieChart.setCenterText("Expenses\n₹0");
         pieChart.setCenterTextSize(16f);
         pieChart.setCenterTextColor(Color.BLACK);
         pieChart.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
-
-        // Entry labels (category names on slices)
         pieChart.setDrawEntryLabels(true);
         pieChart.setEntryLabelColor(Color.BLACK);
         pieChart.setEntryLabelTextSize(11f);
         pieChart.setEntryLabelTypeface(Typeface.DEFAULT_BOLD);
-
-        // Disable legend
-        Legend legend = pieChart.getLegend();
-        legend.setEnabled(false);
-
-        Log.d(TAG, "Pie chart initialized");
+        pieChart.getLegend().setEnabled(false);
     }
 
     private void setupPieChart() {
         Map<String, Float> expenseByCategory = new HashMap<>();
         float totalExpense = 0;
 
-        // Group expenses by category
         for (TransactionModel transaction : displayedTransactions) {
             if ("OUT".equalsIgnoreCase(transaction.getType())) {
-                String category = transaction.getTransactionCategory();
-                if (category == null || category.trim().isEmpty()) {
-                    category = "Other";
-                }
-
+                String category = transaction.getTransactionCategory() != null ? transaction.getTransactionCategory() : "Other";
                 float amount = (float) transaction.getAmount();
-                Float currentAmount = expenseByCategory.get(category);
-                if (currentAmount == null) currentAmount = 0.0f;
-
-                expenseByCategory.put(category, currentAmount + amount);
+                expenseByCategory.put(category, expenseByCategory.getOrDefault(category, 0f) + amount);
                 totalExpense += amount;
             }
         }
 
-        ArrayList<PieEntry> entries = new ArrayList<>();
-
-        // Handle no data case
-        if (totalExpense == 0 || expenseByCategory.isEmpty()) {
+        if (totalExpense == 0) {
             pieChart.clear();
             pieChart.setCenterText("No Expenses\nto Display");
             pieChart.invalidate();
-            Log.d(TAG, "Pie chart cleared - no expense data");
             return;
         }
 
-        // Create pie entries
+        ArrayList<PieEntry> entries = new ArrayList<>();
         for (Map.Entry<String, Float> entry : expenseByCategory.entrySet()) {
             entries.add(new PieEntry(entry.getValue(), entry.getKey()));
         }
 
         pieChart.setCenterText("Expenses\n₹" + String.format(Locale.US, "%.0f", totalExpense));
 
-        // Configure dataset
         PieDataSet dataSet = new PieDataSet(entries, "");
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
-
-        // Labels outside slices
         dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         dataSet.setValueLinePart1OffsetPercentage(80f);
@@ -512,49 +446,34 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         dataSet.setValueLinePart2Length(0.4f);
         dataSet.setUsingSliceColorAsValueLineColor(true);
 
-        // Set colors
         ArrayList<Integer> colors = new ArrayList<>();
-        colors.add(Color.parseColor("#4CAF50")); // Green
-        colors.add(Color.parseColor("#FF5722")); // Red-Orange
-        colors.add(Color.parseColor("#2196F3")); // Blue
-        colors.add(Color.parseColor("#FF9800")); // Orange
-        colors.add(Color.parseColor("#9C27B0")); // Purple
-        colors.add(Color.parseColor("#607D8B")); // Blue Grey
-        colors.add(Color.parseColor("#795548")); // Brown
-        colors.add(Color.parseColor("#E91E63")); // Pink
+        colors.add(Color.parseColor("#4CAF50"));
+        colors.add(Color.parseColor("#FF5722"));
+        colors.add(Color.parseColor("#2196F3"));
+        colors.add(Color.parseColor("#FF9800"));
+        colors.add(Color.parseColor("#9C27B0"));
         dataSet.setColors(colors);
-
-        // Value text configuration
         dataSet.setValueTextColor(Color.BLACK);
         dataSet.setValueTextSize(12f);
-        dataSet.setValueTypeface(Typeface.DEFAULT_BOLD);
 
-        // Create and set pie data
         PieData data = new PieData(dataSet);
-        data.setDrawValues(true);
         data.setValueFormatter(new PercentFormatter(pieChart));
-
         pieChart.setData(data);
-        pieChart.highlightValues(null);
         pieChart.animateY(1400, Easing.EaseInOutQuad);
         pieChart.invalidate();
-
-        Log.d(TAG, "Pie chart updated with " + entries.size() + " categories, total expense: ₹" + totalExpense);
     }
 
     private boolean checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return true; // Scoped storage, no permission needed
+            return true;
         } else {
-            return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED;
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         }
     }
 
     private void requestPermissions() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
         }
     }
 
@@ -573,11 +492,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     private void exportTransactionsToCSV(long startDate, long endDate, String entryType, String paymentMode) {
         List<TransactionModel> transactionsToExport = allTransactions.stream()
                 .filter(t -> t.getTimestamp() >= startDate && t.getTimestamp() <= endDate)
-                .filter(t -> {
-                    if ("Cash In".equalsIgnoreCase(entryType)) return "IN".equalsIgnoreCase(t.getType());
-                    if ("Cash Out".equalsIgnoreCase(entryType)) return "OUT".equalsIgnoreCase(t.getType());
-                    return true; // "All" case
-                })
+                .filter(t -> "All".equalsIgnoreCase(entryType) || ("Cash In".equalsIgnoreCase(entryType) && "IN".equalsIgnoreCase(t.getType())) || ("Cash Out".equalsIgnoreCase(entryType) && "OUT".equalsIgnoreCase(t.getType())))
                 .filter(t -> "All".equalsIgnoreCase(paymentMode) || paymentMode.equalsIgnoreCase(t.getPaymentMode()))
                 .collect(Collectors.toList());
 
@@ -586,25 +501,18 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
             return;
         }
 
-        StringBuilder csvData = new StringBuilder();
-        csvData.append("Date,Type,Amount,Category,Party/Supplier,Payment Mode,Remark\n");
-
+        StringBuilder csvData = new StringBuilder("Date,Type,Amount,Category,Party/Supplier,Payment Mode,Remark\n");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-        for (TransactionModel transaction : transactionsToExport) {
-            String date = dateFormat.format(new Date(transaction.getTimestamp()));
-            String type = "IN".equals(transaction.getType()) ? "Income" : "Expense";
-
-            csvData.append("\"").append(date).append("\",");
-            csvData.append("\"").append(type).append("\",");
-            csvData.append(transaction.getAmount()).append(",");
-            csvData.append("\"").append(transaction.getTransactionCategory() != null ? transaction.getTransactionCategory() : "").append("\",");
-            csvData.append("\"").append(transaction.getPartyName() != null ? transaction.getPartyName() : "").append("\",");
-            csvData.append("\"").append(transaction.getPaymentMode() != null ? transaction.getPaymentMode() : "").append("\",");
-            csvData.append("\"").append(transaction.getRemark() != null ? transaction.getRemark() : "").append("\"\n");
+        for (TransactionModel t : transactionsToExport) {
+            csvData.append("\"").append(dateFormat.format(new Date(t.getTimestamp()))).append("\",")
+                    .append("\"").append("IN".equals(t.getType()) ? "Income" : "Expense").append("\",")
+                    .append(t.getAmount()).append(",")
+                    .append("\"").append(t.getTransactionCategory() != null ? t.getTransactionCategory() : "").append("\",")
+                    .append("\"").append(t.getPartyName() != null ? t.getPartyName() : "").append("\",")
+                    .append("\"").append(t.getPaymentMode() != null ? t.getPaymentMode() : "").append("\",")
+                    .append("\"").append(t.getRemark() != null ? t.getRemark() : "").append("\"\n");
         }
-
         saveCsvFile(csvData.toString());
-        Log.d(TAG, "CSV export initiated for " + transactionsToExport.size() + " transactions");
     }
 
     private void saveCsvFile(String csvData) {
@@ -614,18 +522,12 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
             values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-
             Uri uri = getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
             if (uri != null) {
                 try (OutputStream outputStream = getContentResolver().openOutputStream(uri)) {
-                    if (outputStream != null) {
-                        outputStream.write(csvData.getBytes());
-                        Toast.makeText(this, "File saved to Downloads folder as " + fileName, Toast.LENGTH_LONG).show();
-                        Log.d(TAG, "CSV file saved successfully: " + fileName);
-                    }
+                    outputStream.write(csvData.getBytes());
+                    Toast.makeText(this, "File saved to Downloads folder", Toast.LENGTH_LONG).show();
                 }
-            } else {
-                Toast.makeText(this, "Failed to create file in Downloads folder", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error saving CSV file", e);
@@ -635,14 +537,9 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
 
     @Override
     public void onItemClick(TransactionModel transaction) {
-        if (transaction != null) {
-            Intent intent = new Intent(this, TransactionDetailActivity.class);
-            intent.putExtra("transaction_model", transaction);
-            intent.putExtra("cashbook_id", currentCashbookId);
-            startActivity(intent);
-            Log.d(TAG, "Opening transaction detail for: " + transaction.getTransactionCategory());
-        } else {
-            Log.w(TAG, "Attempted to open detail for null transaction");
-        }
+        Intent intent = new Intent(this, TransactionDetailActivity.class);
+        intent.putExtra("transaction_model", transaction);
+        intent.putExtra("cashbook_id", currentCashbookId);
+        startActivity(intent);
     }
 }

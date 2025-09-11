@@ -1,17 +1,19 @@
 package com.example.cashflow;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RadioButton;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.material.button.MaterialButton;
+import androidx.core.content.ContextCompat;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -19,101 +21,175 @@ import java.util.Locale;
 
 public class DownloadOptionsActivity extends AppCompatActivity {
 
-    private TextView startDateTextView, endDateTextView;
-    private RadioGroup filterTypeToggle, filterModeToggle;
-    private MaterialButton downloadReportButtonFinal;
-    private ImageView backButton; // Added back button
+    private TextView startDateText, endDateText;
+    private LinearLayout startDateLayout, endDateLayout;
+    private Button todayButton, thisWeekButton, thisMonthButton, formatPdfButton, formatExcelButton, downloadActionButton;
+    private RadioGroup entryTypeRadioGroup, paymentModeRadioGroup;
+    private ImageView backButton, shareButton;
 
-    private Calendar startCalendar = Calendar.getInstance();
-    private Calendar endCalendar = Calendar.getInstance();
+    private Calendar startCalendar, endCalendar;
+    private String selectedFormat = "PDF"; // Default format
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download_options);
-
-        // Hide the default action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         initializeUI();
-        setupInitialDates();
+        initializeDateTime();
         setupClickListeners();
     }
 
     private void initializeUI() {
-        startDateTextView = findViewById(R.id.startDateTextView);
-        endDateTextView = findViewById(R.id.endDateTextView);
-        filterTypeToggle = findViewById(R.id.filterTypeToggle);
-        filterModeToggle = findViewById(R.id.filterModeToggle);
-        downloadReportButtonFinal = findViewById(R.id.downloadReportButtonFinal);
-        backButton = findViewById(R.id.backButton); // Initialize back button
+        // Header
+        backButton = findViewById(R.id.backButton);
+        shareButton = findViewById(R.id.shareButton);
+
+        // Date Range
+        startDateText = findViewById(R.id.startDateText);
+        endDateText = findViewById(R.id.endDateText);
+        startDateLayout = findViewById(R.id.startDateLayout);
+        endDateLayout = findViewById(R.id.endDateLayout);
+        todayButton = findViewById(R.id.todayButton);
+        thisWeekButton = findViewById(R.id.thisWeekButton);
+        thisMonthButton = findViewById(R.id.thisMonthButton);
+
+        // Entry Type & Payment Mode
+        entryTypeRadioGroup = findViewById(R.id.entryTypeRadioGroup);
+        paymentModeRadioGroup = findViewById(R.id.paymentModeRadioGroup);
+
+        // Format Selection
+        formatPdfButton = findViewById(R.id.formatPdfButton);
+        formatExcelButton = findViewById(R.id.formatExcelButton);
+
+        // Action Button
+        downloadActionButton = findViewById(R.id.downloadActionButton);
     }
 
-    private void setupInitialDates() {
-        // Set start date to the beginning of the current month
-        startCalendar.set(Calendar.DAY_OF_MONTH, 1);
-        updateDateLabel(startDateTextView, startCalendar);
-
-        // Set end date to the current day
-        updateDateLabel(endDateTextView, endCalendar);
+    private void initializeDateTime() {
+        startCalendar = Calendar.getInstance();
+        endCalendar = Calendar.getInstance();
+        // Default to the current month
+        setDateRangeToThisMonth();
     }
 
     private void setupClickListeners() {
-        // Set up the new back button to finish the activity
         backButton.setOnClickListener(v -> finish());
+        shareButton.setOnClickListener(v -> Toast.makeText(this, "Share functionality coming soon!", Toast.LENGTH_SHORT).show());
 
-        startDateTextView.setOnClickListener(v -> showDatePickerDialog(startDateTextView, startCalendar));
-        endDateTextView.setOnClickListener(v -> showDatePickerDialog(endDateTextView, endCalendar));
+        // Date Listeners
+        startDateLayout.setOnClickListener(v -> showDatePicker(true));
+        endDateLayout.setOnClickListener(v -> showDatePicker(false));
+        todayButton.setOnClickListener(v -> setDateRangeToToday());
+        thisWeekButton.setOnClickListener(v -> setDateRangeToThisWeek());
+        thisMonthButton.setOnClickListener(v -> setDateRangeToThisMonth());
 
-        downloadReportButtonFinal.setOnClickListener(v -> {
-            if (startCalendar.getTimeInMillis() > endCalendar.getTimeInMillis()) {
-                Toast.makeText(this, "Start date cannot be after end date.", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        // Format Selection Listeners
+        formatPdfButton.setOnClickListener(v -> updateFormatSelection(formatPdfButton));
+        formatExcelButton.setOnClickListener(v -> updateFormatSelection(formatExcelButton));
 
-            // Get selected filters
-            long startDate = startCalendar.getTimeInMillis();
-            // Set end time to the very end of the selected day
-            endCalendar.set(Calendar.HOUR_OF_DAY, 23);
-            endCalendar.set(Calendar.MINUTE, 59);
-            endCalendar.set(Calendar.SECOND, 59);
-            long endDate = endCalendar.getTimeInMillis();
-
-            RadioButton selectedTypeButton = findViewById(filterTypeToggle.getCheckedRadioButtonId());
-            String entryType = selectedTypeButton.getText().toString();
-
-            RadioButton selectedModeButton = findViewById(filterModeToggle.getCheckedRadioButtonId());
-            String paymentMode = selectedModeButton.getText().toString();
-
-            // Return filters to the previous activity
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("startDate", startDate);
-            resultIntent.putExtra("endDate", endDate);
-            resultIntent.putExtra("entryType", entryType);
-            resultIntent.putExtra("paymentMode", paymentMode);
-            setResult(RESULT_OK, resultIntent);
-            finish();
-        });
+        // Download Action
+        downloadActionButton.setOnClickListener(v -> returnDownloadOptions());
     }
 
-    private void showDatePickerDialog(TextView dateTextView, Calendar calendar) {
-        DatePickerDialog.OnDateSetListener dateSetListener = (view, year, month, dayOfMonth) -> {
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.MONTH, month);
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            updateDateLabel(dateTextView, calendar);
-        };
-
-        new DatePickerDialog(this, dateSetListener,
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)).show();
+    private void showDatePicker(boolean isStartDate) {
+        Calendar calendarToShow = isStartDate ? startCalendar : endCalendar;
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    if (isStartDate) {
+                        startCalendar.set(year, month, dayOfMonth, 0, 0, 0);
+                    } else {
+                        endCalendar.set(year, month, dayOfMonth, 23, 59, 59);
+                    }
+                    updateDateTextViews();
+                },
+                calendarToShow.get(Calendar.YEAR),
+                calendarToShow.get(Calendar.MONTH),
+                calendarToShow.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
     }
 
-    private void updateDateLabel(TextView dateTextView, Calendar calendar) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
-        dateTextView.setText(sdf.format(calendar.getTime()));
+    private void updateDateTextViews() {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        startDateText.setText(sdf.format(startCalendar.getTime()));
+        endDateText.setText(sdf.format(endCalendar.getTime()));
+        startDateText.setTextColor(ContextCompat.getColor(this, R.color.white));
+        endDateText.setTextColor(ContextCompat.getColor(this, R.color.white));
+    }
+
+    private void setDateRangeToToday() {
+        startCalendar = Calendar.getInstance();
+        startCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        endCalendar = Calendar.getInstance();
+        endCalendar.set(Calendar.HOUR_OF_DAY, 24);
+        updateDateTextViews();
+    }
+
+    private void setDateRangeToThisWeek() {
+        startCalendar = Calendar.getInstance();
+        startCalendar.set(Calendar.DAY_OF_WEEK, startCalendar.getFirstDayOfWeek());
+        endCalendar = (Calendar) startCalendar.clone();
+        endCalendar.add(Calendar.DAY_OF_WEEK, 6);
+        updateDateTextViews();
+    }
+
+    private void setDateRangeToThisMonth() {
+        startCalendar = Calendar.getInstance();
+        startCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        endCalendar = Calendar.getInstance();
+        endCalendar.set(Calendar.DAY_OF_MONTH, endCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+        updateDateTextViews();
+    }
+
+    private void updateFormatSelection(Button selectedButton) {
+        if (selectedButton.getId() == R.id.formatPdfButton) {
+            selectedFormat = "PDF";
+            formatPdfButton.setBackgroundResource(R.drawable.format_button_selected);
+            formatPdfButton.setTextColor(ContextCompat.getColor(this, R.color.white));
+            formatExcelButton.setBackgroundResource(R.drawable.format_button_unselected);
+            formatExcelButton.setTextColor(ContextCompat.getColor(this, R.color.textColorSecondary));
+        } else {
+            selectedFormat = "Excel";
+            formatExcelButton.setBackgroundResource(R.drawable.format_button_selected);
+            formatExcelButton.setTextColor(ContextCompat.getColor(this, R.color.white));
+            formatPdfButton.setBackgroundResource(R.drawable.format_button_unselected);
+            formatPdfButton.setTextColor(ContextCompat.getColor(this, R.color.textColorSecondary));
+        }
+    }
+
+    private void returnDownloadOptions() {
+        // Get selected entry type
+        String entryType = "All";
+        int selectedEntryTypeId = entryTypeRadioGroup.getCheckedRadioButtonId();
+        if (selectedEntryTypeId == R.id.radioCashIn) {
+            entryType = "Cash In";
+        } else if (selectedEntryTypeId == R.id.radioCashOut) {
+            entryType = "Cash Out";
+        }
+
+        // Get selected payment mode
+        String paymentMode = "All";
+        int selectedPaymentModeId = paymentModeRadioGroup.getCheckedRadioButtonId();
+        if (selectedPaymentModeId == R.id.radioCashMode) {
+            paymentMode = "Cash";
+        } else if (selectedPaymentModeId == R.id.radioOnlineMode) {
+            paymentMode = "Online";
+        }
+
+        // Create result intent and pass back the data
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("startDate", startCalendar.getTimeInMillis());
+        resultIntent.putExtra("endDate", endCalendar.getTimeInMillis());
+        resultIntent.putExtra("entryType", entryType);
+        resultIntent.putExtra("paymentMode", paymentMode);
+        resultIntent.putExtra("format", selectedFormat);
+
+        setResult(Activity.RESULT_OK, resultIntent);
+        finish();
     }
 }

@@ -3,6 +3,7 @@ package com.example.cashflow;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +37,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     @NonNull
     @Override
     public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // This now correctly inflates the layout you created above
         View view = LayoutInflater.from(context).inflate(R.layout.item_category_chip, parent, false);
         return new CategoryViewHolder(view);
     }
@@ -51,18 +53,18 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         return categoryList.size();
     }
 
-    public void setSelectedPosition(int position) {
-        int oldSelected = selectedPosition;
-        selectedPosition = position;
-        notifyItemChanged(oldSelected);
-        notifyItemChanged(selectedPosition);
+    // Call this method from your activity to update the selection
+    @SuppressLint("NotifyDataSetChanged")
+    public void setSelectedCategory(CategoryModel category) {
+        for (int i = 0; i < categoryList.size(); i++) {
+            if (categoryList.get(i).getName().equals(category.getName())) {
+                selectedPosition = i;
+                notifyDataSetChanged(); // Refresh the whole list to show selection
+                return;
+            }
+        }
     }
 
-    public void clearSelection() {
-        int oldSelected = selectedPosition;
-        selectedPosition = RecyclerView.NO_POSITION;
-        notifyItemChanged(oldSelected);
-    }
 
     class CategoryViewHolder extends RecyclerView.ViewHolder {
         TextView categoryNameTextView;
@@ -79,26 +81,42 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         void bind(final CategoryModel category, final int position) {
             categoryNameTextView.setText(category.getName());
 
+            // Set the color of the dot
             try {
                 int color = Color.parseColor(category.getColorHex());
-                // The view is a simple View, setting its background color is sufficient.
-                categoryColorDot.getBackground().mutate().setTint(color);
+                Drawable background = categoryColorDot.getBackground();
+                if (background instanceof GradientDrawable) {
+                    ((GradientDrawable) background.mutate()).setColor(color);
+                }
             } catch (Exception e) {
-                categoryColorDot.getBackground().mutate().setTint(ContextCompat.getColor(context, R.color.category_default));
+                // Fallback to a default color if parsing fails
+                int defaultColor = ContextCompat.getColor(context, R.color.category_default);
+                Drawable background = categoryColorDot.getBackground();
+                if (background instanceof GradientDrawable) {
+                    ((GradientDrawable) background.mutate()).setColor(defaultColor);
+                }
             }
 
+            // --- [IMPROVED] Update background and text color based on selection state ---
             if (selectedPosition == position) {
+                // Selected state: Blue background, white text
                 categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.balance_blue));
                 categoryNameTextView.setTextColor(Color.WHITE);
             } else {
-                categoryChipLayout.setBackgroundColor(Color.WHITE);
-                categoryNameTextView.setTextColor(Color.BLACK);
+                // Unselected state: Dark background, white text (better for dark theme)
+                categoryChipLayout.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_input_background));
+                categoryNameTextView.setTextColor(Color.WHITE);
             }
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
+                    // Notify the activity of the click
                     listener.onCategoryClick(category);
-                    // The activity will finish, so no need to update selection state here.
+                    // Update selection state
+                    int previousSelectedPosition = selectedPosition;
+                    selectedPosition = getAdapterPosition();
+                    notifyItemChanged(previousSelectedPosition);
+                    notifyItemChanged(selectedPosition);
                 }
             });
         }

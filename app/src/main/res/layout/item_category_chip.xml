@@ -1,25 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/categoryChip"
-    style="@style/Widget.MaterialComponents.Chip.Choice"
-    android:layout_width="wrap_content"
+    android:id="@+id/categoryChipLayout"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    android:text="Category Name"
-    android:textColor="#FFFFFF"
-    android:textSize="14sp"
-    app:chipBackgroundColor="@color/chip_background_selector"
-    app:chipStrokeColor="#555555"
-    app:chipStrokeWidth="1dp"
-    app:chipCornerRadius="16dp"
-    app:chipMinHeight="32dp"
-    app:chipIcon="@drawable/ic_circle"
-    app:chipIconTint="@color/category_color_selector"
-    app:chipIconSize="12dp"
-    app:iconStartPadding="8dp"
-    app:iconEndPadding="4dp"
-    app:rippleColor="#E3F2FD"
-    android:checkable="true"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="16dp"
+    android:background="@drawable/rounded_input_background"
     android:clickable="true"
-    android:focusable="true" />
+    android:focusable="true">
+
+    <!-- Color Dot -->
+    <View
+        android:id="@+id/categoryColorDot"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/category_dot_shape" />
+
+    <!-- Category Name -->
+    <TextView
+        android:id="@+id/categoryNameTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Category Name"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp" />
+
+</LinearLayout>
+
