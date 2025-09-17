@@ -15,7 +15,8 @@
         android:layout_marginBottom="12dp"
         android:background="@drawable/button_secondary"
         android:text="CLEAR"
-        android:textColor="#AAAAAA"
+        android:textColor="#E82525"
+        app:backgroundTint="@null"
         android:textSize="14sp"
         android:textStyle="bold" />
 
@@ -34,6 +35,7 @@
             android:layout_weight="2.5"
             android:background="@drawable/button_save_add_new"
             android:text="SAVE &amp; ADD NEW"
+            app:backgroundTint="@null"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -46,6 +48,7 @@
             android:layout_weight="1.5"
             android:background="@drawable/button_primary"
             android:text="SAVE ENTRY"
+            app:backgroundTint="@null"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:textStyle="bold" />

@@ -275,6 +275,7 @@
                         android:fontFamily="@font/inter_bold"
                         android:text="SIGN UP"
                         android:textColor="#FFFFFF"
+                        app:backgroundTint="@null"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>

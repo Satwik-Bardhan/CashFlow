@@ -185,6 +185,7 @@
                             android:layout_weight="1"
                             android:text="Today"
                             android:textColor="#FFFFFF"
+                            app:backgroundTint="@null"
                             android:textSize="13sp"
                             android:background="@drawable/quick_option_button"
                             android:layout_marginEnd="6dp" />
@@ -196,6 +197,7 @@
                             android:layout_weight="1"
                             android:text="This Week"
                             android:textColor="#FFFFFF"
+                            app:backgroundTint="@null"
                             android:textSize="13sp"
                             android:background="@drawable/quick_option_button"
                             android:layout_marginEnd="6dp" />
@@ -207,6 +209,7 @@
                             android:layout_weight="1"
                             android:text="Month"
                             android:textColor="#FFFFFF"
+                            app:backgroundTint="@null"
                             android:textSize="13sp"
                             android:background="@drawable/quick_option_button" />
                     </LinearLayout>
@@ -382,11 +385,13 @@
                 android:layout_height="40dp"
                 android:text="CLEAR"
                 android:textColor="#F44336"
+                android:layout_marginStart="3dp"
                 android:textSize="14sp"
+                app:backgroundTint="@null"
                 android:textStyle="bold"
                 android:background="@drawable/button_clear"
                 android:paddingHorizontal="20dp"
-                android:layout_marginEnd="12dp" />
+                android:layout_marginEnd="10dp" />
 
             <Button
                 android:id="@+id/applyFiltersButton"
@@ -395,9 +400,10 @@
                 android:text="APPLY FILTERS"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
+                app:backgroundTint="@null"
                 android:textStyle="bold"
                 android:background="@drawable/button_apply"
-                android:paddingHorizontal="20dp" />
+                android:paddingHorizontal="10dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </RelativeLayout>

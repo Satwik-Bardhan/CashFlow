@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginBottom="20dp"
     android:orientation="horizontal">
 
@@ -14,6 +15,7 @@
         android:background="@drawable/quick_amount_button"
         android:text="₹100"
         android:textColor="#FFFFFF"
+        app:backgroundTint="@null"
         android:textSize="12sp" />
 
     <Button
@@ -25,6 +27,7 @@
         android:background="@drawable/quick_amount_button"
         android:text="₹500"
         android:textColor="#FFFFFF"
+        app:backgroundTint="@null"
         android:textSize="12sp" />
 
     <Button
@@ -36,6 +39,7 @@
         android:background="@drawable/quick_amount_button"
         android:text="₹1K"
         android:textColor="#FFFFFF"
+        app:backgroundTint="@null"
         android:textSize="12sp" />
 
     <Button
@@ -46,5 +50,6 @@
         android:background="@drawable/quick_amount_button"
         android:text="₹5K"
         android:textColor="#FFFFFF"
+        app:backgroundTint="@null"
         android:textSize="12sp" />
 </LinearLayout>

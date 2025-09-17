@@ -190,6 +190,7 @@
                 android:background="@drawable/button_add_new"
                 android:fontFamily="@font/inter_bold"
                 android:drawableStart="@drawable/ic_add"
+                app:backgroundTint="@null"
                 android:drawablePadding="8dp"
                 app:drawableTint="#FFFFFF"
                 android:importantForAccessibility="yes"

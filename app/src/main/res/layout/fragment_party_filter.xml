@@ -92,6 +92,7 @@
             android:textStyle="bold"
             android:background="@drawable/add_party_button"
             android:drawableStart="@drawable/ic_person_add"
+            app:backgroundTint="@null"
             android:drawablePadding="8dp"
             android:paddingHorizontal="24dp"
             app:drawableTint="#FFFFFF" />

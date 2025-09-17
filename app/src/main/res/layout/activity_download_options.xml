@@ -235,6 +235,7 @@
                             android:textColor="#FFFFFF"
                             android:textSize="12sp"
                             android:background="@drawable/quick_option_button"
+                            app:backgroundTint="@null"
                             android:layout_marginEnd="4dp" />
 
                         <Button
@@ -246,6 +247,7 @@
                             android:textColor="#FFFFFF"
                             android:textSize="12sp"
                             android:background="@drawable/quick_option_button"
+                            app:backgroundTint="@null"
                             android:layout_marginEnd="4dp" />
 
                         <Button
@@ -255,6 +257,7 @@
                             android:layout_weight="1"
                             android:text="This Month"
                             android:textColor="#FFFFFF"
+                            app:backgroundTint="@null"
                             android:textSize="12sp"
                             android:background="@drawable/quick_option_button" />
                     </LinearLayout>
@@ -433,6 +436,7 @@
                         android:textSize="14sp"
                         android:background="@drawable/format_button_selected"
                         android:drawableTop="@drawable/ic_pdf"
+                        app:backgroundTint="@null"
                         android:drawablePadding="4dp"
                         android:layout_marginEnd="8dp"
                         app:drawableTint="#FFFFFF" />
@@ -445,6 +449,7 @@
                         android:text="EXCEL"
                         android:textColor="#AAAAAA"
                         android:textSize="14sp"
+                        app:backgroundTint="@null"
                         android:background="@drawable/format_button_unselected"
                         android:drawableTop="@drawable/ic_excel"
                         android:drawablePadding="4dp"
@@ -468,6 +473,7 @@
         android:textStyle="bold"
         android:background="@drawable/button_download"
         android:drawableStart="@drawable/ic_download"
+        app:backgroundTint="@null"
         android:drawablePadding="8dp"
         app:drawableTint="#FFFFFF" />
 

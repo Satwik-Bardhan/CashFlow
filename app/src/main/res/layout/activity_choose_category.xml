@@ -164,7 +164,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Default"
-                        android:textColor="#AAAAAA"
+                        android:textColor="#000000"
                         android:textSize="12sp"
                         android:background="@drawable/rounded_tag_background"
                         android:paddingHorizontal="8dp"
@@ -247,6 +247,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="12sp"
                     android:background="@drawable/quick_category_button"
+                    app:backgroundTint="@null"
                     android:layout_marginEnd="4dp" />
 
                 <Button
@@ -258,6 +259,7 @@
                     android:textColor="#FFFFFF"
                     android:textSize="12sp"
                     android:background="@drawable/quick_category_button"
+                    app:backgroundTint="@null"
                     android:layout_marginEnd="4dp" />
 
                 <Button
@@ -267,6 +269,7 @@
                     android:layout_weight="1"
                     android:text="Shopping"
                     android:textColor="#FFFFFF"
+                    app:backgroundTint="@null"
                     android:textSize="12sp"
                     android:background="@drawable/quick_category_button" />
             </LinearLayout>

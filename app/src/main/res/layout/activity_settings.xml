@@ -303,6 +303,7 @@
                     android:paddingVertical="16dp"
                     android:background="@drawable/button_delete"
                     android:text="Delete Account"
+                    app:backgroundTint="@null"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     android:textStyle="bold" />
