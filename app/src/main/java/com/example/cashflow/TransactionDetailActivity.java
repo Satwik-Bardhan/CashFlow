@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
@@ -20,18 +19,14 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cashflow.utils.CategoryColorUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -46,7 +41,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
     private RadioGroup inOutToggle, cashOnlineToggle;
     private RadioButton radioIn, radioOut, radioCash, radioOnline;
     private Button deleteButton, duplicateButton, saveButton;
-    private ImageView backButton, menuButton;
+    private ImageView backButton, menuButton, timePickerIcon;
     private LinearLayout categorySelectorLayout;
     private View categoryColorIndicator;
 
@@ -82,8 +77,8 @@ public class TransactionDetailActivity extends AppCompatActivity {
         currentTransaction = (TransactionModel) intent.getSerializableExtra("transaction_model");
         cashbookId = intent.getStringExtra("cashbook_id");
 
-        if (currentUser == null || currentTransaction == null || cashbookId == null) {
-            Toast.makeText(this, "Error: Missing data.", Toast.LENGTH_SHORT).show();
+        if (currentUser == null || currentTransaction == null || currentTransaction.getTransactionId() == null || cashbookId == null) {
+            Toast.makeText(this, "Error: Invalid transaction data provided.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -118,6 +113,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
         saveButton = findViewById(R.id.saveChangesButton);
         backButton = findViewById(R.id.backButton);
         menuButton = findViewById(R.id.menuButton);
+        timePickerIcon = findViewById(R.id.timePickerIcon);
         calendar = Calendar.getInstance();
     }
 
@@ -152,7 +148,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
         backButton.setOnClickListener(v -> finish());
         dateTextView.setOnClickListener(v -> showDatePicker());
         timeTextView.setOnClickListener(v -> showTimePicker());
-        findViewById(R.id.timePickerIcon).setOnClickListener(v -> showTimePicker());
+        timePickerIcon.setOnClickListener(v -> showTimePicker());
 
         categorySelectorLayout.setOnClickListener(v -> {
             Intent intent = new Intent(this, ChooseCategoryActivity.class);
@@ -166,7 +162,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
 
         menuButton.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(this, v);
-            popup.getMenuInflater().inflate(R.menu.transaction_detail_menu, popup.getMenu()); // Assume you have this menu file
+            popup.getMenuInflater().inflate(R.menu.transaction_detail_menu, popup.getMenu());
             popup.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == R.id.action_share_transaction) {
                     Toast.makeText(this, "Share functionality coming soon!", Toast.LENGTH_SHORT).show();
@@ -215,14 +211,12 @@ public class TransactionDetailActivity extends AppCompatActivity {
     }
 
     private void saveChanges() {
-        // Validation
         String amountStr = amountEditText.getText().toString();
         if (amountStr.isEmpty() || Double.parseDouble(amountStr) <= 0) {
             Toast.makeText(this, "Please enter a valid amount.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Collect updated data
         Map<String, Object> updates = new HashMap<>();
         updates.put("amount", Double.parseDouble(amountStr));
         updates.put("remark", remarkEditText.getText().toString());
@@ -232,7 +226,6 @@ public class TransactionDetailActivity extends AppCompatActivity {
         updates.put("transactionCategory", categoryTextView.getText().toString());
         updates.put("partyName", partyTextView.getText().toString());
 
-        // Update Firebase
         transactionRef.updateChildren(updates)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Transaction updated successfully", Toast.LENGTH_SHORT).show();
@@ -260,17 +253,15 @@ public class TransactionDetailActivity extends AppCompatActivity {
     }
 
     private void duplicateTransaction() {
-        // Create a new transaction object with the same data but a new timestamp and ID
         TransactionModel duplicatedTransaction = new TransactionModel();
         duplicatedTransaction.setAmount(Double.parseDouble(amountEditText.getText().toString()));
         duplicatedTransaction.setRemark(remarkEditText.getText().toString());
-        duplicatedTransaction.setTimestamp(System.currentTimeMillis()); // Use current time for duplicate
+        duplicatedTransaction.setTimestamp(System.currentTimeMillis());
         duplicatedTransaction.setType(radioIn.isChecked() ? "IN" : "OUT");
         duplicatedTransaction.setPaymentMode(radioCash.isChecked() ? "Cash" : "Online");
         duplicatedTransaction.setTransactionCategory(categoryTextView.getText().toString());
         duplicatedTransaction.setPartyName(partyTextView.getText().toString());
 
-        // Push new transaction to Firebase
         transactionRef.getParent().push().setValue(duplicatedTransaction)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Transaction duplicated successfully", Toast.LENGTH_SHORT).show();
