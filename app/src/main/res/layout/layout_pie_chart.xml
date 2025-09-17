@@ -8,13 +8,13 @@
     android:focusable="true"
     app:cardCornerRadius="20dp"
     app:cardElevation="8dp"
-    app:cardBackgroundColor="#1E1E1E">
+    app:cardBackgroundColor="#2E2E2E">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="16dp">
 
         <LinearLayout
             android:id="@+id/pieChartHeader"
@@ -24,9 +24,8 @@
             android:gravity="center_vertical"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground"
-            android:padding="2dp"
-            android:layout_marginBottom="3dp">
+            android:padding="8dp"
+            android:layout_marginBottom="8dp">
 
             <ImageButton
                 android:id="@+id/monthBackwardButton"
@@ -50,17 +49,17 @@
                     android:layout_height="wrap_content"
                     android:text="September 2025"
                     android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:textSize="20sp"
+                    android:textStyle="normal" />
 
                 <TextView
-                    android:id="@+id/expandHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tap to view details"
+                    android:text="Click to view more details"
                     android:textColor="#AAAAAA"
-                    android:textSize="11sp"
-                    android:layout_marginTop="2dp" />
+                    android:textSize="12sp"
+                    android:textStyle="normal" />
+
             </LinearLayout>
 
             <ImageButton
@@ -77,14 +76,15 @@
         <com.github.mikephil.charting.charts.PieChart
             android:id="@+id/pieChart"
             android:layout_width="match_parent"
-            android:layout_height="280dp" />
+            android:layout_height="300dp"
+            android:layout_marginTop="10dp" />
 
         <TextView
             android:id="@+id/togglePieChartButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="20dp"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
@@ -154,6 +154,7 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
+
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

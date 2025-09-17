@@ -65,7 +65,6 @@ dependencies {
 
     // Third-party libraries
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    // --- [FIX] Added the missing dependency for the Color Picker ---
     implementation("com.github.QuadFlask:colorpicker:0.0.15")
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
@@ -73,6 +72,6 @@ dependencies {
     // SwipeRefreshLayout for pull-to-refresh functionality
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
+    //Pdf creator
     implementation("com.itextpdf:itextpdf:5.5.13.3")
 }
-
