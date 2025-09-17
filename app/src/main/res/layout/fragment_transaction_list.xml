@@ -3,17 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2B2B2B">
+    android:background="#333333">
 
     <!-- Transactions List Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/transactionsCard"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="16dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="#1E1E1E">
+        app:cardBackgroundColor="#333333">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -21,41 +20,6 @@
             android:orientation="vertical">
 
             <!-- List Header -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="16dp"
-                android:background="#333333">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_receipt"
-                    android:layout_marginEnd="8dp"
-                    app:tint="#2196F3" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Transactions"
-                    android:textColor="#2196F3"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/transactionCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0 items"
-                    android:textColor="#000000"
-                    android:textSize="12sp"
-                    android:background="@drawable/rounded_tag_background"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="4dp" />
-            </LinearLayout>
 
             <!-- RecyclerView Container -->
             <androidx.recyclerview.widget.RecyclerView

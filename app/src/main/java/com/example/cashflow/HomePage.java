@@ -94,6 +94,9 @@ public class HomePage extends AppCompatActivity {
         // Initialize bottom navigation binding from the included layout
         bottomNavBinding = binding.bottomNavCard;
 
+
+
+
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         // Initialize Firebase

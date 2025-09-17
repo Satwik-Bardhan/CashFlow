@@ -72,5 +72,7 @@ dependencies {
 
     // SwipeRefreshLayout for pull-to-refresh functionality
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    implementation("com.itextpdf:itextpdf:5.5.13.3")
 }
 

@@ -1,123 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/bottomNavCard"
+    android:id="@+id/fixedBottomContainer"
     android:layout_width="match_parent"
-    android:layout_height="72dp"
-    android:layout_alignParentBottom="true"
-    android:layout_marginHorizontal="12dp"
-    android:layout_marginBottom="16dp"
-    app:cardBackgroundColor="#1E1E1E"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="12dp">
+    android:layout_height="wrap_content"
+    android:background="#1E1E1E"
+    android:orientation="horizontal"
+    android:paddingVertical="8dp">
 
+    <!-- HOME BUTTON -->
     <LinearLayout
-        android:id="@+id/fixedBottomContainer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#1E1E1E"
-        android:orientation="horizontal"
-        android:paddingHorizontal="6dp"
-        android:paddingVertical="4dp"
-        android:weightSum="3">
+        android:id="@+id/btnHome"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-        <!-- HOME BUTTON -->
-        <LinearLayout
-            android:id="@+id/btnHome"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:paddingHorizontal="4dp"
-            android:paddingVertical="6dp">
+        <ImageView
+            android:id="@+id/iconHome"
+            android:layout_width="36dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_home"
+            app:tint="@color/bottom_nav_item_color_selector"
+            android:duplicateParentState="true" />
 
-            <ImageView
-                android:id="@+id/iconHome"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginBottom="4dp"
-                android:contentDescription="Home"
-                android:src="@drawable/ic_home"
-                app:tint="#FFFFFF" />
-
-            <TextView
-                android:id="@+id/textHome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- TRANSACTIONS BUTTON -->
-        <LinearLayout
-            android:id="@+id/btnTransactions"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:paddingHorizontal="4dp"
-            android:paddingVertical="6dp">
-
-            <ImageView
-                android:id="@+id/iconTransactions"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginBottom="4dp"
-                android:contentDescription="Transactions"
-                android:src="@drawable/ic_transactions"
-                app:tint="#FFFFFF" />
-
-            <TextView
-                android:id="@+id/textTransactions"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Transactions"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- SETTINGS BUTTON -->
-        <LinearLayout
-            android:id="@+id/btnSettings"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?android:attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:paddingHorizontal="4dp"
-            android:paddingVertical="6dp">
-
-            <ImageView
-                android:id="@+id/iconSettings"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginBottom="4dp"
-                android:contentDescription="Settings"
-                android:src="@drawable/ic_settings"
-                app:tint="#FFFFFF" />
-
-            <TextView
-                android:id="@+id/textSettings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Settings"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/textHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Home"
+            android:textColor="@color/bottom_nav_item_color_selector"
+            android:textSize="10sp"
+            android:duplicateParentState="true" />
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+
+    <!-- TRANSACTIONS BUTTON -->
+    <LinearLayout
+        android:id="@+id/btnTransactions"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/iconTransactions"
+            android:layout_width="36dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_transactions"
+            app:tint="@color/bottom_nav_item_color_selector"
+            android:duplicateParentState="true" />
+
+        <TextView
+            android:id="@+id/textTransactions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transactions"
+            android:textColor="@color/bottom_nav_item_color_selector"
+            android:textSize="10sp"
+            android:duplicateParentState="true" />
+    </LinearLayout>
+
+    <!-- SETTINGS BUTTON -->
+    <LinearLayout
+        android:id="@+id/btnSettings"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/iconSettings"
+            android:layout_width="36dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_settings"
+            app:tint="@color/bottom_nav_item_color_selector"
+            android:duplicateParentState="true" />
+
+        <TextView
+            android:id="@+id/textSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Settings"
+            android:textColor="@color/bottom_nav_item_color_selector"
+            android:textSize="10sp"
+            android:duplicateParentState="true" />
+    </LinearLayout>
+</LinearLayout>

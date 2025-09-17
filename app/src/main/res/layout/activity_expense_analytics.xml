@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#2B2B2B">
+    android:background="#2B2B2B"
+    tools:context=".ExpenseAnalyticsActivity">
 
     <!-- Header with Close Button -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="?attr/actionBarSize"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="16dp"
+        android:paddingHorizontal="16dp"
         android:background="#1E1E1E">
 
         <ImageButton
@@ -33,16 +35,17 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginStart="16dp" />
-
     </LinearLayout>
 
     <!-- Monthly Navigation Cards -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/monthlyCardsRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp" />
+        android:padding="8dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_monthly_card" />
 
     <!-- Large Pie Chart -->
     <com.github.mikephil.charting.charts.PieChart
@@ -56,7 +59,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/detailedLegendRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:padding="16dp" />
+        android:layout_height="250dp"
+        android:padding="16dp"
+        tools:listitem="@layout/item_legend_detail" />
 
 </LinearLayout>

@@ -9,6 +9,15 @@
     android:fitsSystemWindows="true"
     tools:context=".TransactionActivity">
 
+    <!-- Include the bottom navigation bar -->
+    <include
+        android:id="@+id/bottomNavCard"
+        layout="@layout/layout_bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+
+    <!-- Search Bar -->
     <include
         android:id="@+id/search_bar_container"
         layout="@layout/layout_search_bar"
@@ -16,14 +25,15 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginTop="10dp"/>
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="12dp" />
 
+    <!-- Main scrollable content -->
     <ScrollView
         android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/bottomNavCard"
+        android:layout_above="@id/bottomNavCard"
         android:layout_below="@id/search_bar_container"
         android:fillViewport="true">
 
@@ -33,18 +43,23 @@
             android:orientation="vertical"
             android:padding="12dp">
 
+            <!-- Summary Cards with corrected ID -->
             <include
+                android:id="@+id/summaryCards"
                 layout="@layout/layout_summary_cards"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="10dp" />
 
+            <!-- Pie Chart Component with corrected ID -->
             <include
+                android:id="@+id/pieChartComponent"
                 layout="@layout/layout_pie_chart"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="10dp" />
 
+            <!-- Transactions Title and Download Button -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -59,13 +74,13 @@
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
-                <androidx.appcompat.widget.AppCompatButton
+                <Button
                     android:id="@+id/downloadReportButton"
+                    style="@style/Widget.AppCompat.Button.Colored"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:background="@drawable/button_download"
                     android:drawableStart="@drawable/ic_download"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
@@ -73,6 +88,7 @@
                     android:textColor="@android:color/white" />
             </RelativeLayout>
 
+            <!-- Container for the transaction list fragment -->
             <FrameLayout
                 android:id="@+id/transaction_fragment_container"
                 android:layout_width="match_parent"
@@ -80,12 +96,5 @@
 
         </LinearLayout>
     </ScrollView>
-
-    <include
-        android:id="@+id/bottomNavCard"
-        layout="@layout/layout_bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

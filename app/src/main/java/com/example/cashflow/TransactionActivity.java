@@ -7,18 +7,16 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -31,13 +29,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
-
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -45,10 +42,21 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,34 +72,38 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
     private static final String TAG = "TransactionActivity";
     private static final int STORAGE_PERMISSION_CODE = 101;
 
+    // Data Lists
     private List<TransactionModel> allTransactions = new ArrayList<>();
-    private List<TransactionModel> displayedTransactions = new ArrayList<>();
+    private Calendar currentMonthCalendar;
 
-    private TransactionItemFragment transactionFragment;
+    // UI Components
     private PieChart pieChart;
-
-    private TextView incomeText, expenseText, balanceText;
+    private TextView incomeText, expenseText, balanceText, monthTitleTextView, togglePieChartButton, categoriesCountTextView, highestCategoryTextView;
     private EditText searchEditText;
     private ImageView filterButton;
     private Button btnDownload;
+    private LinearLayout pieChartHeader;
+    private ImageButton monthBackwardButton, monthForwardButton;
+    private TransactionItemFragment transactionFragment;
 
-    // Bottom Navigation Views
+    // Bottom Navigation
     private LinearLayout btnHome, btnTransactions, btnSettings;
-    private ImageView iconHome, iconTransactions, iconSettings;
-    private TextView textHome, textTransactions, textSettings;
 
+    // Firebase
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private ValueEventListener transactionsListener;
     private String currentCashbookId;
 
-    // Filter state variables
+    // Filter State
     private long startDateFilter = 0;
     private long endDateFilter = 0;
     private String entryTypeFilter = "All";
     private Set<String> categoryFilter = new HashSet<>();
     private Set<String> paymentModeFilter = new HashSet<>();
 
+
+    // Activity Launchers
     private ActivityResultLauncher<Intent> filterLauncher;
     private ActivityResultLauncher<Intent> downloadLauncher;
 
@@ -110,145 +122,245 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        currentMonthCalendar = Calendar.getInstance();
 
         initializeUI();
         setupTransactionFragment();
         setupClickListeners();
         setupFilterLauncher();
         setupDownloadLauncher();
-        initializePieChart();
-        updateBottomNavigationSelection(btnTransactions); // Set initial selected state
 
-        btnDownload.setOnLongClickListener(v -> {
-            clearAllFilters();
-            debugTransactionData();
-            Toast.makeText(this, "All filters cleared", Toast.LENGTH_SHORT).show();
-            return true;
-        });
+        btnTransactions.setSelected(true);
     }
 
     private void initializeUI() {
-        incomeText = findViewById(R.id.incomeText);
-        expenseText = findViewById(R.id.expenseText);
-        balanceText = findViewById(R.id.balanceText);
-        pieChart = findViewById(R.id.pieChart);
+        View summaryCardsLayout = findViewById(R.id.summaryCards);
+        View pieChartLayout = findViewById(R.id.pieChartComponent);
+
+        incomeText = summaryCardsLayout.findViewById(R.id.incomeText);
+        expenseText = summaryCardsLayout.findViewById(R.id.expenseText);
+        balanceText = summaryCardsLayout.findViewById(R.id.balanceText);
+
+        pieChart = pieChartLayout.findViewById(R.id.pieChart);
+        pieChartHeader = pieChartLayout.findViewById(R.id.pieChartHeader);
+        monthTitleTextView = pieChartLayout.findViewById(R.id.monthTitle);
+        monthBackwardButton = pieChartLayout.findViewById(R.id.monthBackwardButton);
+        monthForwardButton = pieChartLayout.findViewById(R.id.monthForwardButton);
+        togglePieChartButton = pieChartLayout.findViewById(R.id.togglePieChartButton);
+        categoriesCountTextView = pieChartLayout.findViewById(R.id.categoriesCount);
+        highestCategoryTextView = pieChartLayout.findViewById(R.id.highestCategory);
+
         searchEditText = findViewById(R.id.searchEditText);
         filterButton = findViewById(R.id.filterButton);
         btnDownload = findViewById(R.id.downloadReportButton);
 
-        // Initialize Bottom Navigation Views
         btnHome = findViewById(R.id.btnHome);
         btnTransactions = findViewById(R.id.btnTransactions);
         btnSettings = findViewById(R.id.btnSettings);
-        iconHome = findViewById(R.id.iconHome);
-        iconTransactions = findViewById(R.id.iconTransactions);
-        iconSettings = findViewById(R.id.iconSettings);
-        textHome = findViewById(R.id.textHome);
-        textTransactions = findViewById(R.id.textTransactions);
-        textSettings = findViewById(R.id.textSettings);
-
-        Log.d(TAG, "UI components initialized successfully");
-    }
-
-    private void updateBottomNavigationSelection(View selectedButton) {
-        // Reset all buttons to default (unselected) state
-        iconHome.setColorFilter(Color.WHITE);
-        textHome.setTextColor(Color.WHITE);
-        iconTransactions.setColorFilter(Color.WHITE);
-        textTransactions.setTextColor(Color.WHITE);
-        iconSettings.setColorFilter(Color.WHITE);
-        textSettings.setTextColor(Color.WHITE);
-
-        // [FIXED] Use a valid color. This blue is used elsewhere in your app.
-        int activeColor = Color.parseColor("#2196F3");
-
-        // Set the selected button to the active state
-        if (selectedButton.getId() == R.id.btnHome) {
-            iconHome.setColorFilter(activeColor);
-            textHome.setTextColor(activeColor);
-        } else if (selectedButton.getId() == R.id.btnTransactions) {
-            iconTransactions.setColorFilter(activeColor);
-            textTransactions.setTextColor(activeColor);
-        } else if (selectedButton.getId() == R.id.btnSettings) {
-            iconSettings.setColorFilter(activeColor);
-            textSettings.setTextColor(activeColor);
-        }
     }
 
     private void setupTransactionFragment() {
         transactionFragment = TransactionItemFragment.newInstance(new ArrayList<>());
         transactionFragment.setOnItemClickListener(this);
 
-        // [FIXED] This now correctly finds the FrameLayout added to your XML.
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.transaction_fragment_container, transactionFragment, "TRANSACTION_FRAGMENT")
+                .replace(R.id.transaction_fragment_container, transactionFragment)
                 .commit();
-
-        Log.d(TAG, "Transaction fragment setup complete");
     }
 
     private void setupClickListeners() {
+        pieChartHeader.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ExpenseAnalyticsActivity.class);
+            intent.putExtra("all_transactions", (Serializable) allTransactions);
+            startActivity(intent);
+        });
+
+        monthBackwardButton.setOnClickListener(v -> {
+            currentMonthCalendar.add(Calendar.MONTH, -1);
+            displayDataForCurrentMonth();
+        });
+
+        monthForwardButton.setOnClickListener(v -> {
+            currentMonthCalendar.add(Calendar.MONTH, 1);
+            displayDataForCurrentMonth();
+        });
+
+        togglePieChartButton.setOnClickListener(v -> {
+            if (pieChart.getVisibility() == View.VISIBLE) {
+                pieChart.setVisibility(View.GONE);
+                togglePieChartButton.setText("Show Pie Chart");
+            } else {
+                pieChart.setVisibility(View.VISIBLE);
+                togglePieChartButton.setText("Hide Pie Chart");
+            }
+        });
+
         btnDownload.setOnClickListener(v -> {
             Intent intent = new Intent(this, DownloadOptionsActivity.class);
             downloadLauncher.launch(intent);
         });
 
-        filterButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, FiltersActivity.class);
-            intent.putExtra("cashbook_id", currentCashbookId);
-            intent.putExtra("startDate", startDateFilter);
-            intent.putExtra("endDate", endDateFilter);
-            intent.putExtra("entryType", entryTypeFilter);
-            intent.putStringArrayListExtra("categories", new ArrayList<>(categoryFilter));
-            intent.putStringArrayListExtra("paymentModes", new ArrayList<>(paymentModeFilter));
-            filterLauncher.launch(intent);
-        });
-
-        searchEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterTransactions();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-
-        // Bottom Navigation Click Listeners
         btnHome.setOnClickListener(v -> {
             startActivity(new Intent(this, HomePage.class));
             finish();
         });
-
-        btnTransactions.setOnClickListener(v ->
-                Toast.makeText(this, "Already on Transactions", Toast.LENGTH_SHORT).show());
-
+        btnTransactions.setOnClickListener(v -> Toast.makeText(this, "Already on Transactions", Toast.LENGTH_SHORT).show());
         btnSettings.setOnClickListener(v -> {
             startActivity(new Intent(this, SettingsActivity.class));
             finish();
         });
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            startListeningForTransactions(currentUser.getUid());
+        }
+    }
+
+    private void startListeningForTransactions(String userId) {
+        DatabaseReference transactionsRef = mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions");
+        transactionsListener = transactionsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                allTransactions.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    TransactionModel transaction = snapshot.getValue(TransactionModel.class);
+                    if (transaction != null) {
+                        allTransactions.add(transaction);
+                    }
+                }
+                Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
+                displayDataForCurrentMonth();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(TransactionActivity.this, "Failed to load transactions.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void displayDataForCurrentMonth() {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
+        monthTitleTextView.setText(sdf.format(currentMonthCalendar.getTime()));
+
+        List<TransactionModel> monthlyTransactions = allTransactions.stream()
+                .filter(t -> {
+                    Calendar transactionCal = Calendar.getInstance();
+                    transactionCal.setTimeInMillis(t.getTimestamp());
+                    return transactionCal.get(Calendar.YEAR) == currentMonthCalendar.get(Calendar.YEAR) &&
+                            transactionCal.get(Calendar.MONTH) == currentMonthCalendar.get(Calendar.MONTH);
+                }).collect(Collectors.toList());
+
+        updateTotals(monthlyTransactions);
+        setupPieChart(monthlyTransactions);
+
+        if (transactionFragment != null) {
+            transactionFragment.updateTransactions(monthlyTransactions);
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void updateTotals(List<TransactionModel> transactions) {
+        double totalIncome = 0, totalExpense = 0;
+        for (TransactionModel transaction : transactions) {
+            if ("IN".equalsIgnoreCase(transaction.getType())) {
+                totalIncome += transaction.getAmount();
+            } else {
+                totalExpense += transaction.getAmount();
+            }
+        }
+        incomeText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome));
+        expenseText.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
+        balanceText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome - totalExpense));
+    }
+
+    private void setupPieChart(List<TransactionModel> transactionsForMonth) {
+        Map<String, Float> expenseByCategory = new HashMap<>();
+        float totalExpense = 0;
+        String highestCategory = "-";
+        float maxExpense = 0;
+
+        for (TransactionModel transaction : transactionsForMonth) {
+            if ("OUT".equalsIgnoreCase(transaction.getType())) {
+                String category = transaction.getTransactionCategory() != null ? transaction.getTransactionCategory() : "Other";
+                float amount = (float) transaction.getAmount();
+
+                float currentCategoryTotal = expenseByCategory.getOrDefault(category, 0f) + amount;
+                expenseByCategory.put(category, currentCategoryTotal);
+
+                if (currentCategoryTotal > maxExpense) {
+                    maxExpense = currentCategoryTotal;
+                    highestCategory = category;
+                }
+                totalExpense += amount;
+            }
+        }
+
+        categoriesCountTextView.setText(String.valueOf(expenseByCategory.size()));
+        highestCategoryTextView.setText(highestCategory);
+
+        if (totalExpense == 0) {
+            pieChart.clear();
+            pieChart.setCenterText("No Expenses\nThis Month");
+            pieChart.setCenterTextColor(Color.WHITE);
+            pieChart.invalidate();
+            return;
+        }
+
+        ArrayList<PieEntry> entries = new ArrayList<>();
+        for (Map.Entry<String, Float> entry : expenseByCategory.entrySet()) {
+            entries.add(new PieEntry(entry.getValue(), entry.getKey()));
+        }
+
+        pieChart.setCenterText("Expenses\n" + String.format(Locale.US, "₹%.0f", totalExpense));
+        pieChart.setCenterTextColor(Color.WHITE);
+
+        PieDataSet dataSet = new PieDataSet(entries, "");
+        dataSet.setColors(ColorTemplate.MATERIAL_COLORS);
+        dataSet.setSliceSpace(3f);
+        dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+        dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+        dataSet.setValueLinePart1OffsetPercentage(80.f);
+        dataSet.setValueLinePart1Length(0.4f);
+        dataSet.setValueLinePart2Length(0.4f);
+        dataSet.setValueLineColor(Color.GRAY);
+        dataSet.setValueTextColor(Color.WHITE);
+        dataSet.setValueTextSize(12f);
+
+        PieData data = new PieData(dataSet);
+        data.setValueFormatter(new PercentFormatter(pieChart));
+        pieChart.setData(data);
+
+        pieChart.setUsePercentValues(true);
+        pieChart.getDescription().setEnabled(false);
+        pieChart.getLegend().setEnabled(false);
+        pieChart.setDrawEntryLabels(true);
+        pieChart.setEntryLabelColor(Color.WHITE);
+        pieChart.setHoleColor(Color.TRANSPARENT);
+        pieChart.animateY(1000);
+        pieChart.invalidate();
+    }
+
+    @Override
+    public void onItemClick(TransactionModel transaction) {
+        Intent intent = new Intent(this, TransactionDetailActivity.class);
+        intent.putExtra("transaction_model", transaction);
+        intent.putExtra("cashbook_id", currentCashbookId);
+        startActivity(intent);
+    }
+
+    // --- LAUNCHERS, PERMISSIONS, AND EXPORT LOGIC ---
+
     private void setupFilterLauncher() {
         filterLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        Intent data = result.getData();
-                        startDateFilter = data.getLongExtra("startDate", 0);
-                        endDateFilter = data.getLongExtra("endDate", 0);
-                        entryTypeFilter = data.getStringExtra("entryType");
-                        ArrayList<String> selectedCategories = data.getStringArrayListExtra("categories");
-                        if (selectedCategories != null) categoryFilter = new HashSet<>(selectedCategories);
-                        ArrayList<String> selectedModes = data.getStringArrayListExtra("paymentModes");
-                        if (selectedModes != null) paymentModeFilter = new HashSet<>(selectedModes);
-                        filterTransactions();
-                        Toast.makeText(this, "Filters Applied!", Toast.LENGTH_SHORT).show();
-                    }
+                    // Filter logic is now handled by the monthly navigator, but this can be used for a more advanced filter screen
                 }
         );
     }
@@ -265,7 +377,7 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
                         String paymentMode = data.getStringExtra("paymentMode");
 
                         if (checkPermissions()) {
-                            exportTransactionsToCSV(startDate, endDate, entryType, paymentMode);
+                            exportTransactionsToPdf(startDate, endDate, entryType, paymentMode);
                         } else {
                             requestPermissions();
                         }
@@ -274,198 +386,9 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         );
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            startListeningForTransactions(currentUser.getUid());
-        } else {
-            Log.w(TAG, "No authenticated user found");
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        removeFirebaseListener();
-    }
-
-    private void removeFirebaseListener() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null && transactionsListener != null && currentCashbookId != null) {
-            mDatabase.child("users").child(currentUser.getUid())
-                    .child("cashbooks").child(currentCashbookId).child("transactions")
-                    .removeEventListener(transactionsListener);
-            transactionsListener = null;
-            Log.d(TAG, "Firebase listener removed");
-        }
-    }
-
-    private void startListeningForTransactions(String userId) {
-        DatabaseReference transactionsRef = mDatabase.child("users").child(userId)
-                .child("cashbooks").child(currentCashbookId).child("transactions");
-
-        transactionsListener = transactionsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                allTransactions.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    TransactionModel transaction = snapshot.getValue(TransactionModel.class);
-                    if (transaction != null) {
-                        transaction.setTransactionId(snapshot.getKey());
-                        allTransactions.add(transaction);
-                    }
-                }
-                Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
-                filterTransactions();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e(TAG, "Firebase listener cancelled: " + databaseError.getMessage());
-                Toast.makeText(TransactionActivity.this, "Failed to load transactions.", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void clearAllFilters() {
-        startDateFilter = 0;
-        endDateFilter = 0;
-        entryTypeFilter = "All";
-        categoryFilter.clear();
-        paymentModeFilter.clear();
-        searchEditText.setText("");
-        filterTransactions();
-    }
-
-    private void filterTransactions() {
-        displayedTransactions.clear();
-        String query = searchEditText.getText().toString().toLowerCase(Locale.getDefault());
-
-        for (TransactionModel transaction : allTransactions) {
-            boolean matchesSearch = query.isEmpty() ||
-                    (transaction.getTransactionCategory() != null && transaction.getTransactionCategory().toLowerCase(Locale.getDefault()).contains(query)) ||
-                    (transaction.getPartyName() != null && transaction.getPartyName().toLowerCase(Locale.getDefault()).contains(query)) ||
-                    (transaction.getRemark() != null && transaction.getRemark().toLowerCase(Locale.getDefault()).contains(query));
-            boolean matchesDate = (startDateFilter == 0 && endDateFilter == 0) || (transaction.getTimestamp() >= startDateFilter && transaction.getTimestamp() <= endDateFilter);
-            boolean matchesEntryType = "All".equals(entryTypeFilter) || entryTypeFilter.equalsIgnoreCase(transaction.getType());
-            boolean matchesCategory = categoryFilter.isEmpty() || categoryFilter.contains(transaction.getTransactionCategory());
-            boolean matchesPaymentMode = paymentModeFilter.isEmpty() || paymentModeFilter.contains(transaction.getPaymentMode());
-
-            if (matchesSearch && matchesDate && matchesEntryType && matchesCategory && matchesPaymentMode) {
-                displayedTransactions.add(transaction);
-            }
-        }
-        updateUI();
-    }
-
-    private void debugTransactionData() {
-        Log.d(TAG, "=== TRANSACTION DEBUG INFO ===");
-        Log.d(TAG, "Total allTransactions: " + allTransactions.size());
-        Log.d(TAG, "Total displayedTransactions: " + displayedTransactions.size());
-    }
-
-    private void updateUI() {
-        if (transactionFragment != null) {
-            transactionFragment.updateTransactions(displayedTransactions);
-        }
-        calculateTotals();
-        setupPieChart();
-    }
-
-    @SuppressLint("SetTextI18n")
-    private void calculateTotals() {
-        double totalIncome = 0, totalExpense = 0;
-        for (TransactionModel transaction : displayedTransactions) {
-            if ("IN".equalsIgnoreCase(transaction.getType())) {
-                totalIncome += transaction.getAmount();
-            } else if ("OUT".equalsIgnoreCase(transaction.getType())) {
-                totalExpense += transaction.getAmount();
-            }
-        }
-        double balance = totalIncome - totalExpense;
-        incomeText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome));
-        expenseText.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
-        balanceText.setText("₹" + String.format(Locale.US, "%.2f", balance));
-    }
-
-    private void initializePieChart() {
-        pieChart.setUsePercentValues(true);
-        pieChart.getDescription().setEnabled(false);
-        pieChart.setExtraOffsets(5, 10, 5, 5);
-        pieChart.setDrawHoleEnabled(true);
-        pieChart.setHoleColor(Color.WHITE);
-        pieChart.setHoleRadius(45f);
-        pieChart.setTransparentCircleRadius(50f);
-        pieChart.setCenterText("Expenses\n₹0");
-        pieChart.setCenterTextSize(16f);
-        pieChart.setCenterTextColor(Color.BLACK);
-        pieChart.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
-        pieChart.setDrawEntryLabels(true);
-        pieChart.setEntryLabelColor(Color.BLACK);
-        pieChart.setEntryLabelTextSize(11f);
-        pieChart.setEntryLabelTypeface(Typeface.DEFAULT_BOLD);
-        pieChart.getLegend().setEnabled(false);
-    }
-
-    private void setupPieChart() {
-        Map<String, Float> expenseByCategory = new HashMap<>();
-        float totalExpense = 0;
-
-        for (TransactionModel transaction : displayedTransactions) {
-            if ("OUT".equalsIgnoreCase(transaction.getType())) {
-                String category = transaction.getTransactionCategory() != null ? transaction.getTransactionCategory() : "Other";
-                float amount = (float) transaction.getAmount();
-                expenseByCategory.put(category, expenseByCategory.getOrDefault(category, 0f) + amount);
-                totalExpense += amount;
-            }
-        }
-
-        if (totalExpense == 0) {
-            pieChart.clear();
-            pieChart.setCenterText("No Expenses\nto Display");
-            pieChart.invalidate();
-            return;
-        }
-
-        ArrayList<PieEntry> entries = new ArrayList<>();
-        for (Map.Entry<String, Float> entry : expenseByCategory.entrySet()) {
-            entries.add(new PieEntry(entry.getValue(), entry.getKey()));
-        }
-
-        pieChart.setCenterText("Expenses\n₹" + String.format(Locale.US, "%.0f", totalExpense));
-
-        PieDataSet dataSet = new PieDataSet(entries, "");
-        dataSet.setSliceSpace(3f);
-        dataSet.setSelectionShift(5f);
-        dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
-        dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
-        dataSet.setValueLinePart1OffsetPercentage(80f);
-        dataSet.setValueLinePart1Length(0.4f);
-        dataSet.setValueLinePart2Length(0.4f);
-        dataSet.setUsingSliceColorAsValueLineColor(true);
-
-        ArrayList<Integer> colors = new ArrayList<>();
-        colors.add(Color.parseColor("#4CAF50"));
-        colors.add(Color.parseColor("#FF5722"));
-        colors.add(Color.parseColor("#2196F3"));
-        colors.add(Color.parseColor("#FF9800"));
-        colors.add(Color.parseColor("#9C27B0"));
-        dataSet.setColors(colors);
-        dataSet.setValueTextColor(Color.BLACK);
-        dataSet.setValueTextSize(12f);
-
-        PieData data = new PieData(dataSet);
-        data.setValueFormatter(new PercentFormatter(pieChart));
-        pieChart.setData(data);
-        pieChart.animateY(1400, Easing.EaseInOutQuad);
-        pieChart.invalidate();
-    }
-
     private boolean checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return true;
+            return true; // No specific write permission needed for MediaStore API on Q+
         } else {
             return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         }
@@ -482,14 +405,16 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == STORAGE_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permission granted. Please try downloading again.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Permission granted. Please click Download again.", Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(this, "Storage permission is required to download files.", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private void exportTransactionsToCSV(long startDate, long endDate, String entryType, String paymentMode) {
+    // --- NEW PDF EXPORT LOGIC ---
+
+    private void exportTransactionsToPdf(long startDate, long endDate, String entryType, String paymentMode) {
         List<TransactionModel> transactionsToExport = allTransactions.stream()
                 .filter(t -> t.getTimestamp() >= startDate && t.getTimestamp() <= endDate)
                 .filter(t -> "All".equalsIgnoreCase(entryType) || ("Cash In".equalsIgnoreCase(entryType) && "IN".equalsIgnoreCase(t.getType())) || ("Cash Out".equalsIgnoreCase(entryType) && "OUT".equalsIgnoreCase(t.getType())))
@@ -501,45 +426,71 @@ public class TransactionActivity extends AppCompatActivity implements Transactio
             return;
         }
 
-        StringBuilder csvData = new StringBuilder("Date,Type,Amount,Category,Party/Supplier,Payment Mode,Remark\n");
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-        for (TransactionModel t : transactionsToExport) {
-            csvData.append("\"").append(dateFormat.format(new Date(t.getTimestamp()))).append("\",")
-                    .append("\"").append("IN".equals(t.getType()) ? "Income" : "Expense").append("\",")
-                    .append(t.getAmount()).append(",")
-                    .append("\"").append(t.getTransactionCategory() != null ? t.getTransactionCategory() : "").append("\",")
-                    .append("\"").append(t.getPartyName() != null ? t.getPartyName() : "").append("\",")
-                    .append("\"").append(t.getPaymentMode() != null ? t.getPaymentMode() : "").append("\",")
-                    .append("\"").append(t.getRemark() != null ? t.getRemark() : "").append("\"\n");
-        }
-        saveCsvFile(csvData.toString());
-    }
-
-    private void saveCsvFile(String csvData) {
-        String fileName = "Transactions_" + System.currentTimeMillis() + ".csv";
         try {
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-            values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-            Uri uri = getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
-            if (uri != null) {
-                try (OutputStream outputStream = getContentResolver().openOutputStream(uri)) {
-                    outputStream.write(csvData.getBytes());
-                    Toast.makeText(this, "File saved to Downloads folder", Toast.LENGTH_LONG).show();
-                }
-            }
+            savePdfFile(transactionsToExport);
         } catch (Exception e) {
-            Log.e(TAG, "Error saving CSV file", e);
-            Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Error creating PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Error creating PDF", e);
         }
     }
 
-    @Override
-    public void onItemClick(TransactionModel transaction) {
-        Intent intent = new Intent(this, TransactionDetailActivity.class);
-        intent.putExtra("transaction_model", transaction);
-        intent.putExtra("cashbook_id", currentCashbookId);
-        startActivity(intent);
+    private void savePdfFile(List<TransactionModel> transactions) throws Exception {
+        String fileName = "Transactions_" + System.currentTimeMillis() + ".pdf";
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+        values.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
+        values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+        Uri uri = getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
+
+        if (uri == null) {
+            throw new Exception("Failed to create new MediaStore record.");
+        }
+
+        try (OutputStream outputStream = getContentResolver().openOutputStream(uri)) {
+            Document document = new Document(PageSize.A4);
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+
+            // Add Title
+            Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
+            Paragraph title = new Paragraph("Transaction Report", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            // Create Table
+            PdfPTable table = new PdfPTable(5); // 5 columns
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{3, 2, 2, 3, 3});
+
+            // Table Header
+            Font headerFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
+            String[] headers = {"Date", "Type", "Amount", "Category", "Party"};
+            for(String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setPadding(8);
+                table.addCell(cell);
+            }
+
+            // Table Body
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+            Font bodyFont = new Font(Font.FontFamily.HELVETICA, 9);
+
+            for (TransactionModel t : transactions) {
+                table.addCell(new PdfPCell(new Phrase(dateFormat.format(new Date(t.getTimestamp())), bodyFont)));
+                table.addCell(new PdfPCell(new Phrase("IN".equals(t.getType()) ? "Income" : "Expense", bodyFont)));
+                table.addCell(new PdfPCell(new Phrase(String.format(Locale.US, "%.2f", t.getAmount()), bodyFont)));
+                table.addCell(new PdfPCell(new Phrase(t.getTransactionCategory() != null ? t.getTransactionCategory() : "", bodyFont)));
+                table.addCell(new PdfPCell(new Phrase(t.getPartyName() != null ? t.getPartyName() : "", bodyFont)));
+            }
+
+            document.add(table);
+            document.close();
+
+            Toast.makeText(this, "PDF saved to Downloads folder.", Toast.LENGTH_LONG).show();
+        }
     }
 }

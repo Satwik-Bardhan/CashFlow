@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/pieChartCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="12dp"
     android:clickable="true"
     android:focusable="true"
     app:cardCornerRadius="20dp"
@@ -18,42 +16,6 @@
         android:orientation="vertical"
         android:padding="10dp">
 
-        <!-- Monthly Navigation Header (Clickable for Full Preview) -->
-
-        <!-- Total Amount Display -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="3dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_pie_chart"
-                android:layout_marginEnd="8dp"
-                app:tint="#2196F3" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Expense Breakdown"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/totalAmountText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="₹12,500"
-                android:textColor="#4CAF50"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
         <LinearLayout
             android:id="@+id/pieChartHeader"
             android:layout_width="match_parent"
@@ -62,20 +24,19 @@
             android:gravity="center_vertical"
             android:clickable="true"
             android:focusable="true"
-            android:background="@drawable/header_ripple_background"
+            android:background="?attr/selectableItemBackground"
             android:padding="2dp"
             android:layout_marginBottom="3dp">
 
-            <!-- Previous Month Button -->
             <ImageButton
                 android:id="@+id/monthBackwardButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_arrow_left"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Previous Month"
-                app:tint="#000000" />
+                app:tint="@color/white" />
 
-            <!-- Month & Year Title -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -89,7 +50,7 @@
                     android:layout_height="wrap_content"
                     android:text="September 2025"
                     android:textColor="#FFFFFF"
-                    android:textSize="12sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -102,59 +63,37 @@
                     android:layout_marginTop="2dp" />
             </LinearLayout>
 
-            <!-- Next Month Button -->
             <ImageButton
                 android:id="@+id/monthForwardButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_arrow_right"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Next Month"
-                app:tint="#000000" />
+                app:tint="@color/white" />
 
         </LinearLayout>
 
-        <!-- Pie Chart Container -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/pieChartContainer"
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="#333333">
+            android:layout_height="280dp" />
 
-            <com.github.mikephil.charting.charts.PieChart
-                android:id="@+id/pieChart"
-                android:layout_width="match_parent"
-                android:layout_height="320dp"
-                android:layout_margin="8dp" />
-        </androidx.cardview.widget.CardView>
-
-        <!-- Hide/Show Chart Button -->
-        <Button
+        <TextView
             android:id="@+id/togglePieChartButton"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hide Pie Chart"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:background="?attr/selectableItemBackground"
+            android:layout_gravity="center_horizontal"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="4dp"
-            app:backgroundTint="#2196F3" />
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:text="Hide Pie Chart"
+            android:textColor="@color/balance_blue"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-        <!-- Legend Section -->
-        <LinearLayout
-            android:id="@+id/legendContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="3dp">
-
-            <!-- Legend items will be added dynamically -->
-        </LinearLayout>
-
-        <!-- Summary Stats -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -181,7 +120,7 @@
                     android:id="@+id/categoriesCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="5"
+                    android:text="0"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -202,7 +141,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Highest"
+                    android:text="Highest Expense"
                     android:textColor="#AAAAAA"
                     android:textSize="12sp" />
 
@@ -210,7 +149,7 @@
                     android:id="@+id/highestCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Food"
+                    android:text="-"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     android:textStyle="bold" />

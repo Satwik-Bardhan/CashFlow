@@ -345,6 +345,7 @@
                     android:orientation="horizontal">
 
                     <View
+                        android:id="@+id/categoryColorIndicator"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginStart="14dp"

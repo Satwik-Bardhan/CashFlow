@@ -116,15 +116,15 @@
             <!-- Include modularized entry sections -->
             <include layout="@layout/layout_date_time" />
             <include layout="@layout/layout_transaction_type" />
+            <include layout="@layout/layout_payment_method" />
             <include layout="@layout/layout_amount" />
             <include layout="@layout/layout_quick_amounts" />
-            <include layout="@layout/layout_payment_method" />
+            <include layout="@layout/layout_tax_amount" />
             <include layout="@layout/layout_remark_voice" />
             <include layout="@layout/layout_category" />
             <include layout="@layout/layout_attachments" />
             <include layout="@layout/layout_party_reference" />
             <include layout="@layout/layout_tags_location" />
-            <include layout="@layout/layout_tax_amount" />
             <include layout="@layout/layout_action_buttons" />
 
         </LinearLayout>
