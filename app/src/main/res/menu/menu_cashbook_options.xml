@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_add_cashbook"
+        android:title="Add New Cashbook"
+        android:icon="@drawable/ic_add" />
+    <item
+        android:id="@+id/action_duplicate_cashbook"
+        android:title="Duplicate Cashbook"
+        android:icon="@drawable/ic_copy" />
+    <item
+        android:id="@+id/action_delete_cashbook"
+        android:title="Delete Cashbook"
+        android:icon="@drawable/ic_delete" />
+</menu>

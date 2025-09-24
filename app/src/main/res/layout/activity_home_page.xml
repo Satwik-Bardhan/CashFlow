@@ -51,7 +51,7 @@
                     android:textStyle="bold"
                     tools:ignore="HardcodedText" />
 
-                <!-- User Info Card -->
+                <!-- Enhanced User Info Card with Dropdown -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -72,16 +72,42 @@
                         android:orientation="horizontal"
                         android:padding="10dp">
 
+                        <!-- Cashbook Icon -->
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_account_balance_wallet"
+                            android:contentDescription="Cashbook icon"
+                            app:tint="#2196F3" />
+
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
 
+                            <!-- Current Cashbook Name -->
+                            <TextView
+                                android:id="@+id/currentCashbookText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/inter_bold"
+                                android:text="Current Book"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:background="?android:attr/selectableItemBackground"
+                                tools:ignore="HardcodedText" />
+
+                            <!-- Keep the original userNameTop for compatibility -->
                             <TextView
                                 android:id="@+id/userNameTop"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:visibility="gone"
                                 android:fontFamily="@font/inter_bold"
                                 android:text="Current Book"
                                 android:textColor="#000000"
@@ -95,17 +121,32 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:fontFamily="@font/inter_medium"
-                                android:text="Last Open Date and Time"
+                                android:text="Tap to switch or manage cashbooks"
                                 android:textColor="#666666"
                                 android:textSize="10sp"
                                 tools:ignore="HardcodedText" />
 
                         </LinearLayout>
 
+                        <!-- Animated Dropdown Arrow -->
+                        <ImageView
+                            android:id="@+id/dropdownArrow"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:clickable="false"
+                            android:contentDescription="Expand cashbook menu"
+                            android:focusable="true"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_arrow_down"
+                            app:tint="#666666" />
+
+                        <!-- Keep the original dropdown icon for compatibility -->
                         <ImageView
                             android:id="@+id/userDropdownIcon"
                             android:layout_width="48dp"
                             android:layout_height="48dp"
+                            android:visibility="gone"
                             android:background="?android:attr/selectableItemBackgroundBorderless"
                             android:clickable="false"
                             android:contentDescription="Expand user menu"
@@ -118,12 +159,57 @@
 
                 </androidx.cardview.widget.CardView>
 
-                    <include
-                        android:id="@+id/balanceCardView"
-                        layout="@layout/component_balance_card"
-                        android:layout_width="match_parent"
+                <!-- Alternative Cashbook Dropdown Container (Hidden by default) -->
+                <LinearLayout
+                    android:id="@+id/cashbookDropdownContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="0"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    android:background="@drawable/cashbook_dropdown_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp"
+                    android:layout_marginHorizontal="0dp"
+                    android:layout_marginTop="0dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_account_balance_wallet"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="Cashbook icon"
+                        app:tint="#2196F3" />
+
+                    <TextView
+                        android:id="@+id/alternateCashbookText"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp" />
+                        android:layout_weight="1"
+                        android:text="Record Book"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/inter_bold"
+                        tools:ignore="HardcodedText" />
+
+                    <ImageView
+                        android:id="@+id/alternateDropdownArrow"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_arrow_down"
+                        android:contentDescription="Dropdown arrow"
+                        app:tint="#666666" />
+
+                </LinearLayout>
+
+                <include
+                    android:id="@+id/balanceCardView"
+                    layout="@layout/component_balance_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp" />
 
                 <!-- Action Buttons -->
                 <LinearLayout
@@ -159,6 +245,7 @@
                                 android:layout_height="24dp"
                                 android:layout_marginEnd="8dp"
                                 android:src="@drawable/plus"
+                                android:contentDescription="Plus icon"
                                 app:tint="#FFFFFF" />
 
                             <TextView
@@ -200,6 +287,7 @@
                                 android:layout_height="24dp"
                                 android:layout_marginEnd="8dp"
                                 android:src="@drawable/minus"
+                                android:contentDescription="Minus icon"
                                 app:tint="#FFFFFF" />
 
                             <TextView
@@ -243,6 +331,7 @@
                             android:layout_height="24dp"
                             android:layout_marginEnd="12dp"
                             android:src="@drawable/ic_list"
+                            android:contentDescription="List icon"
                             app:tint="#333333" />
 
                         <TextView
@@ -261,6 +350,7 @@
                             android:layout_marginStart="12dp"
                             android:src="@drawable/ic_arrow_right"
                             android:layout_gravity="center"
+                            android:contentDescription="Arrow right icon"
                             app:tint="#666666" />
 
                     </LinearLayout>
@@ -285,7 +375,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
-
 
                 <!-- Scrollable Table Content -->
                 <ScrollView
@@ -357,7 +446,6 @@
                                 android:textSize="12sp"
                                 android:textStyle="bold"
                                 tools:ignore="HardcodedText" />
-
 
                         </TableRow>
                     </TableLayout>

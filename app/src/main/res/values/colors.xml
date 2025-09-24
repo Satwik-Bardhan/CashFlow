@@ -56,4 +56,10 @@
 
     <color name="radio_text_color">#FFFFFF</color>
 
+    <!-- If you don't have a primary_blue, you can add this -->
+    <color name="primary_blue">#2196F3</color>
+
+    <!-- Or use the android default colors that I used in the fixed code -->
+
+
 </resources>
