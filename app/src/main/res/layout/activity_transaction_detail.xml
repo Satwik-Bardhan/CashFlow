@@ -200,65 +200,24 @@
 
                     <TextView
                         android:id="@+id/timeTextView"
-                        android:layout_width="100dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="42dp"
+                        android:layout_weight="0.05"
                         android:background="@drawable/rounded_input_background_filled"
                         android:clickable="true"
                         android:focusable="true"
                         android:gravity="center_vertical"
                         android:paddingStart="14dp"
+                        android:drawableEnd="@drawable/ic_time"
                         android:paddingEnd="10dp"
                         android:text="02:30 PM"
                         android:textColor="#FFFFFF"
                         android:textSize="15sp" />
 
-                    <ImageView
-                        android:id="@+id/timePickerIcon"
-                        android:layout_width="42dp"
-                        android:layout_height="42dp"
-                        android:layout_marginStart="5dp"
-                        android:background="@drawable/rounded_dark_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="9dp"
-                        android:src="@drawable/ic_time"
-                        app:tint="#FFFFFF" />
                 </LinearLayout>
 
                 <!-- In/Out Toggle -->
-                <RadioGroup
-                    android:id="@+id/inOutToggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
-                    android:orientation="horizontal">
-
-                    <RadioButton
-                        android:id="@+id/radioIn"
-                        android:layout_width="68dp"
-                        android:layout_height="38dp"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/button_cashin"
-                        android:button="@android:color/transparent"
-                        android:checked="true"
-                        android:gravity="center"
-                        android:text="IN"
-                        android:textColor="#FFFFFF"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <RadioButton
-                        android:id="@+id/radioOut"
-                        android:layout_width="68dp"
-                        android:layout_height="38dp"
-                        android:background="@drawable/button_cashout"
-                        android:button="@android:color/transparent"
-                        android:gravity="center"
-                        android:text="OUT"
-                        android:textColor="#FFFFFF"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </RadioGroup>
+                <include layout="@layout/layout_transaction_type" />
 
                 <!-- Amount Input -->
                 <EditText
@@ -278,37 +237,7 @@
                     android:textSize="17sp" />
 
                 <!-- Cash/Online Toggle -->
-                <RadioGroup
-                    android:id="@+id/cashOnlineToggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:orientation="horizontal">
-
-                    <RadioButton
-                        android:id="@+id/radioCash"
-                        android:layout_width="76dp"
-                        android:layout_height="38dp"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/button_blue"
-                        android:button="@android:color/transparent"
-                        android:checked="true"
-                        android:gravity="center"
-                        android:text="Cash"
-                        android:textColor="#000000"
-                        android:textSize="13sp" />
-
-                    <RadioButton
-                        android:id="@+id/radioOnline"
-                        android:layout_width="76dp"
-                        android:layout_height="38dp"
-                        android:background="@drawable/button_blue"
-                        android:button="@android:color/transparent"
-                        android:gravity="center"
-                        android:text="Online"
-                        android:textColor="#000000"
-                        android:textSize="13sp" />
-                </RadioGroup>
+                <include layout="@layout/layout_payment_method" />
 
                 <EditText
                     android:id="@+id/remarkEditText"

@@ -72,6 +72,12 @@ dependencies {
     // SwipeRefreshLayout for pull-to-refresh functionality
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
-    //Pdf creator
+    // Pdf Creator
     implementation("com.itextpdf:itextpdf:5.5.13.3")
+
+    // Location Services
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    // File Provider
+    implementation("androidx.core:core:1.12.0")
 }
