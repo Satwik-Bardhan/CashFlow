@@ -8,6 +8,37 @@
     android:orientation="horizontal"
     android:paddingVertical="8dp">
 
+    <!-- CASHBOOK SWITCH BUTTON -->
+    <LinearLayout
+        android:id="@+id/btnCashbookSwitch"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/iconCashbookSwitch"
+            android:layout_width="36dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_book"
+            app:tint="@color/bottom_nav_item_color_selector"
+            android:duplicateParentState="true" />
+
+        <TextView
+            android:id="@+id/textCashbookSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cashbooks"
+            android:textColor="@color/bottom_nav_item_color_selector"
+            android:textSize="10sp"
+            android:duplicateParentState="true" />
+    </LinearLayout>
+
     <!-- HOME BUTTON -->
     <LinearLayout
         android:id="@+id/btnHome"

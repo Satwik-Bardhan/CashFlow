@@ -123,6 +123,9 @@
             <include layout="@layout/layout_remark_voice" />
             <include layout="@layout/layout_category" />
             <include layout="@layout/layout_attachments" />
+
+            <include layout="@layout/layout_attached_files" />
+
             <include layout="@layout/layout_party_reference" />
             <include layout="@layout/layout_tags_location" />
             <include layout="@layout/layout_action_buttons" />

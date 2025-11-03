@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class TransactionDetailActivity extends AppCompatActivity {
+public class EditTransactionActivity extends AppCompatActivity {
 
     private TextView headerSubtitle, dateTextView, timeTextView, categoryTextView, partyTextView;
     private EditText amountEditText, remarkEditText;
@@ -67,7 +67,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_transaction_detail);
+        setContentView(R.layout.activity_edit_transaction);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();

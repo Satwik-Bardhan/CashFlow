@@ -219,4 +219,71 @@
     <string name="confirm_delete_cashbook_message">This action will permanently delete \"%1$s\" and all its transactions. This cannot be undone.</string>
     <string name="confirm_switch_unsaved_changes">You have unsaved changes. Switch anyway?</string>
 
+
+    <!-- Cashbook Switch Activity -->
+    <string name="cashbook_manager_title">Cashbook Manager</string>
+    <string name="switch_create_subtitle">Switch or create cashbooks</string>
+    <string name="search_cashbooks_hint">Search cashbooks</string>
+    <string name="chip_active">Active</string>
+    <string name="chip_recent">Recent</string>
+    <string name="chip_favorites">Favorites</string>
+    <string name="your_cashbooks_title">Your Cashbooks</string>
+    <string name="sort_button">Sort</string>
+    <string name="total_books_label">Total Books</string>
+    <string name="active_label">Active</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="create_new_cashbook">Create New Cashbook</string>
+    <string name="no_cashbooks_title">No cashbooks yet</string>
+    <string name="no_cashbooks_message">Create your first cashbook to start tracking your finances effectively</string>
+    <string name="create_first_cashbook">Create First Cashbook</string>
+    <string name="loading_cashbooks">Loading your cashbooks...</string>
+    <string name="loading_wait_message">Please wait while we fetch your data</string>
+
+    <!-- Content Descriptions -->
+    <string name="close_button">Close</string>
+    <string name="add_cashbook_desc">Add new cashbook</string>
+    <string name="quick_add_cashbook">Quick add cashbook</string>
+    <string name="sort_button_desc">Sort cashbooks</string>
+    <string name="cashbook_icon">Cashbook icon</string>
+    <string name="search_icon">Search icon</string>
+    <string name="empty_state_icon">Empty folder icon</string>
+
+    <!-- Sort Options -->
+    <string name="sort_cashbooks_title">Sort Cashbooks</string>
+    <string name="sort_name_asc">Name (A-Z)</string>
+    <string name="sort_name_desc">Name (Z-A)</string>
+    <string name="sort_recent_first">Recent First</string>
+    <string name="sort_oldest_first">Oldest First</string>
+    <string name="sort_most_transactions">Most Transactions</string>
+
+
+    <!-- Cashbook Item -->
+    <string name="sample_cashbook_name">Personal Finance</string>
+    <string name="sample_last_modified">Last modified: 3 hours ago</string>
+    <string name="sample_balance">₹15,750</string>
+    <string name="sample_transaction_count">247</string>
+    <string name="sample_created_date">Jan 2025</string>
+
+    <string name="status_active">ACTIVE</string>
+    <string name="status_inactive">INACTIVE</string>
+
+    <string name="balance_label">Balance</string>
+    <string name="transactions_label">Transactions</string>
+    <string name="created_label">Created</string>
+
+    <string name="last_modified_format">Last modified: %s</string>
+
+    <string name="favorite_button_desc">Toggle favorite</string>
+    <string name="more_options_desc">More options</string>
+
+    <!-- Menu Items -->
+    <string name="edit_cashbook">Edit</string>
+    <string name="add_to_favorites">Add to Favorites</string>
+    <string name="remove_from_favorites">Remove from Favorites</string>
+    <string name="activate_cashbook">Activate</string>
+    <string name="deactivate_cashbook">Deactivate</string>
+    <string name="export_cashbook">Export</string>
+    <string name="delete_cashbook">Delete</string>
+
+
 </resources>

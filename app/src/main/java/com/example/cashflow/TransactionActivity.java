@@ -152,7 +152,7 @@ public class TransactionActivity extends AppCompatActivity {
     private void setupTransactionFragment() {
         transactionFragment = TransactionItemFragment.newInstance(new ArrayList<>());
         transactionFragment.setOnItemClickListener(transaction -> {
-            Intent intent = new Intent(this, TransactionDetailActivity.class);
+            Intent intent = new Intent(this, EditTransactionActivity.class);
             intent.putExtra("transaction_model", transaction);
             intent.putExtra("cashbook_id", currentCashbookId);
             startActivity(intent);

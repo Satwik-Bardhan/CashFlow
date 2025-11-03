@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -29,11 +28,9 @@ import com.example.cashflow.databinding.LayoutBottomNavigationBinding;
 import com.example.cashflow.dialogs.CashbookSwitchDialog;
 import com.example.cashflow.models.Cashbook;
 import com.example.cashflow.utils.ErrorHandler;
-import com.example.cashflow.utils.ThemeManager;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -794,7 +791,7 @@ public class HomePage extends AppCompatActivity {
      * Opens transaction detail activity
      */
     private void openTransactionDetail(TransactionModel transaction) {
-        Intent intent = new Intent(this, TransactionDetailActivity.class);
+        Intent intent = new Intent(this, EditTransactionActivity.class);
         intent.putExtra("transaction", transaction);
         intent.putExtra("cashbook_id", currentCashbookId);
         intent.putExtra("isGuest", isGuest);

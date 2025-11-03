@@ -1,0 +1,114 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/attachedFilesSection"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="20dp"
+    android:orientation="vertical"
+    android:visibility="visible">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Attached Files"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <!-- Attached Image File -->
+    <LinearLayout
+        android:id="@+id/attachedImageLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/attachedImageText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_camera"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:text="invoice_copy.jpg"
+            android:textColor="#81C784"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/removeAttachedImage"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_close"
+            android:contentDescription="Remove attached image"
+            app:tint="#F44336" />
+    </LinearLayout>
+
+    <!-- Attached QR/Text File -->
+    <LinearLayout
+        android:id="@+id/attachedQrLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/attachedQrText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_qr_code"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:text="bill_data.txt"
+            android:textColor="#81C784"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/removeAttachedQr"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_close"
+            android:contentDescription="Remove attached QR data"
+            app:tint="#F44336" />
+    </LinearLayout>
+
+    <!-- Attached PDF File -->
+    <LinearLayout
+        android:id="@+id/attachedPdfLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/attachedPdfText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_pdf"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:text="invoice_copy.pdf"
+            android:textColor="#81C784"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/removeAttachedPdf"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_close"
+            android:contentDescription="Remove attached PDF"
+            app:tint="#F44336" />
+    </LinearLayout>
+
+</LinearLayout>

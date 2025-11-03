@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#2B2B2B"
     android:fitsSystemWindows="true"
-    tools:context=".TransactionDetailActivity">
+    tools:context=".EditTransactionActivity">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/main_scroll_view"
@@ -174,86 +174,14 @@
                 </LinearLayout>
 
                 <!-- Date & Time Row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/dateTextView"
-                        android:layout_width="0dp"
-                        android:layout_height="42dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/rounded_input_background_filled"
-                        android:clickable="true"
-                        android:drawableEnd="@drawable/ic_arrow_down"
-                        android:drawableTint="#FFFFFF"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:text="June 17, 2025"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:id="@+id/timeTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="42dp"
-                        android:layout_weight="0.05"
-                        android:background="@drawable/rounded_input_background_filled"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:paddingStart="14dp"
-                        android:drawableEnd="@drawable/ic_time"
-                        android:paddingEnd="10dp"
-                        android:text="02:30 PM"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp" />
-
-                </LinearLayout>
-
+                <include layout="@layout/layout_date_time" />
                 <!-- In/Out Toggle -->
                 <include layout="@layout/layout_transaction_type" />
-
-                <!-- Amount Input -->
-                <EditText
-                    android:id="@+id/amountEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="18dp"
-                    android:background="@drawable/rounded_input_background_filled"
-                    android:hint="Amount"
-                    android:inputType="numberDecimal"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:selectAllOnFocus="true"
-                    android:text="5000"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#888888"
-                    android:textSize="17sp" />
-
-                <!-- Cash/Online Toggle -->
                 <include layout="@layout/layout_payment_method" />
+                <!-- Amount Input -->
+                <include layout="@layout/layout_amount" />
+                <include layout="@layout/layout_tax_amount" />
 
-                <EditText
-                    android:id="@+id/remarkEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="14dp"
-                    android:background="@drawable/rounded_input_background_filled"
-                    android:hint="Remark"
-                    android:inputType="textMultiLine"
-                    android:maxLines="3"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:text="Payment for services rendered"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#888888"
-                    android:textSize="15sp" />
 
                 <!-- Party Selector -->
 
@@ -262,118 +190,14 @@
                 <!-- Reference Input -->
 
                 <!-- Category Selector -->
-                <LinearLayout
-                    android:id="@+id/categorySelectorLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="18dp"
-                    android:background="@drawable/rounded_input_background_filled"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <View
-                        android:id="@+id/categoryColorIndicator"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginStart="14dp"
-                        android:layout_marginEnd="10dp"
-                        android:background="@drawable/category_color_indicator" />
-
-                    <TextView
-                        android:id="@+id/categoryTextView"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical"
-                        android:text="Professional Services"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp" />
-
-                    <ImageView
-                        android:layout_width="26dp"
-                        android:layout_height="26dp"
-                        android:layout_marginEnd="14dp"
-                        android:src="@drawable/ic_arrow_down"
-                        app:tint="#FFFFFF" />
-                </LinearLayout>
-
+                <include layout="@layout/layout_category" />
                 <!-- Attached Files Display Section -->
-                <LinearLayout
-                    android:id="@+id/attachedFilesSection"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="18dp"
-                    android:orientation="vertical"
-                    android:visibility="visible">
+                <include layout="@layout/layout_attachments" />
+                <include layout="@layout/layout_attached_files" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:text="Attached Files"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:drawableStart="@drawable/ic_pdf"
-                            android:drawablePadding="8dp"
-                            android:gravity="center_vertical"
-                            android:text="invoice_copy.pdf"
-                            android:textColor="#81C784"
-                            android:textSize="13sp" />
-
-                        <ImageView
-                            android:id="@+id/removeAttachmentButton"
-                            android:layout_width="26dp"
-                            android:layout_height="26dp"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:src="@drawable/ic_close"
-                            app:tint="#F44336" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/partySelectorLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="14dp"
-                    android:background="@drawable/rounded_input_background_filled"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/partyTextView"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical"
-                        android:paddingStart="14dp"
-                        android:text="John Doe (Customer)"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp" />
-
-                    <ImageView
-                        android:layout_width="26dp"
-                        android:layout_height="26dp"
-                        android:layout_marginEnd="14dp"
-                        android:src="@drawable/ic_arrow_down"
-                        app:tint="#FFFFFF" />
-                </LinearLayout>
-
+                <include layout="@layout/layout_party_reference" />
 
                 <!-- Change Log Section -->
                 <LinearLayout
@@ -409,30 +233,18 @@
                     android:orientation="horizontal">
 
                     <Button
-                        android:id="@+id/deleteTransactionButton"
+                        android:id="@+id/CancelTransactionButton"
                         android:layout_width="0dp"
                         android:layout_height="50dp"
                         android:layout_marginEnd="9dp"
                         android:layout_weight="1"
                         android:background="@drawable/button_delete"
-                        android:text="DELETE"
+                        android:text="CANCEL"
                         android:textColor="#FFFFFF"
                         app:backgroundTint="@null"
                         android:textSize="11sp"
                         android:textStyle="bold" />
 
-                    <Button
-                        android:id="@+id/duplicateTransactionButton"
-                        android:layout_width="0dp"
-                        android:layout_height="50dp"
-                        android:layout_marginEnd="9dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/button_gray"
-                        android:text="DUPLICATE"
-                        android:textColor="#FFFFFF"
-                        app:backgroundTint="@null"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
 
                     <Button
                         android:id="@+id/saveChangesButton"

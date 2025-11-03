@@ -49,7 +49,7 @@
         <activity android:name=".TransactionActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".CashInOutActivity" android:exported="false" />
-        <activity android:name=".TransactionDetailActivity" android:exported="false" />
+        <activity android:name=".EditTransactionActivity" android:exported="false" />
         <activity android:name=".EditProfileActivity" android:exported="false" />
         <activity android:name=".ChooseCategoryActivity" android:exported="false" />
         <activity android:name=".FiltersActivity" android:exported="false" />
