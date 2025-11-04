@@ -54,6 +54,8 @@ public class GuestDbHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+
+
     private ContentValues getContentValues(TransactionModel transaction) {
         ContentValues values = new ContentValues();
         values.put(COLUMN_TRANSACTION_ID, transaction.getTransactionId());

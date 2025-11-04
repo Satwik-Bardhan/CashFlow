@@ -264,7 +264,7 @@ public class DataRepository {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
                         if (cashbook != null) {
-                            cashbook.setId(snapshot.getKey());
+                            cashbook.setCashbookId(snapshot.getKey());
                             cashbooks.add(cashbook);
                         }
                     }
@@ -304,6 +304,8 @@ public class DataRepository {
             callback.onCallback(null);
             return;
         }
+
+
 
         String cashbookId = userDatabase.child("cashbooks").push().getKey();
         if (cashbookId != null) {

@@ -38,24 +38,11 @@
                 android:layout_marginBottom="8dp">
 
                 <!-- App Title -->
-                <TextView
-                    android:id="@+id/titleCashFlow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:contentDescription="Cash Flow App Title"
-                    android:fontFamily="@font/inter_bold"
-                    android:text="CASH FLOW"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    tools:ignore="HardcodedText" />
 
                 <!-- Enhanced User Info Card with Dropdown -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
                     app:cardBackgroundColor="#FFFFFF"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="8dp">
@@ -115,31 +102,10 @@
                                 android:textStyle="bold"
                                 tools:ignore="HardcodedText" />
 
-                            <TextView
-                                android:id="@+id/dateToday"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:fontFamily="@font/inter_medium"
-                                android:text="Tap to switch or manage cashbooks"
-                                android:textColor="#666666"
-                                android:textSize="10sp"
-                                tools:ignore="HardcodedText" />
 
                         </LinearLayout>
 
                         <!-- Animated Dropdown Arrow -->
-                        <ImageView
-                            android:id="@+id/dropdownArrow"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:background="?android:attr/selectableItemBackgroundBorderless"
-                            android:clickable="false"
-                            android:contentDescription="Expand cashbook menu"
-                            android:focusable="true"
-                            android:padding="4dp"
-                            android:src="@drawable/ic_arrow_down"
-                            app:tint="#666666" />
 
                         <!-- Keep the original dropdown icon for compatibility -->
                         <ImageView

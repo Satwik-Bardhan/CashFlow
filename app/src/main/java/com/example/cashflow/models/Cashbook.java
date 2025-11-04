@@ -88,4 +88,8 @@ public class Cashbook {
     public int hashCode() {
         return cashbookId != null ? cashbookId.hashCode() : 0;
     }
+
+    public String getId() {
+        return null;
+    }
 }

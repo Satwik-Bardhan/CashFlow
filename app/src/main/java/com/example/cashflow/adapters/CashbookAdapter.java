@@ -11,9 +11,11 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.cashflow.CashbookModel;
 import com.example.cashflow.R;
 import com.example.cashflow.models.Cashbook;
-import com.example.cashflow.utils.DateUtils;
+import com.example.cashflow.utils.DateTimeUtils;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,19 +25,23 @@ import java.util.Locale;
 
 public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.CashbookViewHolder> {
 
+    public void updateList(List<CashbookModel> filteredList) {
+
+    }
+
     public interface OnCashbookClickListener {
-        void onCashbookClick(Cashbook cashbook);
-        void onFavoriteClick(Cashbook cashbook);
-        void onMenuClick(Cashbook cashbook, View anchorView);
+        void onCashbookClick(CashbookModel cashbook);
+        void onFavoriteClick(CashbookModel cashbook);
+        void onMenuClick(CashbookModel cashbook, View anchorView);
     }
 
     private Context context;
-    private List<Cashbook> cashbookList;
+    private List<CashbookModel> cashbookList;
     private OnCashbookClickListener listener;
     private NumberFormat currencyFormat;
     private SimpleDateFormat dateFormat;
 
-    public CashbookAdapter(Context context, List<Cashbook> cashbookList,
+    public CashbookAdapter(Context context, List<CashbookModel> cashbookList,
                            OnCashbookClickListener listener) {
         this.context = context;
         this.cashbookList = new ArrayList<>(cashbookList);
@@ -54,7 +60,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
 
     @Override
     public void onBindViewHolder(@NonNull CashbookViewHolder holder, int position) {
-        Cashbook cashbook = cashbookList.get(position);
+        CashbookModel cashbook = cashbookList.get(position);
         holder.bind(cashbook);
     }
 
@@ -67,7 +73,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
      * IMPROVED: Use DiffUtil instead of notifyDataSetChanged for better performance
      * This calculates only the changes and updates affected items
      */
-    public void updateCashbooks(List<Cashbook> newCashbooks) {
+    public void updateCashbooks(List<CashbookModel> newCashbooks) {
         CashbookDiffCallback diffCallback = new CashbookDiffCallback(
                 this.cashbookList, newCashbooks);
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
@@ -106,7 +112,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
             createdDateText = itemView.findViewById(R.id.createdDateText);
         }
 
-        public void bind(Cashbook cashbook) {
+        public void bind(CashbookModel cashbook) {
             // Set cashbook name
             cashbookNameText.setText(cashbook.getName());
 
@@ -127,7 +133,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
 
             // Set favorite icon
             if (cashbook.isFavorite()) {
-                favoriteButton.setImageResource(R.drawable.ic_star);
+                favoriteButton.setImageResource(R.drawable.ic_star_outline);
                 favoriteButton.setColorFilter(context.getColor(R.color.favorite_color));
             } else {
                 favoriteButton.setImageResource(R.drawable.ic_star_outline);
@@ -136,7 +142,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
 
             // Set last modified text using DateUtils
             if (cashbook.getLastModified() > 0) {
-                String lastModified = DateUtils.getRelativeTimeSpan(
+                String lastModified = DateTimeUtils.getRelativeTimeSpan(
                         context, cashbook.getLastModified());
                 lastModifiedText.setText(context.getString(
                         R.string.last_modified_format, lastModified));
@@ -192,7 +198,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
             });
         }
 
-        private int getIconColorForCashbook(Cashbook cashbook) {
+        private int getIconColorForCashbook(CashbookModel cashbook) {
             // Use your existing CategoryColorUtil or implement color logic
             if (cashbook.isCurrent()) {
                 return context.getColor(R.color.primary_blue);
@@ -204,15 +210,17 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
         }
     }
 
+
+
     /**
      * DiffUtil Callback for efficient list updates
      * This compares old and new lists to determine what changed
      */
     private static class CashbookDiffCallback extends DiffUtil.Callback {
-        private List<Cashbook> oldList;
-        private List<Cashbook> newList;
+        private List<CashbookModel> oldList;
+        private List<CashbookModel> newList;
 
-        public CashbookDiffCallback(List<Cashbook> oldList, List<Cashbook> newList) {
+        public CashbookDiffCallback(List<CashbookModel> oldList, List<CashbookModel> newList) {
             this.oldList = oldList;
             this.newList = newList;
         }
@@ -236,8 +244,8 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
 
         @Override
         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            Cashbook oldCashbook = oldList.get(oldItemPosition);
-            Cashbook newCashbook = newList.get(newItemPosition);
+            CashbookModel oldCashbook = oldList.get(oldItemPosition);
+            CashbookModel newCashbook = newList.get(newItemPosition);
 
             // Compare all displayed fields
             return oldCashbook.getName().equals(newCashbook.getName()) &&

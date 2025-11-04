@@ -64,4 +64,7 @@
         <item name="android:drawableTint">@color/bottom_nav_icon_text_color</item>
     </style>
 
+
+
+
 </resources>

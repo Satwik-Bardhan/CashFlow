@@ -1,226 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="24dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="12dp"
-    app:cardBackgroundColor="#1E1E1E">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_dark">
 
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="@color/card_background">
 
-        <!-- Header Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
-
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="12dp"
-                android:src="@drawable/ic_account_balance_wallet"
-                android:contentDescription="Cashbook icon"
-                app:tint="#2196F3" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Switch or Add Cashbook"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/inter_bold"
-                android:importantForAccessibility="yes"
-                android:accessibilityHeading="true" />
-
-            <ImageView
-                android:id="@+id/closeButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_close"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="4dp"
-                app:tint="#AAAAAA"
-                android:contentDescription="Close dialog" />
-        </LinearLayout>
-
-        <!-- Subtitle -->
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Select a cashbook to switch to, or create a new one"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:layout_marginBottom="20dp"
-            android:fontFamily="@font/inter_regular"
-            android:importantForAccessibility="yes" />
+            android:layout_weight="1"
+            android:text="Switch Cashbook"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-        <!-- Cashbooks List Card -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="#333333">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="8dp">
-
-                <!-- List Header -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Available Cashbooks"
-                    android:textColor="#2196F3"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:fontFamily="@font/inter_medium"
-                    android:padding="8dp"
-                    android:importantForAccessibility="yes" />
-
-                <!-- Enhanced RecyclerView -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/cashbookRecyclerView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:maxHeight="240dp"
-                    android:minHeight="120dp"
-                    android:clipToPadding="false"
-                    android:scrollbars="vertical"
-                    android:scrollbarStyle="outsideInset"
-                    android:padding="4dp"
-                    android:overScrollMode="never"
-                    android:importantForAccessibility="yes"
-                    android:contentDescription="List of available cashbooks" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Empty State Message -->
-        <LinearLayout
-            android:id="@+id/emptyStateLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="32dp"
-            android:visibility="gone">
-
-            <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginBottom="16dp"
-                android:src="@drawable/ic_folder_open"
-                android:contentDescription="No cashbooks icon"
-                app:tint="#666666" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="No cashbooks found"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/inter_medium"
-                android:importantForAccessibility="yes" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Create your first cashbook to get started"
-                android:textColor="#AAAAAA"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:fontFamily="@font/inter_regular"
-                android:importantForAccessibility="yes" />
-        </LinearLayout>
-
-        <!-- Action Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:layout_marginTop="16dp">
-
-            <!-- Cancel Button -->
-            <Button
-                android:id="@+id/cancelButton"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:minWidth="100dp"
-                android:text="CANCEL"
-                android:textColor="#F44336"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:background="@drawable/button_cancel_outline"
-                android:fontFamily="@font/inter_medium"
-                android:layout_marginEnd="12dp"
-                android:importantForAccessibility="yes"
-                android:contentDescription="Cancel and close dialog" />
-
-            <!-- Add New Button -->
-            <Button
-                android:id="@+id/addNewButton"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:minWidth="120dp"
-                android:text="ADD NEW"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:background="@drawable/button_add_new"
-                android:fontFamily="@font/inter_bold"
-                android:drawableStart="@drawable/ic_add"
-                app:backgroundTint="@null"
-                android:drawablePadding="8dp"
-                app:drawableTint="#FFFFFF"
-                android:importantForAccessibility="yes"
-                android:contentDescription="Create a new cashbook" />
-        </LinearLayout>
-
-        <!-- Loading Indicator -->
-        <LinearLayout
-            android:id="@+id/loadingLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:padding="20dp"
-            android:visibility="gone">
-
-            <ProgressBar
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginEnd="12dp"
-                android:indeterminateTint="#2196F3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Loading cashbooks..."
-                android:textColor="#2196F3"
-                android:textSize="14sp"
-                android:fontFamily="@font/inter_medium"
-                android:importantForAccessibility="yes" />
-        </LinearLayout>
+        <ImageView
+            android:id="@+id/closeDialog1"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_close"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/close_button"
+            app:tint="@color/text_primary" />
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+
+    <!-- Search Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/search_background"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_search"
+            android:contentDescription="@string/search_icon"
+            app:tint="@color/text_secondary" />
+
+        <EditText
+            android:id="@+id/searchCashbook1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Search cashbooks..."
+            android:inputType="text"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- RecyclerView for Cashbooks -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/cashbookDialogRecyclerView1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp" />
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/emptyStateDialog1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/ic_folder_open"
+            android:contentDescription="@string/empty_state_icon"
+            app:tint="@color/text_hint" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No cashbooks found"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:textStyle="italic" />
+    </LinearLayout>
+
+    <!-- Loading State -->
+    <LinearLayout
+        android:id="@+id/loadingStateDialog1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginBottom="12dp"
+            android:indeterminateTint="@color/primary_blue" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loading cashbooks..."
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/cancelDialogButton1"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/button_cancel_outline"
+            android:text="@string/cancel_button"
+            android:textColor="@color/error_red"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/confirmDialogButton1"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/button_primary"
+            android:text="Switch"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:enabled="false"
+            android:alpha="0.5" />
+    </LinearLayout>
+
+</LinearLayout>

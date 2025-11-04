@@ -83,4 +83,8 @@ public class TransactionModel implements Serializable {
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
+
+    public String getDescription() {
+        return null;
+    }
 }

@@ -6,12 +6,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TableRow;
@@ -25,8 +29,9 @@ import androidx.core.content.ContextCompat;
 import com.example.cashflow.databinding.ActivityHomePageBinding;
 import com.example.cashflow.databinding.ComponentBalanceCardBinding;
 import com.example.cashflow.databinding.LayoutBottomNavigationBinding;
-import com.example.cashflow.dialogs.CashbookSwitchDialog;
-import com.example.cashflow.models.Cashbook;
+// Removed unused dialogs and models:
+// import com.example.cashflow.dialogs.CashbookSwitchDialog;
+// import com.example.cashflow.models.Cashbook;
 import com.example.cashflow.utils.ErrorHandler;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -43,15 +48,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * HomePage serves as the main dashboard for the Cashflow application.
- * It displays user's financial summary, recent transactions, and provides
- * navigation to other app features. Supports both authenticated and guest modes.
- */
+// Added missing imports for navigation
+import com.example.cashflow.CashInOutActivity;
+import com.example.cashflow.EditTransactionActivity;
+import com.example.cashflow.TransactionActivity;
+import com.example.cashflow.SignupActivity;
+import com.example.cashflow.SigninActivity;
+import com.example.cashflow.CashbookSwitchActivity;
+import com.example.cashflow.SettingsActivity;
+
+
 public class HomePage extends AppCompatActivity {
 
     private static final String TAG = "HomePage";
     private static final int MAX_VISIBLE_TRANSACTIONS = 5;
+
+    private static final int REQUEST_CODE_CASHBOOK_SWITCH = 1001;
 
     // ViewBinding declarations
     private ActivityHomePageBinding binding;
@@ -76,6 +88,7 @@ public class HomePage extends AppCompatActivity {
 
     // State variables
     private String currentCashbookId;
+    private String currentUserId; // Added missing field declaration
     private boolean isGuest;
     private boolean isLoading = false;
     private AlertDialog cashbookDialog;
@@ -109,11 +122,18 @@ public class HomePage extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        // Get current user
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        currentUserId = currentUser != null ? currentUser.getUid() : null;
+
         // Initialize currency formatter
         currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
-        // Get guest mode status
-        isGuest = getIntent().getBooleanExtra("isGuest", false);
+        // Get guest mode status and cashbook ID
+        Intent intent = getIntent();
+        isGuest = intent.getBooleanExtra("isGuest", false);
+        currentCashbookId = intent.getStringExtra("cashbook_id");
+
 
         Log.d(TAG, "HomePage started, guest mode: " + isGuest);
 
@@ -121,9 +141,162 @@ public class HomePage extends AppCompatActivity {
         setupClickListeners();
         initDropdownViews();
         setupDropdownClick();
+        setupBottomNavigation(); // Added missing call
+    }
 
+
+    private void setupBottomNavigation() {
         // Set active bottom navigation
         bottomNavBinding.btnHome.setSelected(true);
+
+        // Bottom navigation click listeners
+        bottomNavBinding.btnHome.setOnClickListener(v ->
+                showSnackbar("Already on Home"));
+
+        bottomNavBinding.btnTransactions.setOnClickListener(v ->
+                navigateToTransactionList());
+
+        // Cashbook Switcher Button - Opens CashbookSwitchActivity
+        bottomNavBinding.btnCashbookSwitch.setOnClickListener(v ->
+                openCashbookSwitcher());
+
+        bottomNavBinding.btnSettings.setOnClickListener(v ->
+                navigateToSettings());
+
+        // Update cashbook count badge
+        updateCashbookBadge();
+
+        Log.d(TAG, "Bottom navigation setup complete");
+    }
+
+    private void openCashbookSwitcher() {
+        if (isGuest) {
+            showGuestLimitationDialog();
+            return;
+        }
+
+        if (currentUserId == null) {
+            showSnackbar("Please log in first");
+            return;
+        }
+
+        Intent intent = new Intent(this, CashbookSwitchActivity.class);
+        intent.putExtra("current_cashbook_id", currentCashbookId);
+        intent.putExtra("isGuest", isGuest);
+        startActivityForResult(intent, REQUEST_CODE_CASHBOOK_SWITCH);
+
+        Log.d(TAG, "Opened CashbookSwitchActivity");
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_CASHBOOK_SWITCH && resultCode == RESULT_OK && data != null) {
+            String newCashbookId = data.getStringExtra("selected_cashbook_id");
+            String cashbookName = data.getStringExtra("cashbook_name");
+
+            if (newCashbookId != null && !newCashbookId.equals(currentCashbookId)) {
+                switchCashbook(newCashbookId);
+                showSnackbar("Switched to: " + cashbookName);
+                Log.d(TAG, "Cashbook switched via activity result: " + cashbookName);
+            }
+        }
+    }
+
+    private void updateCashbookBadge() {
+        if (bottomNavBinding.btnCashbookSwitch == null || isGuest || currentUserId == null) {
+            return;
+        }
+
+        loadCashbooksForBadge();
+    }
+
+    private void loadCashbooksForBadge() {
+        if (currentUserId == null) return;
+
+        // Detach any existing listener before adding a new one
+        if (cashbooksListener != null) {
+            mDatabase.child("users").child(currentUserId).child("cashbooks")
+                    .removeEventListener(cashbooksListener);
+        }
+
+        cashbooksListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                cashbooks.clear();
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
+                    if (cashbook != null) {
+                        if (cashbook.getCashbookId() == null) {
+                            cashbook.setCashbookId(snapshot.getKey());
+                        }
+                        cashbooks.add(cashbook);
+                    }
+                }
+
+                updateBadgeDisplay();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, "Failed to load cashbooks for badge", databaseError.toException());
+            }
+        };
+
+        mDatabase.child("users").child(currentUserId).child("cashbooks")
+                .addValueEventListener(cashbooksListener);
+    }
+
+    private void updateBadgeDisplay() {
+        if (bottomNavBinding == null || bottomNavBinding.btnCashbookSwitch == null) {
+            return;
+        }
+
+        try {
+            int cashbookCount = cashbooks.size();
+
+            // Remove existing badge if present
+            View existingBadge = bottomNavBinding.btnCashbookSwitch.findViewWithTag("cashbook_badge");
+            if (existingBadge != null) {
+                bottomNavBinding.btnCashbookSwitch.removeView(existingBadge);
+            }
+
+            if (cashbookCount > 1) {
+                // Create custom badge TextView
+                TextView badge = new TextView(this);
+                badge.setTag("cashbook_badge");
+                badge.setText(String.valueOf(cashbookCount));
+                badge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+                badge.setTextColor(Color.WHITE);
+                badge.setGravity(Gravity.CENTER);
+                badge.setTypeface(null, Typeface.BOLD);
+
+                // Set background color
+                ShapeDrawable drawable = new ShapeDrawable(
+                        new OvalShape());
+                drawable.getPaint().setColor(ContextCompat.getColor(this, R.color.primary_blue));
+                badge.setBackground(drawable);
+
+                // Position badge at top-right corner
+                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                        dpToPx(22),
+                        dpToPx(22),
+                        Gravity.TOP | Gravity.END);
+                params.setMargins(0, dpToPx(2), dpToPx(2), 0);
+                badge.setLayoutParams(params);
+
+                // Add badge to FrameLayout
+                bottomNavBinding.btnCashbookSwitch.addView(badge);
+
+                Log.d(TAG, "Badge updated: " + cashbookCount);
+            } else {
+                Log.d(TAG, "Badge not shown - only one cashbook");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating cashbook badge", e);
+        }
     }
 
     /**
@@ -133,7 +306,6 @@ public class HomePage extends AppCompatActivity {
         // These should match your layout IDs
         currentCashbookTextView = findViewById(R.id.currentCashbookText);
         cashbookDropdownContainer = findViewById(R.id.cashbookDropdownContainer);
-        dropdownArrow = findViewById(R.id.dropdownArrow);
 
         // If these views don't exist in your current layout, use userBox as fallback
         if (currentCashbookTextView == null) {
@@ -143,6 +315,7 @@ public class HomePage extends AppCompatActivity {
             cashbookDropdownContainer = binding.userBox;
         }
     }
+
 
     /**
      * Setup dropdown click functionality
@@ -169,6 +342,7 @@ public class HomePage extends AppCompatActivity {
 
         try {
             PopupMenu popupMenu = new PopupMenu(this, anchorView, Gravity.END);
+            // Ensure this menu resource exists in res/menu/
             popupMenu.getMenuInflater().inflate(R.menu.menu_cashbook_dropdown, popupMenu.getMenu());
 
             // Animate dropdown arrow if it exists
@@ -179,7 +353,7 @@ public class HomePage extends AppCompatActivity {
             popupMenu.setOnMenuItemClickListener(item -> {
                 int itemId = item.getItemId();
                 if (itemId == R.id.action_switch_cashbook) {
-                    openSwitchCashbookDialog();
+                    openCashbookSwitcher();
                     return true;
                 } else if (itemId == R.id.action_add_new_cashbook) {
                     showCreateNewCashbookDialog();
@@ -210,9 +384,7 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    /**
-     * Animates the dropdown arrow
-     */
+
     private void animateDropdownArrow(boolean isOpen) {
         if (dropdownArrow == null) return;
 
@@ -223,36 +395,6 @@ public class HomePage extends AppCompatActivity {
                 .start();
     }
 
-    /**
-     * Opens the comprehensive Switch Cashbook dialog
-     */
-    private void openSwitchCashbookDialog() {
-        CashbookSwitchDialog dialog = new CashbookSwitchDialog();
-        dialog.setCashbookSwitchListener(new CashbookSwitchDialog.CashbookSwitchListener() {
-            @Override
-            public void onCashbookSwitched(Cashbook cashbook) {
-                // Convert CashbookModel to match your existing code
-                CashbookModel cashbookModel = new CashbookModel(cashbook.getId(), cashbook.getName());
-                updateCurrentCashbook(cashbookModel);
-                switchCashbook(cashbook.getId());
-                refreshDashboard();
-            }
-
-            @Override
-            public void onCashbookAdded(Cashbook cashbook) {
-                // Optionally switch to the new cashbook
-                CashbookModel cashbookModel = new CashbookModel(cashbook.getId(), cashbook.getName());
-                updateCurrentCashbook(cashbookModel);
-                switchCashbook(cashbook.getId());
-                refreshDashboard();
-            }
-        });
-        dialog.show(getSupportFragmentManager(), "CashbookSwitchDialog");
-    }
-
-    /**
-     * Updates the current cashbook display
-     */
     private void updateCurrentCashbook(CashbookModel cashbook) {
         if (currentCashbookTextView != null) {
             currentCashbookTextView.setText(cashbook.getName());
@@ -262,20 +404,6 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    /**
-     * Refreshes the dashboard data
-     */
-    private void refreshDashboard() {
-        // Refresh your dashboard data for the new cashbook
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null && currentCashbookId != null) {
-            startListeningForTransactions(currentUser.getUid());
-        }
-    }
-
-    /**
-     * Sets up the user interface based on authentication status
-     */
     private void setupUI() {
         setLoadingState(false);
 
@@ -290,9 +418,6 @@ public class HomePage extends AppCompatActivity {
         binding.viewFullTransactionsButton.setContentDescription("View all transactions");
     }
 
-    /**
-     * Sets up click listeners for all interactive elements
-     */
     private void setupClickListeners() {
         // Main activity buttons
         binding.cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
@@ -301,12 +426,6 @@ public class HomePage extends AppCompatActivity {
 
         // Keep existing userBox functionality as fallback
         binding.userBox.setOnClickListener(v -> showCashbookDropdownMenu(v));
-
-        // Bottom navigation
-        bottomNavBinding.btnHome.setOnClickListener(v ->
-                showSnackbar("Already on Home"));
-        bottomNavBinding.btnTransactions.setOnClickListener(v -> navigateToTransactionList());
-        bottomNavBinding.btnSettings.setOnClickListener(v -> navigateToSettings());
     }
 
     @Override
@@ -315,12 +434,20 @@ public class HomePage extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if (currentUser != null && !isGuest) {
+            currentUserId = currentUser.getUid(); // Ensure currentUserId is set
             Log.d(TAG, "Authenticated user session started");
-            loadActiveCashbookId(currentUser.getUid());
+            loadActiveCashbookId(currentUserId);
         } else {
             Log.d(TAG, "Guest mode session started");
             handleGuestMode();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh cashbook badge when returning to this activity
+        updateCashbookBadge();
     }
 
     @Override
@@ -348,9 +475,6 @@ public class HomePage extends AppCompatActivity {
         Log.d(TAG, "Activity destroyed");
     }
 
-    /**
-     * Shows options dialog for guest users
-     */
     private void showGuestOptions() {
         new AlertDialog.Builder(this)
                 .setTitle("Guest Mode")
@@ -363,9 +487,6 @@ public class HomePage extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * Signs out the current user with confirmation dialog
-     */
     private void signOutUser() {
         new AlertDialog.Builder(this)
                 .setTitle("Sign Out")
@@ -389,9 +510,6 @@ public class HomePage extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * Handles guest mode setup and data initialization
-     */
     private void handleGuestMode() {
         allTransactions.clear();
         currentBalance = 0.0;
@@ -410,16 +528,10 @@ public class HomePage extends AppCompatActivity {
         showGuestModeInfo();
     }
 
-    /**
-     * Shows informational message about guest mode limitations
-     */
     private void showGuestModeInfo() {
         showSnackbar("Guest Mode: Data will not be saved after app restart");
     }
 
-    /**
-     * Loads the active cashbook ID for the user
-     */
     private void loadActiveCashbookId(String userId) {
         SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         currentCashbookId = prefs.getString("active_cashbook_id_" + userId, null);
@@ -428,12 +540,10 @@ public class HomePage extends AppCompatActivity {
         startListeningForCashbooks(userId);
     }
 
-    /**
-     * Starts listening for cashbook changes from Firebase
-     */
     private void startListeningForCashbooks(String userId) {
         setLoadingState(true);
 
+        // Detach any existing listener before adding a new one
         if (cashbooksListener != null) {
             mDatabase.child("users").child(userId).child("cashbooks")
                     .removeEventListener(cashbooksListener);
@@ -449,10 +559,10 @@ public class HomePage extends AppCompatActivity {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
                         if (cashbook != null) {
-                            cashbook.setId(snapshot.getKey());
+                            cashbook.setCashbookId(snapshot.getKey()); // Standardized
                             cashbooks.add(cashbook);
 
-                            if (cashbook.getId().equals(currentCashbookId)) {
+                            if (cashbook.getCashbookId().equals(currentCashbookId)) { // Standardized
                                 activeCashbookFound = true;
                             }
                         }
@@ -460,7 +570,7 @@ public class HomePage extends AppCompatActivity {
 
                     // If no active cashbook or it doesn't exist, use first available
                     if (!activeCashbookFound && !cashbooks.isEmpty()) {
-                        currentCashbookId = cashbooks.get(0).getId();
+                        currentCashbookId = cashbooks.get(0).getCashbookId(); // Standardized
                         saveActiveCashbookId(userId, currentCashbookId);
                     } else if (cashbooks.isEmpty()) {
                         setLoadingState(false);
@@ -470,6 +580,7 @@ public class HomePage extends AppCompatActivity {
 
                     Log.d(TAG, "Loaded " + cashbooks.size() + " cashbooks");
                     updateUserUI();
+                    updateCashbookBadge(); // Make sure badge updates after loading
                     startListeningForTransactions(userId);
 
                 } catch (Exception e) {
@@ -491,10 +602,8 @@ public class HomePage extends AppCompatActivity {
                 .addValueEventListener(cashbooksListener);
     }
 
-    /**
-     * Starts listening for transaction changes from Firebase
-     */
     private void startListeningForTransactions(String userId) {
+        // Detach any existing listener before adding a new one
         if (transactionsListener != null && currentCashbookId != null) {
             mDatabase.child("users").child(userId).child("cashbooks")
                     .child(currentCashbookId).child("transactions")
@@ -502,7 +611,9 @@ public class HomePage extends AppCompatActivity {
         }
 
         if (currentCashbookId == null) {
+            Log.w(TAG, "currentCashbookId is null, cannot listen for transactions.");
             setLoadingState(false);
+            updateTransactionTableAndSummary(); // Clear table
             return;
         }
 
@@ -547,9 +658,6 @@ public class HomePage extends AppCompatActivity {
         });
     }
 
-    /**
-     * Updates the user interface with current user and cashbook information
-     */
     private void updateUserUI() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
@@ -558,7 +666,7 @@ public class HomePage extends AppCompatActivity {
 
                 // Find current cashbook name
                 for (CashbookModel cashbook : cashbooks) {
-                    if (cashbook.getId().equals(currentCashbookId)) {
+                    if (cashbook.getCashbookId().equals(currentCashbookId)) {
                         cashbookName = cashbook.getName();
                         break;
                     }
@@ -589,9 +697,6 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    /**
-     * Gets display name for user, with fallbacks
-     */
     private String getDisplayName(FirebaseUser user) {
         if (user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) {
             return user.getDisplayName();
@@ -602,9 +707,6 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    /**
-     * Updates transaction table and financial summary
-     */
     @SuppressLint("SetTextI18n")
     private void updateTransactionTableAndSummary() {
         try {
@@ -665,16 +767,11 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    /**
-     * Formats currency amount for display
-     */
     private String formatCurrency(double amount) {
         return currencyFormat.format(amount);
     }
 
-    /**
-     * Adds a "no transactions" row to the table
-     */
+
     private void addNoTransactionsRow() {
         TableRow row = new TableRow(this);
         row.setBackgroundResource(R.drawable.table_row_border);
@@ -697,9 +794,6 @@ public class HomePage extends AppCompatActivity {
         binding.transactionTable.addView(row);
     }
 
-    /**
-     * Adds a "view more" row to the table
-     */
     private void addViewMoreRow(int remainingCount) {
         TableRow row = new TableRow(this);
         row.setBackgroundResource(R.drawable.table_row_border);
@@ -724,11 +818,11 @@ public class HomePage extends AppCompatActivity {
         binding.transactionTable.addView(row);
     }
 
-    /**
-     * Adds a transaction row to the table
-     */
+
+    @SuppressLint("SetTextI18n")
     private void addTransactionRow(TransactionModel transaction) {
         TableRow row = new TableRow(this);
+        // Using table_border, as it was in one of the duplicates
         row.setBackgroundResource(R.drawable.table_border);
 
         // Create table cells
@@ -759,9 +853,7 @@ public class HomePage extends AppCompatActivity {
         binding.transactionTable.addView(row);
     }
 
-    /**
-     * Creates a table cell with specified parameters
-     */
+
     private TextView createTableCell(String text, float weight, int style, int gravity) {
         TextView textView = new TextView(this);
         textView.setText(text);
@@ -780,16 +872,24 @@ public class HomePage extends AppCompatActivity {
         return textView;
     }
 
-    /**
-     * Converts dp to pixels
-     */
-    private int dpToPx(int dp) {
-        return Math.round(dp * getResources().getDisplayMetrics().density);
+
+    private void navigateToSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        intent.putExtra("isGuest", isGuest);
+        startActivity(intent);
+
+        Log.d(TAG, "Navigated to settings");
     }
 
-    /**
-     * Opens transaction detail activity
-     */
+    private void navigateToTransactionList() {
+        Intent intent = new Intent(this, TransactionActivity.class);
+        intent.putExtra("cashbook_id", currentCashbookId);
+        intent.putExtra("isGuest", isGuest);
+        startActivity(intent);
+
+        Log.d(TAG, "Navigated to transactions list");
+    }
+
     private void openTransactionDetail(TransactionModel transaction) {
         Intent intent = new Intent(this, EditTransactionActivity.class);
         intent.putExtra("transaction", transaction);
@@ -798,9 +898,7 @@ public class HomePage extends AppCompatActivity {
         startActivity(intent);
     }
 
-    /**
-     * Opens cash in/out activity
-     */
+
     private void openCashInOutActivity(String type) {
         if (isGuest) {
             showGuestLimitationDialog();
@@ -821,32 +919,6 @@ public class HomePage extends AppCompatActivity {
         Log.d(TAG, "Opened CashInOut activity for: " + type);
     }
 
-    /**
-     * Navigates to transaction list activity
-     */
-    private void navigateToTransactionList() {
-        Intent intent = new Intent(this, TransactionActivity.class);
-        intent.putExtra("cashbook_id", currentCashbookId);
-        intent.putExtra("isGuest", isGuest);
-        startActivity(intent);
-
-        Log.d(TAG, "Navigated to transactions list");
-    }
-
-    /**
-     * Navigates to settings activity
-     */
-    private void navigateToSettings() {
-        Intent intent = new Intent(this, SettingsActivity.class);
-        intent.putExtra("isGuest", isGuest);
-        startActivity(intent);
-
-        Log.d(TAG, "Navigated to settings");
-    }
-
-    /**
-     * Shows guest mode limitation dialog
-     */
     private void showGuestLimitationDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Guest Mode Limitation")
@@ -859,9 +931,6 @@ public class HomePage extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * Shows create first cashbook dialog
-     */
     private void showCreateFirstCashbookDialog(String userId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Welcome to CashFlow");
@@ -886,9 +955,7 @@ public class HomePage extends AppCompatActivity {
         builder.show();
     }
 
-    /**
-     * Shows create new cashbook dialog
-     */
+
     private void showCreateNewCashbookDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create New Cashbook");
@@ -911,9 +978,6 @@ public class HomePage extends AppCompatActivity {
         builder.show();
     }
 
-    /**
-     * Creates a new cashbook in Firebase
-     */
     private void createNewCashbook(String name) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
@@ -944,9 +1008,6 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    /**
-     * Switches to a different cashbook
-     */
     private void switchCashbook(String newCashbookId) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
@@ -964,19 +1025,15 @@ public class HomePage extends AppCompatActivity {
         Log.d(TAG, "Switched to cashbook: " + newCashbookId);
         updateUserUI();
         startListeningForTransactions(currentUser.getUid());
+        updateCashbookBadge();
     }
 
-    /**
-     * Saves the active cashbook ID to preferences
-     */
     private void saveActiveCashbookId(String userId, String cashbookId) {
         SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         prefs.edit().putString("active_cashbook_id_" + userId, cashbookId).apply();
     }
 
-    /**
-     * Sets the loading state of the UI
-     */
+
     private void setLoadingState(boolean loading) {
         isLoading = loading;
         binding.cashInButton.setEnabled(!loading);
@@ -989,39 +1046,43 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    /**
-     * Shows a Snackbar message to the user
-     */
     private void showSnackbar(String message) {
         Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT).show();
     }
 
-    /**
-     * Removes all Firebase listeners to prevent memory leaks
-     */
+
     private void removeFirebaseListeners() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) return;
 
-        String userId = currentUser.getUid();
+        // Check if mDatabase is null, which can happen if onDestroy runs early
+        if (mDatabase == null) {
+            return;
+        }
 
-        if (transactionsListener != null && currentCashbookId != null) {
+        String userId = (currentUser != null) ? currentUser.getUid() : null;
+
+        if (transactionsListener != null && userId != null && currentCashbookId != null) {
             mDatabase.child("users").child(userId).child("cashbooks")
                     .child(currentCashbookId).child("transactions")
                     .removeEventListener(transactionsListener);
             transactionsListener = null;
         }
 
-        if (cashbooksListener != null) {
+        if (cashbooksListener != null && userId != null) {
             mDatabase.child("users").child(userId).child("cashbooks")
                     .removeEventListener(cashbooksListener);
             cashbooksListener = null;
         }
 
-        if (userProfileListener != null) {
+        if (userProfileListener != null && userId != null) {
             mDatabase.child("users").child(userId)
                     .removeEventListener(userProfileListener);
             userProfileListener = null;
         }
     }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
 }
+

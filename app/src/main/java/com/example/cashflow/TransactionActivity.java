@@ -14,27 +14,31 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.cashflow.utils.CustomPieChartValueFormatter;
+import com.example.cashflow.utils.ErrorHandler;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -65,18 +69,35 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * TransactionActivity - Displays transaction history with analytics
+ *
+ * Features:
+ * - Monthly transaction view with pie chart analytics
+ * - Search and filter capabilities
+ * - PDF export functionality
+ * - Integrated bottom navigation with cashbook switcher
+ * - Google Sign-In integration
+ * - Firebase Realtime Database
+ *
+ * Updated: November 2025 - Complete refactor with cashbook switching
+ */
 public class TransactionActivity extends AppCompatActivity {
 
     private static final String TAG = "TransactionActivity";
     private static final int STORAGE_PERMISSION_CODE = 101;
+    private static final int REQUEST_CODE_CASHBOOK_SWITCH = 1001;
 
     // Data
     private List<TransactionModel> allTransactions = new ArrayList<>();
+    private List<CashbookModel> cashbooks = new ArrayList<>();
     private Calendar currentMonthCalendar;
 
-    // UI
+    // UI Components
     private PieChart pieChart;
-    private TextView incomeText, expenseText, balanceText, monthTitleTextView, togglePieChartButton, categoriesCountTextView, highestCategoryTextView;
+    private TextView incomeText, expenseText, balanceText;
+    private TextView monthTitleTextView, togglePieChartButton;
+    private TextView categoriesCountTextView, highestCategoryTextView;
     private EditText searchEditText;
     private ImageView filterButton;
     private Button btnDownload;
@@ -84,14 +105,18 @@ public class TransactionActivity extends AppCompatActivity {
     private ImageButton monthBackwardButton, monthForwardButton;
     private TransactionItemFragment transactionFragment;
 
-    // Navigation
-    private LinearLayout btnHome, btnTransactions, btnSettings;
+    // Bottom Navigation
+    private FrameLayout btnHome, btnTransactions, btnCashbooks, btnSettings;
+    private ImageView iconHome, iconTransactions, iconSettings, iconCashbooks;
+    private TextView textHome, textTransactions, textSettings, textCashbooks;
 
     // Firebase
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private ValueEventListener transactionsListener;
+    private ValueEventListener cashbooksListener;
     private String currentCashbookId;
+    private boolean isGuest;
 
     // Launchers
     private ActivityResultLauncher<Intent> filterLauncher;
@@ -103,9 +128,12 @@ public class TransactionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_transaction);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
+        // Get extras from intent
         currentCashbookId = getIntent().getStringExtra("cashbook_id");
-        if (currentCashbookId == null) {
-            Toast.makeText(this, "Error: No active cashbook found.", Toast.LENGTH_LONG).show();
+        isGuest = getIntent().getBooleanExtra("isGuest", false);
+
+        if (currentCashbookId == null && !isGuest) {
+            showSnackbar("Error: No active cashbook found.");
             finish();
             return;
         }
@@ -117,12 +145,16 @@ public class TransactionActivity extends AppCompatActivity {
         initializeUI();
         setupTransactionFragment();
         setupClickListeners();
+        setupBottomNavigation();
         setupFilterLauncher();
         setupDownloadLauncher();
 
-        btnTransactions.setSelected(true);
+        Log.d(TAG, "TransactionActivity created for cashbook: " + currentCashbookId);
     }
 
+    /**
+     * Initialize all UI components
+     */
     private void initializeUI() {
         View summaryCardsLayout = findViewById(R.id.summaryCards);
         View pieChartLayout = findViewById(R.id.pieChartComponent);
@@ -146,9 +178,28 @@ public class TransactionActivity extends AppCompatActivity {
 
         btnHome = findViewById(R.id.btnHome);
         btnTransactions = findViewById(R.id.btnTransactions);
+        btnCashbooks = findViewById(R.id.btnCashbookSwitch);
         btnSettings = findViewById(R.id.btnSettings);
+
+        // Get icons and text views for bottom nav
+        try {
+            iconHome = findViewById(R.id.iconHome);
+            iconTransactions = findViewById(R.id.iconTransactions);
+            iconSettings = findViewById(R.id.iconSettings);
+            iconCashbooks = findViewById(R.id.iconCashbookSwitch);
+
+            textHome = findViewById(R.id.textHome);
+            textTransactions = findViewById(R.id.textTransactions);
+            textSettings = findViewById(R.id.textSettings);
+            textCashbooks = findViewById(R.id.textCashbookSwitch);
+        } catch (Exception e) {
+            Log.w(TAG, "Error finding bottom nav icons/text", e);
+        }
     }
 
+    /**
+     * Setup transaction list fragment
+     */
     private void setupTransactionFragment() {
         transactionFragment = TransactionItemFragment.newInstance(new ArrayList<>());
         transactionFragment.setOnItemClickListener(transaction -> {
@@ -164,6 +215,243 @@ public class TransactionActivity extends AppCompatActivity {
                 .commit();
     }
 
+    /**
+     * Setup bottom navigation with cashbook switcher
+     */
+    private void setupBottomNavigation() {
+        updateBottomNavigationSelection(btnTransactions);
+
+        btnHome.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HomePage.class);
+            intent.putExtra("isGuest", isGuest);
+            intent.putExtra("cashbook_id", currentCashbookId);
+            startActivity(intent);
+            finish();
+        });
+
+        btnTransactions.setOnClickListener(v ->
+                showSnackbar("Already on Transactions"));
+
+        // Cashbook Switcher
+        btnCashbooks.setOnClickListener(v -> openCashbookSwitcher());
+
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            intent.putExtra("isGuest", isGuest);
+            intent.putExtra("cashbook_id", currentCashbookId);
+            startActivity(intent);
+            finish();
+        });
+
+        // Load cashbooks for badge
+        if (!isGuest) {
+            loadCashbooksForBadge();
+        }
+    }
+
+    /**
+     * Update bottom navigation visual state
+     */
+    private void updateBottomNavigationSelection(View selectedButton) {
+        // Reset all buttons
+        resetBottomNavItem(iconHome, textHome);
+        resetBottomNavItem(iconTransactions, textTransactions);
+        resetBottomNavItem(iconSettings, textSettings);
+        resetBottomNavItem(iconCashbooks, textCashbooks);
+
+        // Set active color
+        int activeColor = getColor(R.color.primary_blue);
+
+        if (selectedButton.getId() == R.id.btnHome) {
+            setBottomNavItemActive(iconHome, textHome, activeColor);
+        } else if (selectedButton.getId() == R.id.btnTransactions) {
+            setBottomNavItemActive(iconTransactions, textTransactions, activeColor);
+        } else if (selectedButton.getId() == R.id.btnSettings) {
+            setBottomNavItemActive(iconSettings, textSettings, activeColor);
+        } else if (selectedButton.getId() == R.id.btnCashbookSwitch) {
+            setBottomNavItemActive(iconCashbooks, textCashbooks, activeColor);
+        }
+    }
+
+    /**
+     * Reset bottom nav item to default
+     */
+    private void resetBottomNavItem(ImageView icon, TextView text) {
+        if (icon != null) icon.setColorFilter(Color.WHITE);
+        if (text != null) text.setTextColor(Color.WHITE);
+    }
+
+    /**
+     * Set bottom nav item to active
+     */
+    private void setBottomNavItemActive(ImageView icon, TextView text, int color) {
+        if (icon != null) icon.setColorFilter(color);
+        if (text != null) text.setTextColor(color);
+    }
+
+    /**
+     * Open CashbookSwitchActivity
+     */
+    private void openCashbookSwitcher() {
+        if (isGuest) {
+            showGuestLimitationDialog();
+            return;
+        }
+
+        Intent intent = new Intent(this, CashbookSwitchActivity.class);
+        intent.putExtra("current_cashbook_id", currentCashbookId);
+        intent.putExtra("isGuest", isGuest);
+        startActivityForResult(intent, REQUEST_CODE_CASHBOOK_SWITCH);
+
+        Log.d(TAG, "Opened CashbookSwitchActivity");
+    }
+
+    /**
+     * Handle result from CashbookSwitchActivity
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_CASHBOOK_SWITCH && resultCode == RESULT_OK && data != null) {
+            String newCashbookId = data.getStringExtra("selected_cashbook_id");
+            String cashbookName = data.getStringExtra("cashbook_name");
+
+            if (newCashbookId != null && !newCashbookId.equals(currentCashbookId)) {
+                switchCashbook(newCashbookId, cashbookName);
+            }
+        }
+    }
+
+    /**
+     * Switch to a different cashbook
+     */
+    private void switchCashbook(String newCashbookId, String cashbookName) {
+        // Remove old listener
+        if (transactionsListener != null && currentCashbookId != null) {
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null) {
+                mDatabase.child("users").child(user.getUid())
+                        .child("cashbooks").child(currentCashbookId)
+                        .child("transactions")
+                        .removeEventListener(transactionsListener);
+                Log.d(TAG, "Removed listener from previous cashbook");
+            }
+        }
+
+        currentCashbookId = newCashbookId;
+        allTransactions.clear();
+
+        // Reload transactions for new cashbook
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            startListeningForTransactions(currentUser.getUid());
+        }
+
+        showSnackbar("Switched to: " + cashbookName);
+        Log.d(TAG, "Switched to cashbook: " + cashbookName);
+    }
+
+    /**
+     * Load cashbooks for badge display
+     */
+    private void loadCashbooksForBadge() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Log.w(TAG, "No authenticated user for cashbook badge");
+            return;
+        }
+
+        String userId = currentUser.getUid();
+
+        if (cashbooksListener != null) {
+            mDatabase.child("users").child(userId).child("cashbooks")
+                    .removeEventListener(cashbooksListener);
+        }
+
+        cashbooksListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                cashbooks.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
+                    if (cashbook != null) {
+                        if (cashbook.getCashbookId() == null) {
+                            cashbook.setCashbookId(snapshot.getKey());
+                        }
+                        cashbooks.add(cashbook);
+                    }
+                }
+                updateCashbookBadge();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, "Failed to load cashbooks for badge", databaseError.toException());
+            }
+        };
+
+        mDatabase.child("users").child(userId).child("cashbooks")
+                .addValueEventListener(cashbooksListener);
+    }
+
+    /**
+     * Update cashbook count badge on bottom navigation
+     */
+    private void updateCashbookBadge() {
+        if (btnCashbooks == null || isGuest) return;
+
+        try {
+            int cashbookCount = cashbooks.size();
+
+            // Remove existing badge if present
+            View existingBadge = btnCashbooks.findViewWithTag("cashbook_badge");
+            if (existingBadge != null) {
+                btnCashbooks.removeView(existingBadge);
+            }
+
+            if (cashbookCount > 1) {
+                // Create custom badge
+                TextView badge = new TextView(this);
+                badge.setTag("cashbook_badge");
+                badge.setText(String.valueOf(cashbookCount));
+                badge.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10);
+                badge.setTextColor(Color.WHITE);
+                badge.setGravity(android.view.Gravity.CENTER);
+                badge.setTypeface(null, android.graphics.Typeface.BOLD);
+
+                // Set background
+                android.graphics.drawable.ShapeDrawable drawable =
+                        new android.graphics.drawable.ShapeDrawable(
+                                new android.graphics.drawable.shapes.OvalShape());
+                drawable.getPaint().setColor(ContextCompat.getColor(this, R.color.primary_blue));
+                badge.setBackground(drawable);
+
+                // Set layout params
+                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                        dpToPx(22), dpToPx(22),
+                        android.view.Gravity.TOP | android.view.Gravity.END);
+                params.setMargins(0, dpToPx(2), dpToPx(2), 0);
+                badge.setLayoutParams(params);
+
+                btnCashbooks.addView(badge);
+                Log.d(TAG, "Badge updated: " + cashbookCount);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating cashbook badge", e);
+        }
+    }
+
+    /**
+     * Convert dp to pixels
+     */
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
+    /**
+     * Setup click listeners for UI elements
+     */
     private void setupClickListeners() {
         pieChartHeader.setOnClickListener(v -> {
             Intent intent = new Intent(this, ExpenseAnalyticsActivity.class);
@@ -184,10 +472,10 @@ public class TransactionActivity extends AppCompatActivity {
         togglePieChartButton.setOnClickListener(v -> {
             if (pieChart.getVisibility() == View.VISIBLE) {
                 pieChart.setVisibility(View.GONE);
-                togglePieChartButton.setText("Show Pie Chart");
+                togglePieChartButton.setText(getString(R.string.show_pie_chart));
             } else {
                 pieChart.setVisibility(View.VISIBLE);
-                togglePieChartButton.setText("Hide Pie Chart");
+                togglePieChartButton.setText(getString(R.string.hide_pie_chart));
             }
         });
 
@@ -195,29 +483,34 @@ public class TransactionActivity extends AppCompatActivity {
             Intent intent = new Intent(this, DownloadOptionsActivity.class);
             downloadLauncher.launch(intent);
         });
-
-        btnHome.setOnClickListener(v -> {
-            startActivity(new Intent(this, HomePage.class));
-            finish();
-        });
-        btnTransactions.setOnClickListener(v -> Toast.makeText(this, "Already on Transactions", Toast.LENGTH_SHORT).show());
-        btnSettings.setOnClickListener(v -> {
-            startActivity(new Intent(this, SettingsActivity.class));
-            finish();
-        });
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
+        if (currentUser != null && !isGuest) {
             startListeningForTransactions(currentUser.getUid());
+        } else if (isGuest) {
+            displayDataForCurrentMonth();
         }
     }
 
+    /**
+     * Start listening for transaction changes from Firebase
+     */
     private void startListeningForTransactions(String userId) {
-        DatabaseReference transactionsRef = mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions");
+        if (currentCashbookId == null) {
+            Log.w(TAG, "Cannot listen for transactions: No cashbook ID");
+            return;
+        }
+
+        DatabaseReference transactionsRef = mDatabase.child("users")
+                .child(userId)
+                .child("cashbooks")
+                .child(currentCashbookId)
+                .child("transactions");
+
         transactionsListener = transactionsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -229,17 +522,24 @@ public class TransactionActivity extends AppCompatActivity {
                         allTransactions.add(transaction);
                     }
                 }
-                Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
+                Collections.sort(allTransactions, (t1, t2) ->
+                        Long.compare(t2.getTimestamp(), t1.getTimestamp()));
+
                 displayDataForCurrentMonth();
+                Log.d(TAG, "Loaded " + allTransactions.size() + " transactions");
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(TransactionActivity.this, "Failed to load transactions.", Toast.LENGTH_SHORT).show();
+                showSnackbar("Failed to load transactions");
+                ErrorHandler.handleFirebaseError(TransactionActivity.this, databaseError);
             }
         });
     }
 
+    /**
+     * Display data for the current month
+     */
     private void displayDataForCurrentMonth() {
         SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
         monthTitleTextView.setText(sdf.format(currentMonthCalendar.getTime()));
@@ -260,6 +560,9 @@ public class TransactionActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Update financial summary totals
+     */
     @SuppressLint("SetTextI18n")
     private void updateTotals(List<TransactionModel> transactions) {
         double totalIncome = 0, totalExpense = 0;
@@ -270,13 +573,24 @@ public class TransactionActivity extends AppCompatActivity {
                 totalExpense += transaction.getAmount();
             }
         }
+
         incomeText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome));
         expenseText.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
         balanceText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome - totalExpense));
+
+        // Set balance color
+        if (totalIncome - totalExpense >= 0) {
+            balanceText.setTextColor(getColor(R.color.income_green));
+        } else {
+            balanceText.setTextColor(getColor(R.color.expense_red));
+        }
     }
 
+    /**
+     * Setup styled pie chart with expense categories
+     */
     private void setupStyledPieChart(List<TransactionModel> transactionsForMonth) {
-        // 1. Process Data
+        // Process expense data
         Map<String, Float> expenseByCategory = new HashMap<>();
         float totalExpense = 0f;
         String highestCategory = "-";
@@ -284,9 +598,12 @@ public class TransactionActivity extends AppCompatActivity {
 
         for (TransactionModel transaction : transactionsForMonth) {
             if ("OUT".equalsIgnoreCase(transaction.getType())) {
-                String category = transaction.getTransactionCategory() != null ? transaction.getTransactionCategory() : "Other";
+                String category = transaction.getTransactionCategory() != null ?
+                        transaction.getTransactionCategory() : "Other";
                 float amount = (float) transaction.getAmount();
-                expenseByCategory.put(category, expenseByCategory.getOrDefault(category, 0f) + amount);
+                expenseByCategory.put(category,
+                        expenseByCategory.getOrDefault(category, 0f) + amount);
+
                 if (expenseByCategory.get(category) > maxExpense) {
                     maxExpense = expenseByCategory.get(category);
                     highestCategory = category;
@@ -305,15 +622,15 @@ public class TransactionActivity extends AppCompatActivity {
             return;
         }
 
-        // 2. Create entries
+        // Create pie entries
         ArrayList<PieEntry> entries = new ArrayList<>();
-
-        // Define exact colors from your image
         ArrayList<Integer> colors = new ArrayList<>();
-        colors.add(Color.parseColor("#F2C94C")); // Yellow for Leisure
-        colors.add(Color.parseColor("#2DD4BF")); // Teal for Health
-        colors.add(Color.parseColor("#F87171")); // Coral for Food and Drinks
-        colors.add(Color.parseColor("#A78BFA")); // Purple for Transportation
+
+        // Modern color palette
+        colors.add(Color.parseColor("#F2C94C")); // Yellow
+        colors.add(Color.parseColor("#2DD4BF")); // Teal
+        colors.add(Color.parseColor("#F87171")); // Coral
+        colors.add(Color.parseColor("#A78BFA")); // Purple
         colors.add(Color.parseColor("#34D399")); // Green
         colors.add(Color.parseColor("#60A5FA")); // Blue
         colors.add(Color.parseColor("#FBBF24")); // Amber
@@ -324,13 +641,13 @@ public class TransactionActivity extends AppCompatActivity {
             entries.add(new PieEntry(percentage, entry.getKey()));
         }
 
-        // 3. Create Data Set
+        // Configure dataset
         PieDataSet dataSet = new PieDataSet(entries, "");
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(8f);
         dataSet.setColors(colors);
 
-        // 4. Configure external labels with connector lines
+        // External labels with connector lines
         dataSet.setValueLinePart1OffsetPercentage(85f);
         dataSet.setValueLinePart1Length(0.25f);
         dataSet.setValueLinePart2Length(0.4f);
@@ -340,30 +657,32 @@ public class TransactionActivity extends AppCompatActivity {
         dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         dataSet.setDrawValues(true);
 
-        // 5. Create PieData
+        // Create pie data
         PieData data = new PieData(dataSet);
         data.setValueFormatter(new CustomPieChartValueFormatter());
         data.setValueTextSize(11f);
         data.setValueTextColor(Color.WHITE);
 
-        // 6. Configure Chart exactly like your image
+        // Configure chart
         pieChart.setUsePercentValues(true);
         pieChart.getDescription().setEnabled(false);
         pieChart.getLegend().setEnabled(false);
         pieChart.setRotationEnabled(true);
-        pieChart.setDrawHoleEnabled(false); // Solid pie chart like your image
+        pieChart.setDrawHoleEnabled(false);
         pieChart.setDrawEntryLabels(false);
-        pieChart.setExtraOffsets(25, 25, 25, 25); // Extra space for external labels
+        pieChart.setExtraOffsets(25, 25, 25, 25);
         pieChart.setBackgroundColor(Color.TRANSPARENT);
 
-        // 7. Set data and animate
+        // Set data and animate
         pieChart.setData(data);
         pieChart.invalidate();
         pieChart.animateY(1200);
     }
 
+    /**
+     * Setup search and filter functionality
+     */
     private void setupFilterLauncher() {
-        // Simple search functionality
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -379,14 +698,15 @@ public class TransactionActivity extends AppCompatActivity {
         });
 
         filterButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Advanced filters coming soon", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, FiltersActivity.class);
+            startActivity(intent);
         });
     }
 
+    /**
+     * Apply search filter to transactions
+     */
     private void applySearchFilter(String searchQuery) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
-        monthTitleTextView.setText(sdf.format(currentMonthCalendar.getTime()));
-
         List<TransactionModel> filteredTransactions = allTransactions.stream()
                 .filter(t -> {
                     Calendar transactionCal = Calendar.getInstance();
@@ -395,7 +715,10 @@ public class TransactionActivity extends AppCompatActivity {
                             transactionCal.get(Calendar.MONTH) == currentMonthCalendar.get(Calendar.MONTH);
                 })
                 .filter(t -> searchQuery.isEmpty() ||
-                        (t.getTransactionCategory() != null && t.getTransactionCategory().toLowerCase().contains(searchQuery.toLowerCase())))
+                        (t.getTransactionCategory() != null &&
+                                t.getTransactionCategory().toLowerCase().contains(searchQuery.toLowerCase())) ||
+                        (t.getDescription() != null &&
+                                t.getDescription().toLowerCase().contains(searchQuery.toLowerCase())))
                 .collect(Collectors.toList());
 
         updateTotals(filteredTransactions);
@@ -406,6 +729,9 @@ public class TransactionActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setup PDF download launcher
+     */
     private void setupDownloadLauncher() {
         downloadLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -427,49 +753,51 @@ public class TransactionActivity extends AppCompatActivity {
         );
     }
 
+    /**
+     * Check storage permissions
+     */
     private boolean checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             return true;
         } else {
-            return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+            return ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         }
     }
 
+    /**
+     * Request storage permissions
+     */
     private void requestPermissions() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    STORAGE_PERMISSION_CODE);
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == STORAGE_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Storage permission granted", Toast.LENGTH_SHORT).show();
+                showSnackbar("Storage permission granted");
             } else {
-                Toast.makeText(this, "Storage permission denied", Toast.LENGTH_SHORT).show();
+                showSnackbar("Storage permission denied");
             }
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (transactionsListener != null && mDatabase != null) {
-            mDatabase.child("users")
-                    .child(mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "")
-                    .child("cashbooks")
-                    .child(currentCashbookId != null ? currentCashbookId : "")
-                    .child("transactions")
-                    .removeEventListener(transactionsListener);
-        }
-    }
-
-    private void exportTransactionsToPdf(long startDate, long endDate, String entryType, String paymentMode) {
+    /**
+     * Export transactions to PDF
+     */
+    private void exportTransactionsToPdf(long startDate, long endDate,
+                                         String entryType, String paymentMode) {
         try {
             ContentValues values = new ContentValues();
-            values.put(MediaStore.MediaColumns.DISPLAY_NAME, "CashFlow_Report_" + System.currentTimeMillis() + ".pdf");
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME,
+                    "CashFlow_Report_" + System.currentTimeMillis() + ".pdf");
             values.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -498,14 +826,16 @@ public class TransactionActivity extends AppCompatActivity {
 
                 // Add date range
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                String dateRange = "Date Range: " + sdf.format(new Date(startDate)) + " to " + sdf.format(new Date(endDate));
+                String dateRange = "Date Range: " + sdf.format(new Date(startDate)) +
+                        " to " + sdf.format(new Date(endDate));
                 document.add(new Paragraph(dateRange));
                 document.add(new Paragraph(" "));
 
                 // Filter transactions
                 List<TransactionModel> filteredTransactions = allTransactions.stream()
                         .filter(t -> t.getTimestamp() >= startDate && t.getTimestamp() <= endDate)
-                        .filter(t -> entryType == null || entryType.equals("All") || t.getType().equals(entryType))
+                        .filter(t -> entryType == null || entryType.equals("All") ||
+                                t.getType().equals(entryType))
                         .collect(Collectors.toList());
 
                 // Create table
@@ -523,21 +853,80 @@ public class TransactionActivity extends AppCompatActivity {
                 // Add transaction data
                 Font cellFont = new Font(Font.FontFamily.HELVETICA, 10);
                 for (TransactionModel transaction : filteredTransactions) {
-                    table.addCell(new PdfPCell(new Phrase(sdf.format(new Date(transaction.getTimestamp())), cellFont)));
-                    table.addCell(new PdfPCell(new Phrase(transaction.getTransactionCategory(), cellFont)));
+                    table.addCell(new PdfPCell(new Phrase(
+                            sdf.format(new Date(transaction.getTimestamp())), cellFont)));
+                    table.addCell(new PdfPCell(new Phrase(
+                            transaction.getTransactionCategory() != null ?
+                                    transaction.getTransactionCategory() : "N/A", cellFont)));
                     table.addCell(new PdfPCell(new Phrase(transaction.getType(), cellFont)));
-                    table.addCell(new PdfPCell(new Phrase("₹" + String.format("%.2f", transaction.getAmount()), cellFont)));
+                    table.addCell(new PdfPCell(new Phrase(
+                            "₹" + String.format("%.2f", transaction.getAmount()), cellFont)));
                 }
 
                 document.add(table);
                 document.close();
                 outputStream.close();
 
-                Toast.makeText(this, "PDF report exported successfully!", Toast.LENGTH_LONG).show();
+                showSnackbar("PDF report exported successfully!");
+                Log.d(TAG, "PDF exported successfully");
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Error exporting PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Log.e(TAG, "Error exporting PDF", e);
+            showSnackbar("Error exporting PDF: " + e.getMessage());
         }
+    }
+
+    /**
+     * Show guest limitation dialog
+     */
+    private void showGuestLimitationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Guest Mode Limitation")
+                .setMessage("This feature is not available in guest mode. " +
+                        "Please sign up to access full functionality.")
+                .setPositiveButton("Sign Up", (dialog, which) -> {
+                    Intent intent = new Intent(this, SignupActivity.class);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Continue as Guest", null)
+                .show();
+    }
+
+    /**
+     * Show Snackbar message
+     */
+    private void showSnackbar(String message) {
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+
+            // Remove transactions listener
+            if (transactionsListener != null && currentCashbookId != null) {
+                mDatabase.child("users").child(userId)
+                        .child("cashbooks").child(currentCashbookId)
+                        .child("transactions")
+                        .removeEventListener(transactionsListener);
+                transactionsListener = null;
+                Log.d(TAG, "Transactions listener removed");
+            }
+
+            // Remove cashbooks listener
+            if (cashbooksListener != null) {
+                mDatabase.child("users").child(userId)
+                        .child("cashbooks")
+                        .removeEventListener(cashbooksListener);
+                cashbooksListener = null;
+                Log.d(TAG, "Cashbooks listener removed");
+            }
+        }
+
+        Log.d(TAG, "TransactionActivity destroyed");
     }
 }

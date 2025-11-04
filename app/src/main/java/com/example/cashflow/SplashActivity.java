@@ -21,15 +21,13 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_splash);
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // Hide the action bar for a fullscreen experience
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
 
         // Initialize and show progress bar
         splashProgress = findViewById(R.id.splash_progress);
