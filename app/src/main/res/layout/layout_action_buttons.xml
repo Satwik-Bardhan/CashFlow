@@ -6,28 +6,25 @@
     android:layout_marginTop="8dp"
     android:orientation="vertical">
 
-    <!-- Primary Action Buttons -->
-
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/clearButton"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginBottom="12dp"
         android:background="@drawable/button_secondary"
         android:text="CLEAR"
-        android:textColor="#E82525"
-        app:backgroundTint="@null"
+        android:textColor="?attr/expenseColor"
         android:textSize="14sp"
-        android:textStyle="bold" />
-
+        android:textStyle="bold"
+        app:backgroundTint="@null" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="200dp"
+        android:layout_marginBottom="12dp"
         android:orientation="horizontal">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/saveAndAddNewButton"
             android:layout_width="0dp"
             android:layout_height="48dp"
@@ -35,24 +32,22 @@
             android:layout_weight="2.5"
             android:background="@drawable/button_save_add_new"
             android:text="SAVE &amp; ADD NEW"
-            app:backgroundTint="@null"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:backgroundTint="@null" />
 
-
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/saveEntryButton"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1.5"
             android:background="@drawable/button_primary"
             android:text="SAVE ENTRY"
-            app:backgroundTint="@null"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:backgroundTint="@null" />
     </LinearLayout>
 
-    <!-- Secondary Action Button -->
 </LinearLayout>

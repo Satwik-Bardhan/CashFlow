@@ -4,9 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="?attr/backgroundColor">
 
-    <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -22,12 +21,11 @@
             android:gravity="center_vertical"
             android:orientation="vertical">
 
-            <!-- Main Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/mainCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/card_background"
+                app:cardBackgroundColor="?attr/surfaceColor"
                 app:cardElevation="16dp"
                 app:cardCornerRadius="0dp">
 
@@ -37,7 +35,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- Header Section -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -49,7 +46,7 @@
                             android:layout_width="56dp"
                             android:layout_height="56dp"
                             android:layout_marginEnd="16dp"
-                            app:cardBackgroundColor="@color/primary_blue"
+                            app:cardBackgroundColor="?attr/balanceColor"
                             app:cardCornerRadius="16dp"
                             app:cardElevation="8dp">
 
@@ -72,7 +69,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/cashbook_manager_title"
-                                android:textColor="@color/text_primary"
+                                android:textColor="?attr/textColorPrimary"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
 
@@ -81,7 +78,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:text="@string/switch_create_subtitle"
-                                android:textColor="@color/text_secondary"
+                                android:textColor="?attr/textColorSecondary"
                                 android:textSize="14sp" />
                         </LinearLayout>
 
@@ -93,10 +90,9 @@
                             android:src="@drawable/ic_close"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/close_button"
-                            app:tint="@color/text_primary" />
+                            app:tint="?attr/textColorPrimary" />
                     </LinearLayout>
 
-                    <!-- Search Bar -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
@@ -113,7 +109,7 @@
                             android:layout_marginEnd="12dp"
                             android:src="@drawable/ic_search"
                             android:contentDescription="@string/search_icon"
-                            app:tint="@color/text_secondary" />
+                            app:tint="?attr/textColorSecondary" />
 
                         <EditText
                             android:id="@+id/searchEditText"
@@ -123,12 +119,11 @@
                             android:background="@null"
                             android:hint="@string/search_cashbooks_hint"
                             android:inputType="text"
-                            android:textColor="@color/text_primary"
-                            android:textColorHint="@color/text_hint"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textColorHint="?attr/textColorHint"
                             android:textSize="16sp" />
                     </LinearLayout>
 
-                    <!-- Filter Chips -->
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/chipGroup"
                         android:layout_width="match_parent"
@@ -161,12 +156,11 @@
                             android:text="@string/chip_favorites" />
                     </com.google.android.material.chip.ChipGroup>
 
-                    <!-- Cashbooks List -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="24dp"
-                        app:cardBackgroundColor="@color/card_background_elevated"
+                        app:cardBackgroundColor="?attr/backgroundColor"
                         app:cardCornerRadius="12dp"
                         app:cardElevation="8dp">
 
@@ -176,7 +170,6 @@
                             android:orientation="vertical"
                             android:padding="16dp">
 
-                            <!-- List Header -->
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -189,7 +182,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="@string/your_cashbooks_title"
-                                    android:textColor="@color/primary_blue"
+                                    android:textColor="?attr/balanceColor"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 
@@ -204,15 +197,14 @@
                                     android:paddingStart="12dp"
                                     android:paddingEnd="12dp"
                                     android:text="@string/sort_button"
-                                    android:textColor="@color/text_secondary"
+                                    android:textColor="?attr/textColorSecondary"
                                     android:textSize="14sp"
                                     android:drawableStart="@drawable/ic_sort"
                                     android:drawablePadding="4dp"
-                                    android:drawableTint="@color/text_secondary"
+                                    app:drawableTint="?attr/textColorSecondary"
                                     android:contentDescription="@string/sort_button_desc" />
                             </LinearLayout>
 
-                            <!-- SwipeRefreshLayout with RecyclerView -->
                             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                                 android:id="@+id/swipeRefreshLayout"
                                 android:layout_width="match_parent"
@@ -234,7 +226,6 @@
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
-                    <!-- Quick Stats -->
                     <LinearLayout
                         android:id="@+id/quickStatsLayout"
                         android:layout_width="match_parent"
@@ -247,7 +238,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginEnd="8dp"
-                            app:cardBackgroundColor="@color/success_green"
+                            app:cardBackgroundColor="?attr/incomeColor"
                             app:cardCornerRadius="12dp"
                             app:cardElevation="4dp">
 
@@ -263,7 +254,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="0"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="?attr/textColorPrimary"
                                     android:textSize="24sp"
                                     android:textStyle="bold" />
 
@@ -271,7 +262,8 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/total_books_label"
-                                    android:textColor="@color/success_green_light"
+                                    android:textColor="?attr/textColorPrimary"
+                                    android:alpha="0.7"
                                     android:textSize="12sp" />
                             </LinearLayout>
                         </androidx.cardview.widget.CardView>
@@ -297,7 +289,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="0"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="?attr/textColorPrimary"
                                     android:textSize="24sp"
                                     android:textStyle="bold" />
 
@@ -305,13 +297,13 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/active_label"
-                                    android:textColor="@color/warning_orange_light"
+                                    android:textColor="?attr/textColorPrimary"
+                                    android:alpha="0.7"
                                     android:textSize="12sp" />
                             </LinearLayout>
                         </androidx.cardview.widget.CardView>
                     </LinearLayout>
 
-                    <!-- Action Buttons -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -326,7 +318,7 @@
                             android:layout_marginEnd="12dp"
                             android:background="@drawable/button_cancel_outline"
                             android:text="@string/cancel_button"
-                            android:textColor="@color/error_red"
+                            android:textColor="?attr/expenseColor"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
@@ -344,7 +336,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Empty State -->
             <LinearLayout
                 android:id="@+id/emptyStateLayout"
                 android:layout_width="match_parent"
@@ -360,13 +351,13 @@
                     android:layout_marginBottom="24dp"
                     android:src="@drawable/ic_folder_open"
                     android:contentDescription="@string/empty_state_icon"
-                    app:tint="@color/text_hint" />
+                    app:tint="?attr/textColorHint" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/no_cashbooks_title"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
@@ -377,7 +368,7 @@
                     android:layout_marginBottom="32dp"
                     android:gravity="center"
                     android:text="@string/no_cashbooks_message"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/textColorSecondary"
                     android:textSize="16sp" />
 
                 <Button
@@ -395,12 +386,11 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Loading Layout -->
     <LinearLayout
         android:id="@+id/loadingLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/background_dark"
+        android:background="?attr/backgroundColor"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone"
@@ -410,13 +400,13 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_marginBottom="24dp"
-            android:indeterminateTint="@color/primary_blue" />
+            android:indeterminateTint="?attr/balanceColor" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/loading_cashbooks"
-            android:textColor="@color/primary_blue"
+            android:textColor="?attr/balanceColor"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -425,11 +415,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/loading_wait_message"
-            android:textColor="@color/text_secondary"
+            android:textColor="?attr/textColorSecondary"
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/quickAddFab"
         android:layout_width="wrap_content"
@@ -438,7 +427,7 @@
         android:layout_margin="24dp"
         android:contentDescription="@string/quick_add_cashbook"
         app:layout_dodgeInsetEdges="bottom"
-        app:backgroundTint="@color/success_color"
+        app:backgroundTint="?attr/incomeColor"
         app:srcCompat="@drawable/ic_add"
         app:tint="@android:color/white" />
 

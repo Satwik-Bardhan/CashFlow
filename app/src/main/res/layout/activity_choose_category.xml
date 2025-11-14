@@ -5,17 +5,16 @@
     android:id="@+id/main_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     android:fitsSystemWindows="true"
     tools:context=".ChooseCategoryActivity">
 
-    <!-- Modernized Card Header Section -->
     <androidx.cardview.widget.CardView
         android:id="@+id/headerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        app:cardBackgroundColor="#1E1E1E"
+        app:cardBackgroundColor="?attr/surfaceColor"
         android:layout_marginTop="12dp"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
@@ -31,7 +30,6 @@
             android:paddingBottom="18dp"
             android:gravity="center_vertical">
 
-            <!-- Back Button, left -->
             <ImageView
                 android:id="@+id/backButton"
                 android:layout_width="36dp"
@@ -43,11 +41,10 @@
                 android:contentDescription="@string/back_button_desc"
                 android:clickable="true"
                 android:focusable="true"
-                app:tint="#FFFFFF"
+                app:tint="?attr/textColorPrimary"
                 android:padding="6dp"
                 android:importantForAccessibility="yes" />
 
-            <!-- Search Button, right -->
             <ImageView
                 android:id="@+id/searchButton"
                 android:layout_width="36dp"
@@ -58,12 +55,11 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                app:tint="#FFFFFF"
+                app:tint="?attr/textColorPrimary"
                 android:padding="6dp"
                 android:visibility="visible"
                 android:importantForAccessibility="yes" />
 
-            <!-- Centered Title and Subtitle -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -76,7 +72,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CASH FLOW"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-medium"
@@ -90,19 +86,13 @@
                     android:gravity="center_vertical"
                     android:layout_marginTop="7dp">
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_category"
-                        android:layout_marginEnd="8dp"
-                        app:tint="#FFFFFF" />
 
                     <TextView
                         android:id="@+id/headerSubtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Choose Category"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif" />
@@ -111,7 +101,6 @@
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -124,7 +113,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- No Category Option -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/noCategoryCard"
                 android:layout_width="match_parent"
@@ -132,7 +120,7 @@
                 android:layout_marginBottom="20dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="#1E1E1E">
+                app:cardBackgroundColor="?attr/surfaceColor">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -148,7 +136,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_block"
-                        app:tint="#9E9E9E"
+                        app:tint="?attr/textColorSecondary"
                         android:layout_marginEnd="12dp" />
 
                     <RadioButton
@@ -157,14 +145,14 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="No Category"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Default"
-                        android:textColor="#000000"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="12sp"
                         android:background="@drawable/rounded_tag_background"
                         android:paddingHorizontal="8dp"
@@ -172,7 +160,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Categories Section Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -185,7 +172,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Categories"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -194,17 +181,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0 items"
-                    android:textColor="#AAAAAA"
+                    android:textColor="?attr/textColorSecondary"
                     android:textSize="12sp" />
             </LinearLayout>
 
-            <!-- Categories List Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="#1E1E1E">
+                app:cardBackgroundColor="?attr/surfaceColor">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -222,12 +208,11 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Quick Categories Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Quick Add"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/textColorPrimary"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginTop="24dp"
@@ -244,7 +229,7 @@
                     android:layout_height="40dp"
                     android:layout_weight="1"
                     android:text="Food"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="12sp"
                     android:background="@drawable/quick_category_button"
                     app:backgroundTint="@null"
@@ -256,7 +241,7 @@
                     android:layout_height="40dp"
                     android:layout_weight="1"
                     android:text="Transport"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="12sp"
                     android:background="@drawable/quick_category_button"
                     app:backgroundTint="@null"
@@ -268,7 +253,7 @@
                     android:layout_height="40dp"
                     android:layout_weight="1"
                     android:text="Shopping"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     app:backgroundTint="@null"
                     android:textSize="12sp"
                     android:background="@drawable/quick_category_button" />
@@ -276,7 +261,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Extended Floating Action Button -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/addNewCategoryButton"
         android:layout_width="wrap_content"
@@ -288,11 +272,10 @@
         android:textColor="#FFFFFF"
         android:textSize="14sp"
         android:textStyle="bold"
-        app:backgroundTint="#4CAF50"
+        app:backgroundTint="?attr/incomeColor"
         app:icon="@drawable/ic_add"
         app:iconTint="#FFFFFF"
         app:cornerRadius="16dp"
         app:elevation="8dp" />
 
 </RelativeLayout>
-

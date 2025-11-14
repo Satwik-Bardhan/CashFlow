@@ -12,11 +12,10 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:text="Attached Files"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="15sp"
         android:textStyle="bold" />
 
-    <!-- Attached Image File -->
     <LinearLayout
         android:id="@+id/attachedImageLayout"
         android:layout_width="match_parent"
@@ -34,7 +33,7 @@
             android:drawablePadding="8dp"
             android:gravity="center_vertical"
             android:text="invoice_copy.jpg"
-            android:textColor="#81C784"
+            android:textColor="?attr/incomeColor"
             android:textSize="13sp" />
 
         <ImageView
@@ -45,10 +44,9 @@
             android:focusable="true"
             android:src="@drawable/ic_close"
             android:contentDescription="Remove attached image"
-            app:tint="#F44336" />
+            app:tint="?attr/expenseColor" />
     </LinearLayout>
 
-    <!-- Attached QR/Text File -->
     <LinearLayout
         android:id="@+id/attachedQrLayout"
         android:layout_width="match_parent"
@@ -66,7 +64,7 @@
             android:drawablePadding="8dp"
             android:gravity="center_vertical"
             android:text="bill_data.txt"
-            android:textColor="#81C784"
+            android:textColor="?attr/incomeColor"
             android:textSize="13sp" />
 
         <ImageView
@@ -77,10 +75,9 @@
             android:focusable="true"
             android:src="@drawable/ic_close"
             android:contentDescription="Remove attached QR data"
-            app:tint="#F44336" />
+            app:tint="?attr/expenseColor" />
     </LinearLayout>
 
-    <!-- Attached PDF File -->
     <LinearLayout
         android:id="@+id/attachedPdfLayout"
         android:layout_width="match_parent"
@@ -97,7 +94,7 @@
             android:drawablePadding="8dp"
             android:gravity="center_vertical"
             android:text="invoice_copy.pdf"
-            android:textColor="#81C784"
+            android:textColor="?attr/incomeColor"
             android:textSize="13sp" />
 
         <ImageView
@@ -108,7 +105,7 @@
             android:focusable="true"
             android:src="@drawable/ic_close"
             android:contentDescription="Remove attached PDF"
-            app:tint="#F44336" />
+            app:tint="?attr/expenseColor" />
     </LinearLayout>
 
 </LinearLayout>

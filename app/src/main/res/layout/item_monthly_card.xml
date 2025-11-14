@@ -5,7 +5,8 @@
     android:layout_height="80dp"
     android:layout_margin="4dp"
     app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="?attr/surfaceColor">
 
     <LinearLayout
         android:id="@+id/cardContainer"
@@ -14,7 +15,7 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="8dp"
-        android:background="@color/white">
+        android:background="?attr/surfaceColor">
 
         <TextView
             android:id="@+id/monthNameTextView"
@@ -23,7 +24,7 @@
             android:text="January 2024"
             android:textSize="12sp"
             android:textStyle="bold"
-            android:textColor="#333333"
+            android:textColor="?attr/textColorPrimary"
             android:gravity="center" />
 
         <TextView
@@ -32,7 +33,7 @@
             android:layout_height="wrap_content"
             android:text="₹5,230.00"
             android:textSize="14sp"
-            android:textColor="#E91E63"
+            android:textColor="?attr/expenseColor"
             android:textStyle="bold"
             android:layout_marginTop="4dp" />
 

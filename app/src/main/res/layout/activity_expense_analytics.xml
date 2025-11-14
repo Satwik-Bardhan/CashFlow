@@ -5,17 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     tools:context=".ExpenseAnalyticsActivity">
 
-    <!-- Header with Close Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
-        android:background="#1E1E1E">
+        android:background="?attr/surfaceColor">
 
         <ImageButton
             android:id="@+id/closeButton"
@@ -24,30 +23,28 @@
             android:src="@drawable/ic_close"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Close"
-            app:tint="#FFFFFF" />
+            app:tint="?attr/textColorPrimary" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Expense Analytics"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/textColorPrimary"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginStart="16dp" />
     </LinearLayout>
 
-    <!-- Monthly Navigation Cards -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/monthlyCardsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clipToPadding="false"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:clipToPadding="false"
         tools:listitem="@layout/item_monthly_card" />
 
-    <!-- Large Pie Chart -->
     <com.github.mikephil.charting.charts.PieChart
         android:id="@+id/fullScreenPieChart"
         android:layout_width="match_parent"
@@ -55,7 +52,6 @@
         android:layout_weight="1"
         android:layout_margin="16dp" />
 
-    <!-- Detailed Legend -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/detailedLegendRecyclerView"
         android:layout_width="match_parent"

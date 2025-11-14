@@ -3,25 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#333333">
+    android:background="?attr/backgroundColor">
 
-    <!-- Transactions List Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/transactionsCard"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="#333333">
+        app:cardBackgroundColor="?attr/surfaceColor">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <!-- List Header -->
-
-            <!-- RecyclerView Container -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/transactionRecyclerView"
                 android:layout_width="match_parent"
@@ -36,7 +32,6 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Enhanced Empty State -->
     <LinearLayout
         android:id="@+id/emptyStateLayout"
         android:layout_width="match_parent"
@@ -52,13 +47,13 @@
             android:src="@drawable/ic_receipt_outline"
             android:layout_marginBottom="24dp"
             android:contentDescription="No transactions icon"
-            app:tint="#666666" />
+            app:tint="?attr/textColorHint" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No Transactions Found"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/textColorPrimary"
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
@@ -69,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No transactions match your current filters"
-            android:textColor="#AAAAAA"
+            android:textColor="?attr/textColorSecondary"
             android:textSize="16sp"
             android:gravity="center"
             android:layout_marginBottom="24dp"
@@ -89,19 +84,17 @@
             android:paddingHorizontal="24dp"
             app:drawableTint="#FFFFFF" />
 
-        <!-- Help Text -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Track your income and expenses by adding transactions"
-            android:textColor="#666666"
+            android:textColor="?attr/textColorHint"
             android:textSize="12sp"
             android:gravity="center"
             android:layout_marginTop="16dp"
             android:lineSpacingMultiplier="1.2" />
     </LinearLayout>
 
-    <!-- Loading State -->
     <LinearLayout
         android:id="@+id/loadingLayout"
         android:layout_width="match_parent"
@@ -109,19 +102,20 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="32dp"
+        android:background="?attr/backgroundColor"
         android:visibility="gone">
 
         <ProgressBar
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginBottom="16dp"
-            android:indeterminateTint="#2196F3" />
+            android:indeterminateTint="?attr/balanceColor" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Loading transactions..."
-            android:textColor="#2196F3"
+            android:textColor="?attr/balanceColor"
             android:textSize="16sp" />
     </LinearLayout>
 

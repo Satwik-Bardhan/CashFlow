@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Selected - White text -->
-    <item android:state_selected="true" android:color="#FFFFFF" />
-    <item android:state_pressed="true" android:color="#FFFFFF" />
-    <!-- Unselected - Orange text -->
-    <item android:color="#FF9800" />
+    <!-- Color when button is selected or pressed (White) -->
+    <item android:state_selected="true" android:color="@color/white" />
+    <item android:state_pressed="true" android:color="@color/white" />
+
+    <!-- Default color (White) -->
+    <!-- You can change this to a grey if you want it to look different when not selected -->
+    <item android:color="@color/white" />
 </selector>

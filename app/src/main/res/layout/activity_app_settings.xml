@@ -4,17 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     android:fitsSystemWindows="true"
     tools:context=".AppSettingsActivity">
 
-    <!-- Enhanced Header Section -->
     <androidx.cardview.widget.CardView
         android:id="@+id/headerSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardBackgroundColor="#1E1E1E"
+        app:cardBackgroundColor="?attr/surfaceColor"
         app:cardCornerRadius="20dp"
         app:cardElevation="8dp">
 
@@ -23,7 +22,6 @@
             android:layout_height="wrap_content"
             android:padding="20dp">
 
-            <!-- Back Button (left) -->
             <ImageView
                 android:id="@+id/back_button"
                 android:layout_width="36dp"
@@ -33,11 +31,10 @@
                 android:focusable="true"
                 android:padding="8dp"
                 android:src="@drawable/ic_arrow_left"
-                app:tint="#FFFFFF"
+                app:tint="?attr/textColorPrimary"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true" />
 
-            <!-- Centered Column (title + subtitle) -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -49,7 +46,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="App Settings"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -58,24 +55,22 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Customize your experience"
-                    android:textColor="#AAAAAA"
+                    android:textColor="?attr/textColorSecondary"
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- Tune Icon (right) -->
             <ImageView
                 android:id="@+id/tune_button"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:padding="8dp"
                 android:src="@drawable/ic_tune"
-                app:tint="#FFFFFF"
+                app:tint="?attr/textColorPrimary"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"/>
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -89,13 +84,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Data Security Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:text="Security &amp; Privacy"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/textColorPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:drawablePadding="8dp"
@@ -105,7 +99,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="#1E1E1E"
+                app:cardBackgroundColor="?attr/surfaceColor"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp">
 
@@ -115,7 +109,6 @@
                     android:orientation="vertical"
                     android:padding="8dp">
 
-                    <!-- Data Backup -->
                     <LinearLayout
                         android:id="@+id/dataBackupLayout"
                         android:layout_width="match_parent"
@@ -153,7 +146,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Data Backup &amp; Sync"
-                                android:textColor="#FFFFFF"
+                                android:textColor="?attr/textColorPrimary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -162,7 +155,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="Manage cloud storage settings"
-                                android:textColor="#AAAAAA"
+                                android:textColor="?attr/textColorSecondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -170,17 +163,15 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@drawable/ic_arrow_right"
-                            app:tint="#666666" />
+                            app:tint="?attr/textColorSecondary" />
                     </LinearLayout>
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginHorizontal="16dp"
-                        android:background="#333333" />
+                        android:background="?attr/divider_color" />
 
-                    <!-- App Lock -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -214,7 +205,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="App Lock"
-                                android:textColor="#FFFFFF"
+                                android:textColor="?attr/textColorPrimary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -223,7 +214,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="Secure app with PIN or fingerprint"
-                                android:textColor="#AAAAAA"
+                                android:textColor="?attr/textColorSecondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -238,13 +229,12 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Features Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:text="Features &amp; Tools"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/textColorPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:drawablePadding="8dp"
@@ -254,7 +244,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="#1E1E1E"
+                app:cardBackgroundColor="?attr/surfaceColor"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp">
 
@@ -264,7 +254,6 @@
                     android:orientation="vertical"
                     android:padding="8dp">
 
-                    <!-- Calculator Feature -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -298,7 +287,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Built-in Calculator"
-                                android:textColor="#FFFFFF"
+                                android:textColor="?attr/textColorPrimary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -307,7 +296,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="Show calculator in amount fields"
-                                android:textColor="#AAAAAA"
+                                android:textColor="?attr/textColorSecondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -322,13 +311,12 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Appearance Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:text="Appearance &amp; Language"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/textColorPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:drawablePadding="8dp"
@@ -338,7 +326,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="#1E1E1E"
+                app:cardBackgroundColor="?attr/surfaceColor"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp">
 
@@ -348,7 +336,6 @@
                     android:orientation="vertical"
                     android:padding="8dp">
 
-                    <!-- Language Selection -->
                     <LinearLayout
                         android:id="@+id/languageLayout"
                         android:layout_width="match_parent"
@@ -386,7 +373,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Language"
-                                android:textColor="#FFFFFF"
+                                android:textColor="?attr/textColorPrimary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -396,7 +383,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="English (US)"
-                                android:textColor="#AAAAAA"
+                                android:textColor="?attr/textColorSecondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -404,17 +391,15 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@drawable/ic_arrow_right"
-                            app:tint="#666666" />
+                            app:tint="?attr/textColorSecondary" />
                     </LinearLayout>
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginHorizontal="16dp"
-                        android:background="#333333" />
+                        android:background="?attr/divider_color" />
 
-                    <!-- Dark Theme -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -448,7 +433,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Dark Theme"
-                                android:textColor="#FFFFFF"
+                                android:textColor="?attr/textColorPrimary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -457,7 +442,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="Use dark colors throughout app"
-                                android:textColor="#AAAAAA"
+                                android:textColor="?attr/textColorSecondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -472,13 +457,12 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- About Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:text="About &amp; Information"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/textColorPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:drawablePadding="8dp"
@@ -488,7 +472,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="#1E1E1E"
+                app:cardBackgroundColor="?attr/surfaceColor"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp">
 
@@ -529,7 +513,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="CashFlow Manager"
-                                android:textColor="#FFFFFF"
+                                android:textColor="?attr/textColorPrimary"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
 
@@ -538,7 +522,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:text="Version 1.0.11 (Build 23)"
-                                android:textColor="#AAAAAA"
+                                android:textColor="?attr/textColorSecondary"
                                 android:textSize="13sp" />
 
                             <TextView
@@ -546,7 +530,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="Updated: September 2025"
-                                android:textColor="#666666"
+                                android:textColor="?attr/textColorHint"
                                 android:textSize="11sp" />
                         </LinearLayout>
                     </LinearLayout>

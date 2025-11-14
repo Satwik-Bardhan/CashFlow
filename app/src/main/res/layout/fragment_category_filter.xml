@@ -5,17 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#333333"
+    android:background="?attr/backgroundColor"
     android:padding="16dp">
 
-    <!-- Search Field Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="#1E1E1E">
+        app:cardBackgroundColor="?attr/surfaceColor">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -29,7 +28,7 @@
                 android:layout_height="24dp"
                 android:src="@drawable/ic_search"
                 android:layout_marginEnd="12dp"
-                app:tint="#AAAAAA" />
+                app:tint="?attr/textColorSecondary" />
 
             <EditText
                 android:id="@+id/search_category"
@@ -38,8 +37,8 @@
                 android:layout_weight="1"
                 android:hint="Search categories..."
                 android:background="@android:color/transparent"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#666666"
+                android:textColor="?attr/textColorPrimary"
+                android:textColorHint="?attr/textColorHint"
                 android:textSize="16sp"
                 android:inputType="text"
                 android:imeOptions="actionSearch"
@@ -56,29 +55,27 @@
                 android:focusable="true"
                 android:padding="4dp"
                 android:visibility="gone"
-                app:tint="#AAAAAA"
+                app:tint="?attr/textColorSecondary"
                 android:contentDescription="Clear search" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Categories Section Header -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Categories"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginBottom="12dp" />
 
-    <!-- Categories List Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="#1E1E1E">
+        app:cardBackgroundColor="?attr/surfaceColor">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/categories_recycler_view"
@@ -91,7 +88,6 @@
             tools:listitem="@layout/list_item_category_filter" />
     </androidx.cardview.widget.CardView>
 
-    <!-- No Categories State -->
     <LinearLayout
         android:id="@+id/no_categories_layout"
         android:layout_width="match_parent"
@@ -108,14 +104,14 @@
             android:src="@drawable/ic_category_outline"
             android:layout_marginBottom="20dp"
             android:contentDescription="No categories icon"
-            app:tint="#666666" />
+            app:tint="?attr/textColorHint" />
 
         <TextView
             android:id="@+id/no_categories_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No Categories Found"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/textColorPrimary"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
@@ -125,7 +121,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="You don't have any categories in this cashbook"
-            android:textColor="#AAAAAA"
+            android:textColor="?attr/textColorSecondary"
             android:textSize="14sp"
             android:gravity="center"
             android:layout_marginBottom="20dp" />

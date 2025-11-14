@@ -7,18 +7,17 @@ import androidx.lifecycle.ViewModelProvider;
 
 public class CashInOutViewModelFactory implements ViewModelProvider.Factory {
     private final Application application;
-    private final boolean isGuest;
 
-    public CashInOutViewModelFactory(Application application, boolean isGuest) {
+    public CashInOutViewModelFactory(Application application) {
         this.application = application;
-        this.isGuest = isGuest;
     }
 
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(CashInOutViewModel.class)) {
-            return (T) new CashInOutViewModel(application, isGuest);
+            // [FIX] Removed the isGuest parameter from the constructor
+            return (T) new CashInOutViewModel(application);
         }
         throw new IllegalArgumentException("Unknown ViewModel class");
     }

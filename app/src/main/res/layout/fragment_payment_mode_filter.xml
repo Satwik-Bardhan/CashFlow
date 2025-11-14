@@ -4,31 +4,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     android:padding="16dp">
 
-    <!-- Search Field Card -->
-
-    <!-- Filter Header -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Payment Modes"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="12dp"
-        android:drawableStart="@drawable/ic_payment"
         android:drawablePadding="8dp"
-        app:drawableTint="#2196F3" />
+        app:drawableTint="?attr/balanceColor" />
 
-    <!-- Payment Modes Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="#1E1E1E">
+        app:cardBackgroundColor="?attr/surfaceColor">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -36,7 +31,6 @@
             android:orientation="vertical"
             android:padding="8dp">
 
-            <!-- No Payment Mode -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
@@ -52,7 +46,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_block"
                     android:layout_marginEnd="12dp"
-                    app:tint="#9E9E9E" />
+                    app:tint="?attr/textColorSecondary" />
 
                 <CheckBox
                     android:id="@+id/checkbox_no_mode"
@@ -60,37 +54,27 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="No Payment Mode"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="16sp"
                     android:clickable="false"
                     android:focusable="false" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="None"
-                    android:textColor="#000000"
-                    android:textSize="12sp"
-                    android:background="@drawable/rounded_tag_background"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="4dp" />
             </LinearLayout>
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#333333"
+                android:background="?attr/dividerHorizontal"
                 android:layout_marginHorizontal="16dp" />
 
-            <!-- Cash -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:background="@drawable/ripple_background"
                 android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
                 android:clickable="true"
                 android:focusable="true">
 
@@ -99,7 +83,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_money"
                     android:layout_marginEnd="12dp"
-                    app:tint="#4CAF50" />
+                    app:tint="?attr/incomeColor" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -112,7 +96,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Cash"
-                        android:textColor="#4CAF50"
+                        android:textColor="?attr/incomeColor"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:clickable="false"
@@ -122,26 +106,25 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Physical currency transactions"
-                        android:textColor="#AAAAAA"
+                        android:textColor="?attr/textColorSecondary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#333333"
+                android:background="?attr/dividerHorizontal"
                 android:layout_marginHorizontal="16dp" />
 
-            <!-- Online -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:background="@drawable/ripple_background"
                 android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
                 android:clickable="true"
                 android:focusable="true">
 
@@ -150,7 +133,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_online_payment"
                     android:layout_marginEnd="12dp"
-                    app:tint="#2196F3" />
+                    app:tint="?attr/balanceColor" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -163,7 +146,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Online"
-                        android:textColor="#2196F3"
+                        android:textColor="?attr/balanceColor"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:clickable="false"
@@ -173,7 +156,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Digital payments &amp; transfers"
-                        android:textColor="#AAAAAA"
+                        android:textColor="?attr/textColorSecondary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>

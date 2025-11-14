@@ -8,24 +8,25 @@
     android:orientation="horizontal">
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="12dp"
         android:layout_weight="1"
         android:hint="Tags (comma separated)"
-        app:boxBackgroundColor="#23272B"
+        app:boxBackgroundColor="?attr/surfaceColor"
         app:boxCornerRadiusBottomEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
         app:boxCornerRadiusTopStart="12dp"
-        app:hintTextColor="#AAAAAA">
+        app:hintTextColor="?attr/textColorSecondary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/tagsEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/textColorPrimary"
             android:textSize="16sp" />
     </com.google.android.material.textfield.TextInputLayout>
 

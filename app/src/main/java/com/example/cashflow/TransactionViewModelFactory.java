@@ -5,15 +5,12 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-// This Factory's only job is to create a TransactionViewModel
 public class TransactionViewModelFactory implements ViewModelProvider.Factory {
     private final Application application;
-    private final boolean isGuest;
     private final String cashbookId;
 
-    public TransactionViewModelFactory(Application application, boolean isGuest, String cashbookId) {
+    public TransactionViewModelFactory(Application application, String cashbookId) {
         this.application = application;
-        this.isGuest = isGuest;
         this.cashbookId = cashbookId;
     }
 
@@ -21,10 +18,9 @@ public class TransactionViewModelFactory implements ViewModelProvider.Factory {
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(TransactionViewModel.class)) {
-            // This now correctly creates a TransactionViewModel
-            return (T) new TransactionViewModel(application, isGuest, cashbookId);
+            // [FIX] Removed isGuest, now only passes cashbookId
+            return (T) new TransactionViewModel(application, cashbookId);
         }
         throw new IllegalArgumentException("Unknown ViewModel class");
     }
 }
-

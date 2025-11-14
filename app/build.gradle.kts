@@ -27,7 +27,6 @@ android {
         }
     }
     compileOptions {
-        // Updated to Java 11 (VERSION_11) for modern Android development
         // This resolves the "source value 8 is obsolete" warnings
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -39,8 +38,8 @@ android {
 
 dependencies {
     // AndroidX & UI Components (Consolidated)
-    implementation("androidx.appcompat:appcompat:1.7.0") // Kept latest version
-    implementation("com.google.android.material:material:1.12.0") // Kept latest version
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.activity:activity:1.9.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
@@ -51,11 +50,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata:2.8.4")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.8.4")
 
-    // Firebase Bill of Materials
+    // Firebase Bill of Materials (Single BOM for version management)
     implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
-    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-storage") // Added
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
 
@@ -70,17 +69,15 @@ dependencies {
     // Third-party libraries
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.github.QuadFlask:colorpicker:0.0.15")
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    implementation("com.itextpdf:itextpdf:5.5.13.3") // PDF Creator
+    implementation("com.github.bumptech.glide:glide:4.16.0") // Added
+    implementation("com.itextpdf:itextpdf:5.5.13.3") // Added PDF Creator
 
     // SwipeRefreshLayout
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // Location Services
-    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.android.gms:play-services-location:21.0.1") // Added
 
     // File Provider
-    implementation("androidx.core:core:1.12.0")
-
-    // Removed duplicate Material and AppCompat dependencies
+    implementation("androidx.core:core:1.12.0") // Added
 }

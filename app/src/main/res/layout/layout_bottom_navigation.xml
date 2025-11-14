@@ -4,11 +4,11 @@
     android:id="@+id/fixedBottomContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#1E1E1E"
+    android:background="?attr/surfaceColor"
     android:orientation="horizontal"
-    android:paddingVertical="8dp">
+    android:paddingVertical="8dp"
+    android:elevation="8dp">
 
-    <!-- CASHBOOK SWITCH BUTTON - Wrapped in FrameLayout for badge support -->
     <FrameLayout
         android:id="@+id/btnCashbookSwitch"
         android:layout_width="0dp"
@@ -32,7 +32,7 @@
                 android:src="@drawable/ic_book"
                 app:tint="@color/bottom_nav_item_color_selector"
                 android:duplicateParentState="true"
-                android:contentDescription="@string/cashbooks_icon_desc" />
+                android:contentDescription="Switch Cashbooks" />
 
             <TextView
                 android:id="@+id/textCashbookSwitch"
@@ -45,7 +45,6 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- HOME BUTTON -->
     <FrameLayout
         android:id="@+id/btnHome"
         android:layout_width="0dp"
@@ -69,7 +68,7 @@
                 android:src="@drawable/ic_home"
                 app:tint="@color/bottom_nav_item_color_selector"
                 android:duplicateParentState="true"
-                android:contentDescription="@string/home_icon_desc" />
+                android:contentDescription="Home" />
 
             <TextView
                 android:id="@+id/textHome"
@@ -82,7 +81,6 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- TRANSACTIONS BUTTON -->
     <FrameLayout
         android:id="@+id/btnTransactions"
         android:layout_width="0dp"
@@ -106,7 +104,7 @@
                 android:src="@drawable/ic_transactions"
                 app:tint="@color/bottom_nav_item_color_selector"
                 android:duplicateParentState="true"
-                android:contentDescription="@string/transactions_icon_desc" />
+                android:contentDescription="Transactions" />
 
             <TextView
                 android:id="@+id/textTransactions"
@@ -119,7 +117,6 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- SETTINGS BUTTON -->
     <FrameLayout
         android:id="@+id/btnSettings"
         android:layout_width="0dp"
@@ -143,7 +140,7 @@
                 android:src="@drawable/ic_settings"
                 app:tint="@color/bottom_nav_item_color_selector"
                 android:duplicateParentState="true"
-                android:contentDescription="@string/settings_icon_desc" />
+                android:contentDescription="Settings" />
 
             <TextView
                 android:id="@+id/textSettings"

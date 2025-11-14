@@ -1,5 +1,8 @@
-package com.example.cashflow;
+package com.example.cashflow.models;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
+@IgnoreExtraProperties // Added this annotation back, as it's best practice for Firebase
 public class Users {
     private String profile;
     private String mail;
@@ -62,3 +65,4 @@ public class Users {
         this.dateOfBirthTimestamp = dateOfBirthTimestamp;
     }
 }
+

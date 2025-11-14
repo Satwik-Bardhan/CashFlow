@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:background="?attr/backgroundColor"
     android:padding="24dp">
 
-    <!-- Cashbook Name Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        app:boxBackgroundColor="@color/card_background_elevated"
+        app:boxBackgroundColor="?attr/surfaceColor"
         app:boxCornerRadiusBottomEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
@@ -19,7 +19,7 @@
         app:counterEnabled="true"
         app:counterMaxLength="50"
         app:endIconMode="clear_text"
-        app:hintTextColor="@color/primary_blue">
+        app:hintTextColor="?attr/balanceColor">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/cashbookNameInput"
@@ -28,17 +28,16 @@
             android:hint="@string/cashbook_name_hint"
             android:inputType="text"
             android:maxLength="50"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
+            android:textColor="?attr/textColorPrimary"
+            android:textColorHint="?attr/textColorHint"
             android:textSize="16sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Cashbook Description Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
-        app:boxBackgroundColor="@color/card_background_elevated"
+        app:boxBackgroundColor="?attr/surfaceColor"
         app:boxCornerRadiusBottomEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
@@ -46,7 +45,7 @@
         app:counterEnabled="true"
         app:counterMaxLength="200"
         app:endIconMode="clear_text"
-        app:hintTextColor="@color/primary_blue">
+        app:hintTextColor="?attr/balanceColor">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/cashbookDescInput"
@@ -57,17 +56,16 @@
             android:inputType="textMultiLine"
             android:lines="4"
             android:maxLength="200"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
+            android:textColor="?attr/textColorPrimary"
+            android:textColorHint="?attr/textColorHint"
             android:textSize="16sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Info Text -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:text="@string/cashbook_create_info"
-        android:textColor="@color/text_secondary"
+        android:textColor="?attr/textColorSecondary"
         android:textSize="12sp" />
 </LinearLayout>

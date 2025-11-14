@@ -5,7 +5,7 @@
     android:id="@+id/main_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     android:fitsSystemWindows="true"
     tools:context=".EditTransactionActivity">
 
@@ -20,7 +20,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Modernized Card Header -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -28,7 +27,7 @@
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="12dp"
                 android:layout_marginBottom="14dp"
-                app:cardBackgroundColor="#1E1E1E"
+                app:cardBackgroundColor="?attr/surfaceColor"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="8dp">
 
@@ -41,7 +40,6 @@
                     android:paddingEnd="20dp"
                     android:paddingBottom="18dp">
 
-                    <!-- Back button, left -->
                     <ImageView
                         android:id="@+id/backButton"
                         android:layout_width="36dp"
@@ -55,9 +53,8 @@
                         android:importantForAccessibility="yes"
                         android:padding="6dp"
                         android:src="@drawable/ic_arrow_left"
-                        app:tint="#FFFFFF" />
+                        app:tint="?attr/textColorPrimary" />
 
-                    <!-- Title & Subtitle, truly centered -->
                     <LinearLayout
                         android:id="@+id/header_text_layout"
                         android:layout_width="wrap_content"
@@ -74,7 +71,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:maxLines="1"
                             android:text="Edit Transaction"
-                            android:textColor="#FFFFFF"
+                            android:textColor="?attr/textColorPrimary"
                             android:textSize="22sp"
                             android:textStyle="bold" />
 
@@ -87,11 +84,10 @@
                             android:fontFamily="sans-serif"
                             android:maxLines="1"
                             android:text="Last modified: June 15, 2025"
-                            android:textColor="#BBBBBB"
+                            android:textColor="?attr/textColorSecondary"
                             android:textSize="13sp" />
                     </LinearLayout>
 
-                    <!-- Menu button, right -->
                     <ImageView
                         android:id="@+id/menuButton"
                         android:layout_width="36dp"
@@ -105,16 +101,15 @@
                         android:importantForAccessibility="yes"
                         android:padding="6dp"
                         android:src="@drawable/ic_more_vert"
-                        app:tint="#2196F3" />
+                        app:tint="?attr/balanceColor" />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Status Banner -->
             <LinearLayout
                 android:id="@+id/statusBanner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#1976D2"
+                android:background="?attr/balanceColor"
                 android:elevation="1dp"
                 android:paddingStart="20dp"
                 android:paddingTop="10dp"
@@ -146,7 +141,6 @@
                 android:orientation="vertical"
                 android:padding="12dp">
 
-                <!-- Amounts summary bar -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -173,33 +167,18 @@
                         android:textSize="13sp" />
                 </LinearLayout>
 
-                <!-- Date & Time Row -->
                 <include layout="@layout/layout_date_time" />
-                <!-- In/Out Toggle -->
                 <include layout="@layout/layout_transaction_type" />
                 <include layout="@layout/layout_payment_method" />
-                <!-- Amount Input -->
                 <include layout="@layout/layout_amount" />
                 <include layout="@layout/layout_tax_amount" />
 
-
-                <!-- Party Selector -->
-
-                <!-- Remark Input -->
-
-                <!-- Reference Input -->
-
-                <!-- Category Selector -->
                 <include layout="@layout/layout_category" />
-                <!-- Attached Files Display Section -->
                 <include layout="@layout/layout_attachments" />
                 <include layout="@layout/layout_attached_files" />
 
-
-
                 <include layout="@layout/layout_party_reference" />
 
-                <!-- Change Log Section -->
                 <LinearLayout
                     android:id="@+id/changeLogSection"
                     android:layout_width="match_parent"
@@ -214,7 +193,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:text="Change History"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -222,11 +201,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="• Amount changed from ₹4,500 to ₹5,000 on Jun 15"
-                        android:textColor="#BBBBBB"
+                        android:textColor="?attr/textColorSecondary"
                         android:textSize="11sp" />
                 </LinearLayout>
 
-                <!-- Action Buttons for Edit -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -7,11 +7,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 public class HomePageViewModelFactory implements ViewModelProvider.Factory {
     private final Application application;
-    private final boolean isGuest;
 
-    public HomePageViewModelFactory(Application application, boolean isGuest) {
+    public HomePageViewModelFactory(Application application) {
         this.application = application;
-        this.isGuest = isGuest;
     }
 
     @NonNull
@@ -19,7 +17,8 @@ public class HomePageViewModelFactory implements ViewModelProvider.Factory {
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(HomePageViewModel.class)) {
             //noinspection unchecked
-            return (T) new HomePageViewModel(application, isGuest);
+            // [FIX] Removed the isGuest parameter
+            return (T) new HomePageViewModel(application);
         }
         throw new IllegalArgumentException("Unknown ViewModel class");
     }

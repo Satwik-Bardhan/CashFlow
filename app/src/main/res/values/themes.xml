@@ -1,63 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <style name="Theme.CashFlow" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-    <!-- Main CashFlow Theme based on Material Components -->
-        <!-- Primary Colors -->
+
         <item name="colorPrimary">@color/primary_blue</item>
+        <item name="colorPrimaryDark">@color/primary_blue_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/secondary_green</item>
+        <item name="colorOnSecondary">@color/white</item>
 
+        <item name="backgroundColor">@color/backgroundColor</item>
+        <item name="surfaceColor">@color/surfaceColor</item>
 
-        <!-- Surface Colors -->
-        <item name="android:colorBackground">@color/background_dark</item>
-        <item name="android:colorForeground">@color/text_primary</item>
+        <item name="textColorPrimary">@color/textColorPrimary</item>
+        <item name="textColorSecondary">@color/textColorSecondary</item>
+        <item name="textColorHint">@color/textColorHint</item>
+        <item name="android:textColorPrimary">?attr/textColorPrimary</item>
+        <item name="android:textColorSecondary">?attr/textColorSecondary</item>
+        <item name="android:textColorHint">?attr/textColorHint</item>
 
-        <!-- Status Bar -->
-        <item name="android:statusBarColor">@color/primary_blue</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:navigationBarColor">@color/background_dark</item>
+        <item name="incomeColor">@color/income_green</item>
+        <item name="expenseColor">@color/expense_red</item>
+        <item name="balanceColor">@color/balance_blue</item>
 
-        <!-- Text Colors -->
-        <item name="android:textColorPrimary">@color/text_primary</item>
-        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:colorBackground">?attr/backgroundColor</item>
 
-        <!-- Material Components Styles -->
-        <item name="textAppearanceHeadline1">@style/TextAppearance.MaterialComponents.Headline1</item>
-        <item name="textAppearanceHeadline2">@style/TextAppearance.MaterialComponents.Headline2</item>
-        <item name="textAppearanceHeadline3">@style/TextAppearance.MaterialComponents.Headline3</item>
-        <item name="textAppearanceHeadline4">@style/TextAppearance.MaterialComponents.Headline4</item>
-        <item name="textAppearanceHeadline5">@style/TextAppearance.MaterialComponents.Headline5</item>
-        <item name="textAppearanceHeadline6">@style/TextAppearance.MaterialComponents.Headline6</item>
-        <item name="textAppearanceSubtitle1">@style/TextAppearance.MaterialComponents.Subtitle1</item>
-        <item name="textAppearanceSubtitle2">@style/TextAppearance.MaterialComponents.Subtitle2</item>
-        <item name="textAppearanceBody1">@style/TextAppearance.MaterialComponents.Body1</item>
-        <item name="textAppearanceBody2">@style/TextAppearance.MaterialComponents.Body2</item>
-        <item name="textAppearanceCaption">@style/TextAppearance.MaterialComponents.Caption</item>
-        <item name="textAppearanceButton">@style/TextAppearance.MaterialComponents.Button</item>
-        <item name="textAppearanceOverline">@style/TextAppearance.MaterialComponents.Overline</item>
+        <item name="bottomNavIconTextColor">@color/bottom_nav_icon_text_color</item>
+        <item name="bottomNavSelectedColor">@color/bottom_nav_selected</item>
+        <item name="bottomNavBorderColor">@color/bottom_nav_item_unselected_border</item>
 
-        <!-- Chip Style -->
-        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Filter</item>
+        <item name="android:statusBarColor">?attr/backgroundColor</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <item name="dividerHorizontal">@color/divider_color</item>
+
     </style>
-
-    <!-- Theme without ActionBar -->
-    <style name="Theme.CashFlow.NoActionBar" parent="Theme.CashFlow">
-        <item name="windowNoTitle">true</item>
-        <item name="windowActionBar">false</item>
-        <item name="android:windowFullscreen">false</item>
-    </style>
-
-    <!-- Theme for Dialog Activities -->
-    <style name="Theme.CashFlow.Dialog" parent="Theme.CashFlow">
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowActionBar">false</item>
-    </style>
-
-    <!-- Theme for Transparent Activities -->
-    <style name="Theme.CashFlow.Transparent" parent="Theme.CashFlow">
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-    </style>
-
 </resources>

@@ -12,7 +12,6 @@
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Category Color Indicator -->
     <View
         android:id="@+id/categoryColorDot"
         android:layout_width="16dp"
@@ -20,7 +19,6 @@
         android:background="@drawable/category_color_circle"
         android:layout_marginEnd="12dp" />
 
-    <!-- Category Icon -->
     <ImageView
         android:id="@+id/categoryIcon"
         android:layout_width="24dp"
@@ -28,21 +26,19 @@
         android:src="@drawable/ic_category_default"
         android:layout_marginEnd="12dp"
         android:contentDescription="Category icon"
-        app:tint="#2196F3" />
+        app:tint="?attr/balanceColor" />
 
-    <!-- Category Name -->
     <TextView
         android:id="@+id/category_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Category Name"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="16sp"
         android:ellipsize="end"
         android:maxLines="1" />
 
-    <!-- Selection CheckBox -->
     <CheckBox
         android:id="@+id/category_checkbox"
         android:layout_width="wrap_content"

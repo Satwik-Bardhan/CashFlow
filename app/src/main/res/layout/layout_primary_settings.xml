@@ -5,26 +5,24 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <!-- Section Header -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
         android:text="Primary Settings"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:layout_marginStart="2dp"
         android:textSize="18sp"
         android:textStyle="bold"
         android:drawablePadding="8dp"
-        app:drawableTint="#2196F3" />
+        app:drawableTint="?attr/balanceColor" />
 
-    <!-- Settings Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="#1E1E1E">
+        app:cardBackgroundColor="?attr/surfaceColor">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -32,7 +30,6 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- User Profile Section -->
             <LinearLayout
                 android:id="@+id/profileSection"
                 android:layout_width="match_parent"
@@ -49,7 +46,7 @@
                     android:layout_height="56dp"
                     app:cardCornerRadius="28dp"
                     app:cardElevation="4dp"
-                    app:cardBackgroundColor="#2196F3">
+                    app:cardBackgroundColor="?attr/balanceColor">
 
                     <ImageView
                         android:id="@+id/profileImg"
@@ -73,7 +70,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="John Doe"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -82,7 +79,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Profile Status"
-                        android:textColor="#8BC34A"
+                        android:textColor="?attr/incomeColor"
                         android:textSize="12sp"
                         android:layout_marginTop="2dp" />
                 </LinearLayout>
@@ -100,14 +97,77 @@
                     app:tint="#FFFFFF" />
             </LinearLayout>
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginVertical="12dp"
-                android:background="#333333" />
+                android:background="?attr/dividerHorizontal" />
 
-            <!-- Data Information Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Active Cashbook"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:drawableStart="@drawable/ic_folder"
+                    android:drawablePadding="8dp"
+                    app:drawableTint="@color/category_food" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Cashbook name"
+                        app:boxBackgroundColor="?attr/backgroundColor"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:hintTextColor="?attr/textColorSecondary">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editCashbookName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textColorHint="?attr/textColorHint" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <ImageView
+                        android:id="@+id/saveCashbookNameButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/save_button_background"
+                        android:clickable="true"
+                        android:contentDescription="Save Cashbook Name"
+                        android:focusable="true"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_check"
+                        app:tint="#FFFFFF" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="12dp"
+                android:background="?attr/dividerHorizontal" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -118,12 +178,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="Storage Information"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:drawableStart="@drawable/ic_storage"
                     android:drawablePadding="6dp"
-                    app:drawableTint="#4CAF50" />
+                    app:drawableTint="?attr/incomeColor" />
 
                 <TextView
                     android:id="@+id/data_location"
@@ -131,7 +191,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:text="Internal Storage/CashFlow/Data"
-                    android:textColor="#AAAAAA"
+                    android:textColor="?attr/textColorSecondary"
                     android:textSize="13sp" />
 
                 <LinearLayout
@@ -145,14 +205,14 @@
                         android:layout_height="16dp"
                         android:src="@drawable/ic_calendar"
                         android:layout_marginEnd="6dp"
-                        app:tint="#888888" />
+                        app:tint="?attr/textColorHint" />
 
                     <TextView
                         android:id="@+id/created_date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Created on September 07, 2025"
-                        android:textColor="#888888"
+                        android:textColor="?attr/textColorHint"
                         android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>

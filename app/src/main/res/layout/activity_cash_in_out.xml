@@ -5,13 +5,12 @@
     android:id="@+id/main_settings_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     android:fitsSystemWindows="true"
     android:padding="12dp"
     tools:context=".CashInOutActivity"
     android:importantForAccessibility="yes">
 
-    <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_view"
         android:layout_width="match_parent"
@@ -27,11 +26,10 @@
             android:orientation="vertical"
             android:importantForAccessibility="yes">
 
-            <!-- Modernized Card Header -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#1E1E1E"
+                app:cardBackgroundColor="?attr/surfaceColor"
                 app:cardCornerRadius="20dp"
                 android:layout_marginBottom="14dp"
                 app:cardElevation="8dp">
@@ -45,7 +43,6 @@
                     android:paddingBottom="18dp"
                     android:gravity="center_vertical">
 
-                    <!-- Back button, left -->
                     <ImageView
                         android:id="@+id/back_button"
                         android:layout_width="36dp"
@@ -57,11 +54,10 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:clickable="true"
                         android:focusable="true"
-                        app:tint="#FFFFFF"
+                        app:tint="?attr/textColorPrimary"
                         android:padding="6dp"
                         android:importantForAccessibility="yes" />
 
-                    <!-- Title & Subtitle, centered -->
                     <LinearLayout
                         android:id="@+id/header_text_layout"
                         android:orientation="vertical"
@@ -75,7 +71,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Add Entry"
-                            android:textColor="#FFFFFF"
+                            android:textColor="?attr/textColorPrimary"
                             android:textSize="22sp"
                             android:textStyle="bold"
                             android:fontFamily="sans-serif-medium"
@@ -87,7 +83,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Record income or expense"
-                            android:textColor="#BBBBBB"
+                            android:textColor="?attr/textColorSecondary"
                             android:textSize="13sp"
                             android:layout_marginTop="3dp"
                             android:fontFamily="sans-serif"
@@ -95,7 +91,6 @@
                             android:ellipsize="end" />
                     </LinearLayout>
 
-                    <!-- Menu button, right -->
                     <ImageView
                         android:id="@+id/menu_button"
                         android:layout_width="36dp"
@@ -107,13 +102,12 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:clickable="true"
                         android:focusable="true"
-                        app:tint="#2196F3"
+                        app:tint="?attr/balanceColor"
                         android:padding="6dp"
                         android:importantForAccessibility="yes" />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Include modularized entry sections -->
             <include layout="@layout/layout_date_time" />
             <include layout="@layout/layout_transaction_type" />
             <include layout="@layout/layout_payment_method" />

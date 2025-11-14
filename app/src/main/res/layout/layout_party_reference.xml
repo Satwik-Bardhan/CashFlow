@@ -11,17 +11,16 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
         android:text="Party / Reference"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:drawableTint="#E91E63" />
+        app:drawableTint="@color/category_rent" />
 
-    <!-- Party selection -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginBottom="10dp"
-        app:cardBackgroundColor="#23272B"
+        app:cardBackgroundColor="?attr/surfaceColor"
         app:cardCornerRadius="12dp"
         app:cardElevation="2dp">
 
@@ -42,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Select Party (Customer/Supplier)"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/textColorPrimary"
                 android:textSize="14sp" />
 
             <ImageView
@@ -51,16 +50,15 @@
                 android:layout_height="24dp"
                 android:layout_marginEnd="8dp"
                 android:src="@drawable/ic_search"
-                app:tint="#AAAAAA" />
+                app:tint="?attr/textColorSecondary" />
 
             <ImageView
                 android:id="@+id/partyPickerIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_arrow_down"
-                app:tint="#AAAAAA" />
+                app:tint="?attr/textColorSecondary" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Reference number -->
 </LinearLayout>

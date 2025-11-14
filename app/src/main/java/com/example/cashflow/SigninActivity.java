@@ -68,7 +68,7 @@ public class SigninActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         signinButton = findViewById(R.id.signinButton);
-        guestButton = findViewById(R.id.guestButton);
+
         forgotPasswordText = findViewById(R.id.forgotPassword);
         signUpText = findViewById(R.id.signUpText);
         togglePasswordVisibility = findViewById(R.id.togglePasswordVisibility);

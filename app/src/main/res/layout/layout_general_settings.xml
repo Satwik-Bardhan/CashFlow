@@ -5,26 +5,24 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <!-- Section Header -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
         android:text="General Settings"
         android:layout_marginStart="2dp"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="18sp"
         android:textStyle="bold"
         android:drawablePadding="8dp"
-        app:drawableTint="#2196F3" />
+        app:drawableTint="?attr/balanceColor" />
 
-    <!-- Settings Card Container -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="#1E1E1E">
+        app:cardBackgroundColor="?attr/surfaceColor">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -32,7 +30,6 @@
             android:orientation="vertical"
             android:padding="8dp">
 
-            <!-- Help & Support -->
             <LinearLayout
                 android:id="@+id/helpSupport"
                 android:layout_width="match_parent"
@@ -50,7 +47,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_help_support"
                     android:layout_marginEnd="16dp"
-                    app:tint="#4CAF50" />
+                    app:tint="?attr/incomeColor" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -62,7 +59,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Help &amp; Support"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -70,7 +67,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="FAQ, Contact us"
-                        android:textColor="#AAAAAA"
+                        android:textColor="?attr/textColorSecondary"
                         android:textSize="14sp"
                         android:layout_marginTop="2dp" />
                 </LinearLayout>
@@ -79,17 +76,15 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_arrow_right"
-                    app:tint="#666666" />
+                    app:tint="?attr/textColorSecondary" />
             </LinearLayout>
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#333333"
+                android:background="?attr/dividerHorizontal"
                 android:layout_marginHorizontal="16dp" />
 
-            <!-- App Settings -->
             <LinearLayout
                 android:id="@+id/appSettings"
                 android:layout_width="match_parent"
@@ -107,7 +102,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_app_settings"
                     android:layout_marginEnd="16dp"
-                    app:tint="#FF9800" />
+                    app:tint="@color/category_food" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -119,7 +114,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="App Settings"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -127,7 +122,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Language, Theme, Security, Backup"
-                        android:textColor="#AAAAAA"
+                        android:textColor="?attr/textColorSecondary"
                         android:textSize="14sp"
                         android:layout_marginTop="2dp" />
                 </LinearLayout>
@@ -136,17 +131,15 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_arrow_right"
-                    app:tint="#666666" />
+                    app:tint="?attr/textColorSecondary" />
             </LinearLayout>
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#333333"
+                android:background="?attr/dividerHorizontal"
                 android:layout_marginHorizontal="16dp" />
 
-            <!-- Your Profile -->
             <LinearLayout
                 android:id="@+id/yourProfile"
                 android:layout_width="match_parent"
@@ -164,7 +157,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_your_profile"
                     android:layout_marginEnd="16dp"
-                    app:tint="#2196F3" />
+                    app:tint="?attr/balanceColor" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -176,7 +169,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Your Profile"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -184,7 +177,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Name, Mobile Number, Email"
-                        android:textColor="#AAAAAA"
+                        android:textColor="?attr/textColorSecondary"
                         android:textSize="14sp"
                         android:layout_marginTop="2dp" />
                 </LinearLayout>
@@ -193,17 +186,15 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_arrow_right"
-                    app:tint="#666666" />
+                    app:tint="?attr/textColorSecondary" />
             </LinearLayout>
 
-            <!-- Divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#333333"
+                android:background="?attr/dividerHorizontal"
                 android:layout_marginHorizontal="16dp" />
 
-            <!-- About Cash Flow -->
             <LinearLayout
                 android:id="@+id/aboutCashFlow"
                 android:layout_width="match_parent"
@@ -221,7 +212,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_about_info"
                     android:layout_marginEnd="16dp"
-                    app:tint="#9C27B0" />
+                    app:tint="@color/category_utilities" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -233,7 +224,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="About Cash Flow"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -241,7 +232,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Privacy Policy, T&amp;C, About us"
-                        android:textColor="#AAAAAA"
+                        android:textColor="?attr/textColorSecondary"
                         android:textSize="14sp"
                         android:layout_marginTop="2dp" />
                 </LinearLayout>
@@ -250,7 +241,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_arrow_right"
-                    app:tint="#666666" />
+                    app:tint="?attr/textColorSecondary" />
             </LinearLayout>
 
         </LinearLayout>

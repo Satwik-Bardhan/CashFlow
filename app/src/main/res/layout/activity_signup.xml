@@ -5,11 +5,10 @@
     android:id="@+id/main_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     android:fitsSystemWindows="true"
     tools:context=".SignupActivity">
 
-    <!-- Modernized Card Header -->
     <androidx.cardview.widget.CardView
         android:id="@+id/headerCard"
         android:layout_width="match_parent"
@@ -17,7 +16,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
-        app:cardBackgroundColor="#1E1E1E"
+        app:cardBackgroundColor="?attr/surfaceColor"
         app:cardCornerRadius="20dp"
         app:cardElevation="8dp"
         android:layout_alignParentTop="true">
@@ -48,7 +47,7 @@
                     android:contentDescription="@string/back_button_desc"
                     android:clickable="true"
                     android:focusable="true"
-                    app:tint="#FFFFFF"
+                    app:tint="?attr/textColorPrimary"
                     android:padding="6dp"
                     android:importantForAccessibility="yes" />
 
@@ -57,7 +56,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CASH FLOW"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/textColorPrimary"
                     android:textSize="28sp"
                     android:textStyle="bold"
                     android:fontFamily="@font/inter_bold"
@@ -75,7 +74,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:focusable="true"
-                    app:tint="#2196F3"
+                    app:tint="?attr/balanceColor"
                     android:padding="6dp"
                     android:importantForAccessibility="yes" />
             </RelativeLayout>
@@ -85,7 +84,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Create Your Account"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/textColorPrimary"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:gravity="center_horizontal"
@@ -93,7 +92,6 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/main_scroll_view"
         android:layout_width="match_parent"
@@ -108,13 +106,12 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
-            <!-- Sign Up Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="#1E1E1E"
+                app:cardBackgroundColor="?attr/surfaceColor"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp">
 
@@ -124,13 +121,12 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <!-- Email Input -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         android:text="Email Address"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -148,7 +144,7 @@
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
                             android:src="@drawable/ic_email"
-                            app:tint="#AAAAAA" />
+                            app:tint="?attr/textColorSecondary" />
 
                         <EditText
                             android:id="@+id/email"
@@ -159,18 +155,17 @@
                             android:background="@android:color/transparent"
                             android:hint="Enter your email"
                             android:inputType="textEmailAddress"
-                            android:textColor="#FFFFFF"
-                            android:textColorHint="#666666"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textColorHint="?attr/textColorHint"
                             android:textSize="16sp" />
                     </LinearLayout>
 
-                    <!-- Password Input -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         android:text="Password"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -188,7 +183,7 @@
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
                             android:src="@drawable/ic_lock"
-                            app:tint="#AAAAAA" />
+                            app:tint="?attr/textColorSecondary" />
 
                         <EditText
                             android:id="@+id/password"
@@ -199,8 +194,8 @@
                             android:background="@android:color/transparent"
                             android:hint="Enter your password"
                             android:inputType="textPassword"
-                            android:textColor="#FFFFFF"
-                            android:textColorHint="#666666"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textColorHint="?attr/textColorHint"
                             android:textSize="16sp" />
 
                         <ImageView
@@ -212,16 +207,15 @@
                             android:focusable="true"
                             android:padding="4dp"
                             android:src="@drawable/ic_visibility_off"
-                            app:tint="#AAAAAA" />
+                            app:tint="?attr/textColorSecondary" />
                     </LinearLayout>
 
-                    <!-- Confirm Password Input -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         android:text="Confirm Password"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -239,7 +233,7 @@
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
                             android:src="@drawable/ic_lock"
-                            app:tint="#AAAAAA" />
+                            app:tint="?attr/textColorSecondary" />
 
                         <EditText
                             android:id="@+id/confirm_password"
@@ -250,8 +244,8 @@
                             android:background="@android:color/transparent"
                             android:hint="Confirm your password"
                             android:inputType="textPassword"
-                            android:textColor="#FFFFFF"
-                            android:textColorHint="#666666"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textColorHint="?attr/textColorHint"
                             android:textSize="16sp" />
 
                         <ImageView
@@ -263,10 +257,9 @@
                             android:focusable="true"
                             android:padding="4dp"
                             android:src="@drawable/ic_visibility_off"
-                            app:tint="#AAAAAA" />
+                            app:tint="?attr/textColorSecondary" />
                     </LinearLayout>
 
-                    <!-- Sign Up Button -->
                     <Button
                         android:id="@+id/btnSignUp"
                         android:layout_width="match_parent"
@@ -281,13 +274,12 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Welcome Message -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
                 android:text="Welcome User"
-                android:textColor="#DDDDDD"
+                android:textColor="?attr/textColorSecondary"
                 android:textSize="18sp"
                 android:textStyle="italic" />
 
@@ -297,16 +289,15 @@
                 android:layout_marginBottom="24dp"
                 android:gravity="center"
                 android:text="Setup your rest details in the profile menu"
-                android:textColor="#AAAAAA"
+                android:textColor="?attr/textColorSecondary"
                 android:textSize="14sp" />
 
-            <!-- Social Sign Up -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:text="Or sign up with"
-                android:textColor="#AAAAAA"
+                android:textColor="?attr/textColorSecondary"
                 android:textSize="14sp" />
 
             <androidx.cardview.widget.CardView
@@ -316,7 +307,7 @@
                 android:layout_marginBottom="32dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="#FFFFFF"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="32dp"
                 app:cardElevation="4dp">
 
@@ -329,7 +320,6 @@
                     android:src="@drawable/google" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Sign In Link -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -340,7 +330,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Already have an account? "
-                    android:textColor="#AAAAAA"
+                    android:textColor="?attr/textColorSecondary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -353,7 +343,7 @@
                     android:fontFamily="@font/inter_bold"
                     android:padding="8dp"
                     android:text="Sign In"
-                    android:textColor="#2196F3"
+                    android:textColor="?attr/balanceColor"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>

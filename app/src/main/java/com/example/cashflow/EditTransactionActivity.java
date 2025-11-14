@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,7 +22,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.cashflow.utils.CategoryColorUtil;
+// [FIX] Removed unused import 'com.example.cashflow.utils.CategoryColorUtil'
+// [FIX] Removed unused import 'android.graphics.drawable.GradientDrawable'
+
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,30 +37,23 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * EditTransactionActivity - Edit and manage existing transactions
- *
- * Features:
- * - Edit transaction details (amount, date, time, category, payment method)
- * - Delete transaction with confirmation
- * - Duplicate transaction
- * - View transaction metadata
- *
- * Updated: November 2025
- */
 public class EditTransactionActivity extends AppCompatActivity {
 
     private static final String TAG = "EditTransactionActivity";
 
     // UI Components
-    private TextView headerSubtitle, dateTextView, timeTextView, categoryTextView, partyTextView;
+    private TextView headerSubtitle, dateTextView, timeTextView;
+    // [FIX] Renamed to match the correct ID from your XML layout
+    private TextView selectedCategoryTextView, partyTextView;
     private EditText amountEditText, remarkEditText;
     private RadioGroup inOutToggle, cashOnlineToggle;
     private RadioButton radioIn, radioOut, radioCash, radioOnline;
-    private Button deleteButton, duplicateButton, saveButton, cancelButton;
+    // [FIX] Removed 'deleteButton' and 'duplicateButton' as they don't exist in the layout
+    private Button saveButton, cancelButton;
     private ImageView backButton, menuButton, timePickerIcon;
     private LinearLayout categorySelectorLayout;
-    private View categoryColorIndicator;
+    // [FIX] Removed 'categoryColorIndicator' as it doesn't exist in the layout
+    // private View categoryColorIndicator;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -88,6 +82,7 @@ public class EditTransactionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // [FIX] Correct layout name from your file list
         setContentView(R.layout.activity_edit_transaction);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
@@ -96,12 +91,10 @@ public class EditTransactionActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        // Get data from intent
         Intent intent = getIntent();
         currentTransaction = (TransactionModel) intent.getSerializableExtra("transaction_model");
         cashbookId = intent.getStringExtra("cashbook_id");
 
-        // Validate data
         if (currentUser == null || currentTransaction == null ||
                 currentTransaction.getTransactionId() == null || cashbookId == null) {
             showSnackbar("Error: Invalid transaction data");
@@ -110,7 +103,6 @@ public class EditTransactionActivity extends AppCompatActivity {
             return;
         }
 
-        // Initialize Firebase reference
         transactionRef = FirebaseDatabase.getInstance().getReference("users")
                 .child(currentUser.getUid())
                 .child("cashbooks")
@@ -125,9 +117,6 @@ public class EditTransactionActivity extends AppCompatActivity {
         Log.d(TAG, "EditTransactionActivity created for transaction: " + currentTransaction.getTransactionId());
     }
 
-    /**
-     * Initialize all UI components
-     */
     private void initializeUI() {
         headerSubtitle = findViewById(R.id.headerSubtitle);
         dateTextView = findViewById(R.id.dateTextView);
@@ -141,22 +130,24 @@ public class EditTransactionActivity extends AppCompatActivity {
         radioOnline = findViewById(R.id.radioOnline);
         remarkEditText = findViewById(R.id.remarkEditText);
 
-
-        categoryColorIndicator = findViewById(R.id.categoryColorIndicator);
+        // [FIX] Corrected IDs based on your included layouts
+        selectedCategoryTextView = findViewById(R.id.selectedCategoryTextView);
+        categorySelectorLayout = findViewById(R.id.categorySelectorLayout);
         partyTextView = findViewById(R.id.partyTextView);
 
+        // [FIX] Removed 'categoryColorIndicator' - it doesn't exist
+        // categoryColorIndicator = findViewById(R.id.categoryColorIndicator);
 
+        // [FIX] Corrected Button IDs
         saveButton = findViewById(R.id.saveChangesButton);
-        cancelButton = findViewById(R.id.CancelTransactionButton);
+        cancelButton = findViewById(R.id.CancelTransactionButton); // ID from your XML
+
         backButton = findViewById(R.id.backButton);
         menuButton = findViewById(R.id.menuButton);
         timePickerIcon = findViewById(R.id.timePickerIcon);
         calendar = Calendar.getInstance();
     }
 
-    /**
-     * Populate UI with transaction data
-     */
     private void populateData() {
         if (currentTransaction == null) return;
 
@@ -164,24 +155,20 @@ public class EditTransactionActivity extends AppCompatActivity {
         updateDateText();
         updateTimeText();
 
-        // Update header
         SimpleDateFormat headerDateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         headerSubtitle.setText("Last modified: " + headerDateFormat.format(calendar.getTime()));
 
-        // Populate transaction details
         amountEditText.setText(String.valueOf(currentTransaction.getAmount()));
         remarkEditText.setText(currentTransaction.getRemark() != null ? currentTransaction.getRemark() : "");
         partyTextView.setText(currentTransaction.getPartyName() != null ?
                 currentTransaction.getPartyName() : "Select Party");
 
-        // Set transaction type
         if ("IN".equalsIgnoreCase(currentTransaction.getType())) {
             radioIn.setChecked(true);
         } else {
             radioOut.setChecked(true);
         }
 
-        // Set payment mode
         if ("Cash".equalsIgnoreCase(currentTransaction.getPaymentMode())) {
             radioCash.setChecked(true);
         } else {
@@ -192,44 +179,47 @@ public class EditTransactionActivity extends AppCompatActivity {
         Log.d(TAG, "Transaction data populated");
     }
 
-    /**
-     * Setup all click listeners
-     */
     private void setupClickListeners() {
         backButton.setOnClickListener(v -> finish());
-
         cancelButton.setOnClickListener(v -> finish());
 
-        dateTextView.setOnClickListener(v -> showDatePicker());
+        // [FIX] Added null checks for safety
+        if (dateTextView != null) dateTextView.setOnClickListener(v -> showDatePicker());
+        if (timeTextView != null) timeTextView.setOnClickListener(v -> showTimePicker());
+        if (timePickerIcon != null) timePickerIcon.setOnClickListener(v -> showTimePicker());
 
-        timeTextView.setOnClickListener(v -> showTimePicker());
-
-        timePickerIcon.setOnClickListener(v -> showTimePicker());
-
-        categorySelectorLayout.setOnClickListener(v -> {
-            Intent categoryIntent = new Intent(this, ChooseCategoryActivity.class);
-            categoryIntent.putExtra("selected_category", currentTransaction.getTransactionCategory());
-            categoryLauncher.launch(categoryIntent);
-        });
+        if (categorySelectorLayout != null) {
+            categorySelectorLayout.setOnClickListener(v -> {
+                Intent categoryIntent = new Intent(this, ChooseCategoryActivity.class);
+                categoryIntent.putExtra("selected_category", currentTransaction.getTransactionCategory());
+                categoryLauncher.launch(categoryIntent);
+            });
+        }
 
         saveButton.setOnClickListener(v -> saveChanges());
 
-        deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
-
-        duplicateButton.setOnClickListener(v -> duplicateTransaction());
+        // [FIX] Removed listeners for non-existent buttons
+        // deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
+        // duplicateButton.setOnClickListener(v -> duplicateTransaction());
 
         menuButton.setOnClickListener(v -> showMoreOptionsMenu(v));
     }
 
-    /**
-     * Show more options popup menu
-     */
     private void showMoreOptionsMenu(View anchorView) {
         PopupMenu popup = new PopupMenu(this, anchorView);
         popup.getMenuInflater().inflate(R.menu.transaction_detail_menu, popup.getMenu());
+
+        // [FIX] Handle new menu items
         popup.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_share_transaction) {
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_share_transaction) {
                 shareTransaction();
+                return true;
+            } else if (itemId == R.id.action_duplicate_transaction) {
+                duplicateTransaction();
+                return true;
+            } else if (itemId == R.id.action_delete_transaction) {
+                showDeleteConfirmationDialog();
                 return true;
             }
             return false;
@@ -237,15 +227,13 @@ public class EditTransactionActivity extends AppCompatActivity {
         popup.show();
     }
 
-    /**
-     * Share transaction details
-     */
     private void shareTransaction() {
         try {
             String shareText = "Transaction Details:\n" +
                     "Amount: ₹" + amountEditText.getText().toString() + "\n" +
                     "Type: " + (radioIn.isChecked() ? "Income" : "Expense") + "\n" +
-                    "Category: " + categoryTextView.getText().toString() + "\n" +
+                    // [FIX] Use correct ID
+                    "Category: " + selectedCategoryTextView.getText().toString() + "\n" +
                     "Payment Mode: " + (radioCash.isChecked() ? "Cash" : "Online") + "\n" +
                     "Date: " + dateTextView.getText().toString() + "\n" +
                     "Remark: " + remarkEditText.getText().toString();
@@ -260,22 +248,18 @@ public class EditTransactionActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Update category UI with color indicator
-     */
     private void updateCategoryUI() {
         String categoryName = currentTransaction.getTransactionCategory();
-        categoryTextView.setText(categoryName != null ? categoryName : "Select Category");
+        // [FIX] Use correct ID
+        selectedCategoryTextView.setText(categoryName != null ? categoryName : "Select Category");
 
-        int color = CategoryColorUtil.getCategoryColor(this, categoryName);
-        if (categoryColorIndicator.getBackground() instanceof GradientDrawable) {
-            ((GradientDrawable) categoryColorIndicator.getBackground().mutate()).setColor(color);
-        }
+        // [FIX] Removed logic for non-existent color indicator
+        // int color = CategoryColorUtil.getCategoryColor(this, categoryName);
+        // if (categoryColorIndicator.getBackground() instanceof GradientDrawable) {
+        //     ((GradientDrawable) categoryColorIndicator.getBackground().mutate()).setColor(color);
+        // }
     }
 
-    /**
-     * Show date picker dialog
-     */
     private void showDatePicker() {
         new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             calendar.set(Calendar.YEAR, year);
@@ -287,9 +271,6 @@ public class EditTransactionActivity extends AppCompatActivity {
                 calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-    /**
-     * Show time picker dialog
-     */
     private void showTimePicker() {
         new TimePickerDialog(this, (view, hourOfDay, minute) -> {
             calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
@@ -299,27 +280,17 @@ public class EditTransactionActivity extends AppCompatActivity {
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false).show();
     }
 
-    /**
-     * Update date text view
-     */
     private void updateDateText() {
         SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd, yyyy", Locale.US);
         dateTextView.setText(sdf.format(calendar.getTime()));
     }
 
-    /**
-     * Update time text view
-     */
     private void updateTimeText() {
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.US);
         timeTextView.setText(sdf.format(calendar.getTime()));
     }
 
-    /**
-     * Save changes to the transaction
-     */
     private void saveChanges() {
-        // Validate amount
         String amountStr = amountEditText.getText().toString().trim();
         if (amountStr.isEmpty()) {
             showSnackbar("Please enter an amount");
@@ -333,17 +304,16 @@ public class EditTransactionActivity extends AppCompatActivity {
                 return;
             }
 
-            // Create updates map
             Map<String, Object> updates = new HashMap<>();
             updates.put("amount", amount);
             updates.put("remark", remarkEditText.getText().toString());
             updates.put("timestamp", calendar.getTimeInMillis());
             updates.put("type", radioIn.isChecked() ? "IN" : "OUT");
             updates.put("paymentMode", radioCash.isChecked() ? "Cash" : "Online");
-            updates.put("transactionCategory", categoryTextView.getText().toString());
+            // [FIX] Use correct ID
+            updates.put("transactionCategory", selectedCategoryTextView.getText().toString());
             updates.put("partyName", partyTextView.getText().toString());
 
-            // Update in Firebase
             transactionRef.updateChildren(updates)
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Transaction updated successfully");
@@ -361,9 +331,6 @@ public class EditTransactionActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Show delete confirmation dialog
-     */
     private void showDeleteConfirmationDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Transaction")
@@ -373,9 +340,6 @@ public class EditTransactionActivity extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * Delete the transaction
-     */
     private void deleteTransaction() {
         transactionRef.removeValue()
                 .addOnSuccessListener(aVoid -> {
@@ -389,9 +353,6 @@ public class EditTransactionActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * Duplicate the transaction
-     */
     private void duplicateTransaction() {
         try {
             TransactionModel duplicatedTransaction = new TransactionModel();
@@ -400,10 +361,10 @@ public class EditTransactionActivity extends AppCompatActivity {
             duplicatedTransaction.setTimestamp(System.currentTimeMillis());
             duplicatedTransaction.setType(radioIn.isChecked() ? "IN" : "OUT");
             duplicatedTransaction.setPaymentMode(radioCash.isChecked() ? "Cash" : "Online");
-            duplicatedTransaction.setTransactionCategory(categoryTextView.getText().toString());
+            // [FIX] Use correct ID
+            duplicatedTransaction.setTransactionCategory(selectedCategoryTextView.getText().toString());
             duplicatedTransaction.setPartyName(partyTextView.getText().toString());
 
-            // Push to Firebase (creates new ID automatically)
             transactionRef.getParent().push().setValue(duplicatedTransaction)
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Transaction duplicated successfully");
@@ -421,9 +382,6 @@ public class EditTransactionActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Show snackbar message
-     */
     private void showSnackbar(String message) {
         Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
     }

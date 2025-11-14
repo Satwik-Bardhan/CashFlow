@@ -4,10 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     android:padding="16dp">
 
-    <!-- Header Section -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -15,16 +14,15 @@
         android:drawableStart="@drawable/ic_calendar"
         android:drawablePadding="8dp"
         android:text="Date Filter"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="18sp"
         android:textStyle="bold"
-        app:drawableTint="#2196F3" />
+        app:drawableTint="?attr/balanceColor" />
 
-    <!-- Date Options Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="#1E1E1E"
+        app:cardBackgroundColor="?attr/surfaceColor"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp">
 
@@ -40,7 +38,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- All Time -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -56,7 +53,7 @@
                         android:layout_height="24dp"
                         android:layout_marginEnd="12dp"
                         android:src="@drawable/ic_history"
-                        app:tint="#4CAF50" />
+                        app:tint="?attr/incomeColor" />
 
                     <RadioButton
                         android:id="@+id/radio_all_time"
@@ -67,18 +64,16 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:text="All Time"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp" />
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginHorizontal="16dp"
-                    android:background="#333333" />
+                    android:background="?attr/dividerHorizontal" />
 
-                <!-- Today -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -94,7 +89,7 @@
                         android:layout_height="24dp"
                         android:layout_marginEnd="12dp"
                         android:src="@drawable/ic_today"
-                        app:tint="#2196F3" />
+                        app:tint="?attr/balanceColor" />
 
                     <RadioButton
                         android:id="@+id/radio_today"
@@ -104,18 +99,16 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:text="Today"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp" />
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginHorizontal="16dp"
-                    android:background="#333333" />
+                    android:background="?attr/dividerHorizontal" />
 
-                <!-- Yesterday -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -141,18 +134,16 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:text="Yesterday"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp" />
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginHorizontal="16dp"
-                    android:background="#333333" />
+                    android:background="?attr/dividerHorizontal" />
 
-                <!-- This Month -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -178,18 +169,16 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:text="This Month"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp" />
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginHorizontal="16dp"
-                    android:background="#333333" />
+                    android:background="?attr/dividerHorizontal" />
 
-                <!-- Last Month -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -215,18 +204,16 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:text="Last Month"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp" />
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginHorizontal="16dp"
-                    android:background="#333333" />
+                    android:background="?attr/dividerHorizontal" />
 
-                <!-- Single Day -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -252,18 +239,16 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:text="Single Day"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp" />
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginHorizontal="16dp"
-                    android:background="#333333" />
+                    android:background="?attr/dividerHorizontal" />
 
-                <!-- Date Range -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -289,7 +274,7 @@
                         android:clickable="false"
                         android:focusable="false"
                         android:text="Date Range"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp" />
                 </LinearLayout>
             </RadioGroup>

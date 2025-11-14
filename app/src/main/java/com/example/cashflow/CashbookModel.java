@@ -1,6 +1,10 @@
 package com.example.cashflow;
 
-public class CashbookModel {
+import java.io.Serializable;
+import java.util.Objects;
+
+// [FIX] Implemented Serializable so it can be passed in Intents
+public class CashbookModel implements Serializable {
     private String cashbookId;
     private String name;
     private String description;
@@ -9,33 +13,18 @@ public class CashbookModel {
     private long createdDate;
     private long lastModified;
     private boolean isActive;
-    private Boolean isCurrent;
+    // [FIX] Use a primitive boolean for isCurrent, default to false
+    private boolean isCurrent;
     private boolean isFavorite;
     private String userId;
     private String currency;
 
     // Empty constructor for Firebase
     public CashbookModel() {
+        this.isCurrent = false; // Ensure default
     }
 
-    // Full constructor
-    public CashbookModel(String cashbookId, String name, String description,
-                         double totalBalance, int transactionCount, long createdDate,
-                         long lastModified, boolean isActive, boolean isFavorite, String userId) {
-        this.cashbookId = cashbookId;
-        this.name = name;
-        this.description = description;
-        this.totalBalance = totalBalance;
-        this.transactionCount = transactionCount;
-        this.createdDate = createdDate;
-        this.lastModified = lastModified;
-        this.isActive = isActive;
-        this.isFavorite = isFavorite;
-        this.userId = userId;
-        this.currency = "INR";
-    }
-
-    // NEW: Convenience constructor for simple creation
+    // Constructor for simple creation
     public CashbookModel(String cashbookId, String name) {
         this.cashbookId = cashbookId;
         this.name = name;
@@ -47,7 +36,6 @@ public class CashbookModel {
         this.isActive = true;
         this.isCurrent = false;
         this.isFavorite = false;
-        this.userId = "";
         this.currency = "INR";
     }
 
@@ -76,8 +64,13 @@ public class CashbookModel {
         this.description = description;
     }
 
+    // [FIX] Renamed to getBalance() to match Java code
     public double getBalance() {
         return totalBalance;
+    }
+
+    public void setBalance(double totalBalance) {
+        this.totalBalance = totalBalance;
     }
 
     public double getTotalBalance() {
@@ -120,11 +113,13 @@ public class CashbookModel {
         isActive = active;
     }
 
-    public Boolean isCurrent() {
+    // [FIX] Changed from Boolean to boolean
+    public boolean isCurrent() {
         return isCurrent;
     }
 
-    public void setCurrent(Boolean current) {
+    // [FIX] Changed from Boolean to boolean
+    public void setCurrent(boolean current) {
         isCurrent = current;
     }
 
@@ -152,19 +147,22 @@ public class CashbookModel {
         this.currency = currency;
     }
 
+    // [FIX] Added equals() and hashCode() for proper list management
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        CashbookModel cashbook = (CashbookModel) o;
-        return cashbookId != null && cashbookId.equals(cashbook.cashbookId);
+        CashbookModel that = (CashbookModel) o;
+        return Objects.equals(cashbookId, that.cashbookId);
     }
 
     @Override
     public int hashCode() {
-        return cashbookId != null ? cashbookId.hashCode() : 0;
+        return Objects.hash(cashbookId);
     }
 
-    public void setBalance(double v) {
+    // [FIX] Added getId() method as it was referenced in your old adapter
+    public String getId() {
+        return cashbookId;
     }
 }

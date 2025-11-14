@@ -8,7 +8,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.cashflow.db.GuestDbHelper;
+import com.example.cashflow.models.Users; // Assuming Users is in models package
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -25,21 +25,18 @@ import java.util.List;
  * HomePageViewModel - ViewModel for HomePage activity
  *
  * Responsibilities:
- * - Manage cashbooks and transactions data
+ * - Manage cashbooks and transactions data for authenticated users
  * - Handle Firebase data loading and caching
- * - Support both guest and authenticated user modes
  * - Provide LiveData for UI observation
  *
- * Updated: November 2025 - Enhanced with CashbookModel integration
+ * Updated: November 2025 - All Guest Mode logic removed.
  */
 public class HomePageViewModel extends AndroidViewModel {
 
     private static final String TAG = "HomePageViewModel";
 
-    // State variables
-    private final boolean isGuest;
-    private final GuestDbHelper dbHelper;
-    private final DatabaseReference userCashbooksRef;
+    // Firebase
+    private final DatabaseReference userDatabaseRef; // Renamed for clarity
     private String currentCashbookId;
 
     // LiveData for UI observation
@@ -61,37 +58,35 @@ public class HomePageViewModel extends AndroidViewModel {
     /**
      * Constructor for HomePageViewModel
      */
-    public HomePageViewModel(@NonNull Application application, boolean isGuest) {
+    public HomePageViewModel(@NonNull Application application) {
         super(application);
-        this.isGuest = isGuest;
-        this.dbHelper = new GuestDbHelper(application);
         this.transactions.setValue(new ArrayList<>());
         this.cashbooks.setValue(new ArrayList<>());
 
-        Log.d(TAG, "ViewModel initialized - isGuest: " + isGuest);
+        Log.d(TAG, "ViewModel initialized for authenticated user.");
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        if (!isGuest && currentUser != null) {
-            userCashbooksRef = FirebaseDatabase.getInstance().getReference("users")
-                    .child(currentUser.getUid()).child("cashbooks");
+        if (currentUser != null) {
+            userDatabaseRef = FirebaseDatabase.getInstance().getReference("users")
+                    .child(currentUser.getUid());
             loadUserProfile(currentUser.getUid());
             loadCashbooks();
         } else {
-            userCashbooksRef = null;
-            loadGuestData();
+            userDatabaseRef = null;
+            Log.e(TAG, "ViewModel created, but user is not authenticated!");
+            errorMessage.setValue("User not logged in.");
         }
     }
 
     /**
      * Constructor with cashbook ID
      */
-    public HomePageViewModel(@NonNull Application application, boolean isGuest, String cashbookId) {
-        this(application, isGuest);
+    public HomePageViewModel(@NonNull Application application, String cashbookId) {
+        this(application);
         this.currentCashbookId = cashbookId;
 
-        if (!isGuest && currentCashbookId != null) {
-            // Directly switch to the provided cashbook
+        if (currentCashbookId != null) {
             switchCashbook(currentCashbookId);
         }
     }
@@ -129,30 +124,6 @@ public class HomePageViewModel extends AndroidViewModel {
     }
 
     // ============================================
-    // Guest Mode
-    // ============================================
-
-    /**
-     * Load guest mode data from local database
-     */
-    private void loadGuestData() {
-        try {
-            isLoading.setValue(true);
-            activeCashbookName.setValue("Guest Cashbook");
-
-            List<TransactionModel> guestTransactions = dbHelper.getAllTransactions();
-            transactions.setValue(guestTransactions != null ? guestTransactions : new ArrayList<>());
-
-            Log.d(TAG, "Guest data loaded: " + (guestTransactions != null ? guestTransactions.size() : 0) + " transactions");
-            isLoading.setValue(false);
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading guest data", e);
-            errorMessage.setValue("Error loading guest data: " + e.getMessage());
-            isLoading.setValue(false);
-        }
-    }
-
-    // ============================================
     // User Profile
     // ============================================
 
@@ -160,10 +131,9 @@ public class HomePageViewModel extends AndroidViewModel {
      * Load user profile information from Firebase
      */
     private void loadUserProfile(String userId) {
-        try {
-            DatabaseReference userProfileRef = FirebaseDatabase.getInstance()
-                    .getReference("users").child(userId);
+        if (userDatabaseRef == null) return;
 
+        try {
             userProfileListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -183,8 +153,7 @@ public class HomePageViewModel extends AndroidViewModel {
                     errorMessage.setValue("Error: " + error.getMessage());
                 }
             };
-
-            userProfileRef.addListenerForSingleValueEvent(userProfileListener);
+            userDatabaseRef.addListenerForSingleValueEvent(userProfileListener);
         } catch (Exception e) {
             Log.e(TAG, "Error setting up user profile listener", e);
         }
@@ -198,8 +167,8 @@ public class HomePageViewModel extends AndroidViewModel {
      * Load all cashbooks for the current user from Firebase
      */
     private void loadCashbooks() {
-        if (userCashbooksRef == null) {
-            Log.w(TAG, "Cannot load cashbooks: userCashbooksRef is null");
+        if (userDatabaseRef == null) {
+            Log.w(TAG, "Cannot load cashbooks: userDatabaseRef is null");
             return;
         }
 
@@ -211,27 +180,21 @@ public class HomePageViewModel extends AndroidViewModel {
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     try {
                         List<CashbookModel> cashbookList = new ArrayList<>();
-
                         for (DataSnapshot cashbookSnapshot : snapshot.getChildren()) {
                             CashbookModel cashbook = cashbookSnapshot.getValue(CashbookModel.class);
                             if (cashbook != null) {
-                                // Set the cashbook ID from Firebase key
                                 if (cashbook.getCashbookId() == null) {
                                     cashbook.setCashbookId(cashbookSnapshot.getKey());
                                 }
                                 cashbookList.add(cashbook);
-                                Log.d(TAG, "Loaded cashbook: " + cashbook.getName());
                             }
                         }
-
                         cashbooks.setValue(cashbookList);
                         Log.d(TAG, "Loaded " + cashbookList.size() + " cashbooks");
 
-                        // Set first cashbook as active if none selected
                         if (!cashbookList.isEmpty() && currentCashbookId == null) {
                             switchCashbook(cashbookList.get(0).getCashbookId());
                         }
-
                         isLoading.setValue(false);
                     } catch (Exception e) {
                         Log.e(TAG, "Error processing cashbooks", e);
@@ -247,8 +210,7 @@ public class HomePageViewModel extends AndroidViewModel {
                     isLoading.setValue(false);
                 }
             };
-
-            userCashbooksRef.addValueEventListener(cashbooksListener);
+            userDatabaseRef.child("cashbooks").addValueEventListener(cashbooksListener);
         } catch (Exception e) {
             Log.e(TAG, "Error setting up cashbooks listener", e);
             errorMessage.setValue("Error setting up cashbooks listener");
@@ -260,7 +222,7 @@ public class HomePageViewModel extends AndroidViewModel {
      * Switch to a different cashbook and load its transactions
      */
     public void switchCashbook(String cashbookId) {
-        if (isGuest || userCashbooksRef == null || cashbookId == null) {
+        if (userDatabaseRef == null || cashbookId == null) {
             Log.w(TAG, "Cannot switch cashbook: invalid parameters");
             return;
         }
@@ -269,7 +231,6 @@ public class HomePageViewModel extends AndroidViewModel {
             isLoading.setValue(true);
             currentCashbookId = cashbookId;
 
-            // Find and set the cashbook name
             List<CashbookModel> currentCashbooks = cashbooks.getValue();
             if (currentCashbooks != null) {
                 for (CashbookModel book : currentCashbooks) {
@@ -281,14 +242,12 @@ public class HomePageViewModel extends AndroidViewModel {
                 }
             }
 
-            // Remove old transactions listener
             if (previousTransactionsRef != null && transactionsListener != null) {
                 previousTransactionsRef.removeEventListener(transactionsListener);
                 Log.d(TAG, "Removed previous transactions listener");
             }
 
-            // Setup new transactions listener
-            DatabaseReference newTransactionsRef = userCashbooksRef.child(cashbookId).child("transactions");
+            DatabaseReference newTransactionsRef = userDatabaseRef.child("cashbooks").child(cashbookId).child("transactions");
             previousTransactionsRef = newTransactionsRef;
 
             transactionsListener = new ValueEventListener() {
@@ -296,7 +255,6 @@ public class HomePageViewModel extends AndroidViewModel {
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     try {
                         List<TransactionModel> transactionList = new ArrayList<>();
-
                         for (DataSnapshot transactionSnapshot : snapshot.getChildren()) {
                             TransactionModel transaction = transactionSnapshot.getValue(TransactionModel.class);
                             if (transaction != null) {
@@ -304,8 +262,6 @@ public class HomePageViewModel extends AndroidViewModel {
                                 transactionList.add(transaction);
                             }
                         }
-
-                        // Sort transactions by timestamp, newest first
                         Collections.sort(transactionList, (t1, t2) ->
                                 Long.compare(t2.getTimestamp(), t1.getTimestamp()));
 
@@ -326,7 +282,6 @@ public class HomePageViewModel extends AndroidViewModel {
                     isLoading.setValue(false);
                 }
             };
-
             newTransactionsRef.addValueEventListener(transactionsListener);
         } catch (Exception e) {
             Log.e(TAG, "Error switching cashbook", e);
@@ -339,101 +294,41 @@ public class HomePageViewModel extends AndroidViewModel {
     // Data Updates
     // ============================================
 
-    /**
-     * Refresh the current cashbook data
-     */
     public void refreshData() {
         Log.d(TAG, "Refreshing data...");
-
-        if (isGuest) {
-            loadGuestData();
-        } else if (currentCashbookId != null) {
+        if (currentCashbookId != null) {
             switchCashbook(currentCashbookId);
         } else {
             loadCashbooks();
         }
     }
 
-
-    /**
-     * Add a transaction to guest database
-     */
-    public void addGuestTransaction(TransactionModel transaction) {
-        try {
-            if (dbHelper != null) {
-                dbHelper.addTransaction(transaction); // Assuming method exists
-                Log.d(TAG, "Guest transaction added successfully");
-                loadGuestData(); // Refresh the list
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error adding guest transaction", e);
-            errorMessage.setValue("Error adding transaction: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Delete a transaction from guest database
-     */
-    public void deleteGuestTransaction(String transactionId) {
-        try {
-            if (dbHelper != null) {
-                dbHelper.deleteTransaction(transactionId); // Assuming method exists
-                Log.d(TAG, "Guest transaction deleted successfully");
-                loadGuestData(); // Refresh the list
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error deleting guest transaction", e);
-            errorMessage.setValue("Error deleting transaction: " + e.getMessage());
-        }
-    }
-
-
-
     public void clearError() {
         errorMessage.setValue(null);
     }
 
-    /**
-     * Set loading state manually
-     */
     public void setLoading(boolean loading) {
         isLoading.setValue(loading);
     }
 
-    /**
-     * Cleanup: Called when ViewModel is destroyed
-     */
     @Override
     protected void onCleared() {
         super.onCleared();
-
         try {
-            // Remove all Firebase listeners to prevent memory leaks
-            if (userCashbooksRef != null) {
+            if (userDatabaseRef != null) {
                 if (cashbooksListener != null) {
-                    userCashbooksRef.removeEventListener(cashbooksListener);
+                    userDatabaseRef.child("cashbooks").removeEventListener(cashbooksListener);
                     Log.d(TAG, "Removed cashbooks listener");
                 }
-
                 if (transactionsListener != null && previousTransactionsRef != null) {
                     previousTransactionsRef.removeEventListener(transactionsListener);
                     Log.d(TAG, "Removed transactions listener");
                 }
+                if (userProfileListener != null) {
+                    userDatabaseRef.removeEventListener(userProfileListener);
+                    Log.d(TAG, "Removed user profile listener");
+                }
             }
-
-            if (userProfileListener != null) {
-                DatabaseReference userRef = FirebaseDatabase.getInstance()
-                        .getReference("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                userRef.removeEventListener(userProfileListener);
-                Log.d(TAG, "Removed user profile listener");
-            }
-
-            // Close database helper if guest
-            if (isGuest && dbHelper != null) {
-                dbHelper.close();
-                Log.d(TAG, "Closed guest database");
-            }
-
             Log.d(TAG, "ViewModel cleaned up successfully");
         } catch (Exception e) {
             Log.e(TAG, "Error cleaning up ViewModel", e);

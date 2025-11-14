@@ -17,14 +17,14 @@ import java.util.stream.Collectors;
 
 /**
  * TransactionViewModel - ViewModel for managing transaction list and filtering
- * Handles loading, filtering, and managing transactions for both guest and authenticated users
+ * Handles loading, filtering, and managing transactions for authenticated users.
+ * Guest mode logic has been removed.
  */
 public class TransactionViewModel extends AndroidViewModel {
 
     private static final String TAG = "TransactionViewModel";
 
     private final DataRepository repository;
-    private final boolean isGuest;
     private final String cashbookId;
 
     // LiveData for reactive UI updates
@@ -33,13 +33,12 @@ public class TransactionViewModel extends AndroidViewModel {
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
 
-    public TransactionViewModel(@NonNull Application application, boolean isGuest, String cashbookId) {
+    public TransactionViewModel(@NonNull Application application, String cashbookId) {
         super(application);
         this.repository = DataRepository.getInstance(application);
-        this.isGuest = isGuest;
         this.cashbookId = cashbookId;
 
-        Log.d(TAG, "TransactionViewModel initialized, guest: " + isGuest + ", cashbook: " + cashbookId);
+        Log.d(TAG, "TransactionViewModel initialized, cashbook: " + cashbookId);
 
         // Initialize with empty lists
         allTransactions.setValue(new ArrayList<>());
@@ -87,7 +86,7 @@ public class TransactionViewModel extends AndroidViewModel {
         Log.d(TAG, "Loading transactions...");
         isLoading.postValue(true);
 
-        repository.getAllTransactions(isGuest, cashbookId,
+        repository.getAllTransactions(cashbookId,
                 transactions -> {
                     Log.d(TAG, "Transactions loaded successfully: " + transactions.size() + " items");
                     allTransactions.postValue(transactions);
@@ -135,7 +134,8 @@ public class TransactionViewModel extends AndroidViewModel {
         }
 
         Log.d(TAG, "Applying filters - Query: " + query + ", Type: " + entryType +
-                ", Categories: " + categories.size() + ", Modes: " + paymentModes.size());
+                ", Categories: " + (categories != null ? categories.size() : 0) +
+                ", Modes: " + (paymentModes != null ? paymentModes.size() : 0));
 
         try {
             // Ensure query is not null
@@ -251,14 +251,6 @@ public class TransactionViewModel extends AndroidViewModel {
      */
     public double getNetBalance() {
         return getTotalIncome() - getTotalExpense();
-    }
-
-    /**
-     * Gets the current mode (guest or authenticated)
-     * @return true if in guest mode, false if authenticated
-     */
-    public boolean isGuestMode() {
-        return isGuest;
     }
 
     /**

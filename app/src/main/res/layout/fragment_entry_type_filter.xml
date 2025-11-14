@@ -4,29 +4,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#2B2B2B"
+    android:background="?attr/backgroundColor"
     android:padding="16dp">
 
-    <!-- Header Section -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Entry Type"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"
-        android:drawableStart="@drawable/ic_swap_vert"
         android:drawablePadding="8dp"
-        app:drawableTint="#2196F3" />
+        app:drawableTint="?attr/balanceColor" />
 
-    <!-- Entry Type Options Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="#1E1E1E">
+        app:cardBackgroundColor="?attr/surfaceColor">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -40,7 +37,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- All Types -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -56,7 +52,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_all_inclusive"
                         android:layout_marginEnd="12dp"
-                        app:tint="#2196F3" />
+                        app:tint="?attr/balanceColor" />
 
                     <RadioButton
                         android:id="@+id/radio_all_types"
@@ -64,7 +60,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="All Transactions"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="16sp"
                         android:checked="true"
                         android:clickable="false"
@@ -74,28 +70,27 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Default"
-                        android:textColor="#000000"
+                        android:textColor="?attr/textColorPrimary"
                         android:textSize="12sp"
                         android:background="@drawable/rounded_tag_background"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="4dp" />
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#333333"
+                    android:background="?attr/dividerHorizontal"
                     android:layout_marginHorizontal="16dp" />
 
-                <!-- Cash In -->
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:background="@drawable/ripple_background"
                     android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
                     android:clickable="true"
                     android:focusable="true">
 
@@ -104,7 +99,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_trending_up"
                         android:layout_marginEnd="12dp"
-                        app:tint="#4CAF50" />
+                        app:tint="?attr/incomeColor" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -117,7 +112,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Cash In"
-                            android:textColor="#4CAF50"
+                            android:textColor="?attr/incomeColor"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:clickable="false"
@@ -127,19 +122,17 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Income &amp; Earnings"
-                            android:textColor="#AAAAAA"
+                            android:textColor="?attr/textColorSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#333333"
+                    android:background="?attr/dividerHorizontal"
                     android:layout_marginHorizontal="16dp" />
 
-                <!-- Cash Out -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -147,6 +140,7 @@
                     android:gravity="center_vertical"
                     android:background="@drawable/ripple_background"
                     android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
                     android:clickable="true"
                     android:focusable="true">
 
@@ -155,7 +149,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_trending_down"
                         android:layout_marginEnd="12dp"
-                        app:tint="#F44336" />
+                        app:tint="?attr/expenseColor" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -168,7 +162,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Cash Out"
-                            android:textColor="#F44336"
+                            android:textColor="?attr/expenseColor"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:clickable="false"
@@ -178,7 +172,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Expenses &amp; Payments"
-                            android:textColor="#AAAAAA"
+                            android:textColor="?attr/textColorSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>

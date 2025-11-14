@@ -12,94 +12,52 @@ import java.util.UUID;
 
 /**
  * CashInOutViewModel - ViewModel for handling transaction creation and editing
- * Manages both guest mode (local SQLite) and authenticated mode (Firebase) transactions
+ * Manages authenticated mode (Firebase) transactions.
+ * Guest mode logic has been removed.
  */
 public class CashInOutViewModel extends AndroidViewModel {
 
     private static final String TAG = "CashInOutViewModel";
 
     private final DataRepository repository;
-    private final boolean isGuest;
 
-    public CashInOutViewModel(@NonNull Application application, boolean isGuest) {
+    public CashInOutViewModel(@NonNull Application application) {
         super(application);
         repository = DataRepository.getInstance(application);
-        this.isGuest = isGuest;
-
-        Log.d(TAG, "CashInOutViewModel initialized, guest mode: " + isGuest);
+        Log.d(TAG, "CashInOutViewModel initialized for authenticated user.");
     }
 
     /**
-     * Saves a transaction based on user authentication status
-     * @param cashbookId The ID of the cashbook (ignored for guest users)
+     * Saves a transaction for an authenticated user to Firebase.
+     * @param cashbookId The ID of the cashbook
      * @param transaction The transaction to save
      */
     public void saveTransaction(String cashbookId, TransactionModel transaction) {
-        if (transaction == null) {
-            Log.e(TAG, "Transaction is null, cannot save");
+        if (!isTransactionValid(transaction)) {
+            Log.e(TAG, "Invalid transaction. Save aborted.");
             return;
         }
 
-        if (isGuest) {
-            saveGuestTransaction(transaction);
-        } else {
-            saveFirebaseTransaction(cashbookId, transaction);
-        }
-    }
-
-    /**
-     * Saves transaction for guest users (local SQLite database)
-     * @param transaction The transaction to save
-     */
-    private void saveGuestTransaction(TransactionModel transaction) {
-        // For guests, generate a unique ID locally if not present
-        if (transaction.getTransactionId() == null || transaction.getTransactionId().isEmpty()) {
-            transaction.setTransactionId(UUID.randomUUID().toString());
-        }
-
-        repository.addGuestTransaction(transaction, new DataRepository.DataCallback<Boolean>() {
-            @Override
-            public void onCallback(Boolean success) {
-                if (success) {
-                    Log.d(TAG, "Guest transaction saved successfully");
-                    // You can add additional success handling here
-                    // For example, notify the UI through LiveData
-                } else {
-                    Log.e(TAG, "Failed to save guest transaction");
-                    // Handle failure - maybe show error message to user
-                }
-            }
-        });
-    }
-
-    /**
-     * Saves transaction for authenticated users (Firebase)
-     * @param cashbookId The ID of the target cashbook
-     * @param transaction The transaction to save
-     */
-    private void saveFirebaseTransaction(String cashbookId, TransactionModel transaction) {
         if (cashbookId == null || cashbookId.isEmpty()) {
             Log.e(TAG, "Cashbook ID is null or empty, cannot save Firebase transaction");
             return;
         }
 
-        repository.addFirebaseTransaction(cashbookId, transaction, new DataRepository.DataCallback<Boolean>() {
+        repository.addTransaction(cashbookId, transaction, new DataRepository.DataCallback<Boolean>() {
             @Override
             public void onCallback(Boolean success) {
                 if (success) {
                     Log.d(TAG, "Firebase transaction saved successfully");
-                    // You can add additional success handling here
                 } else {
                     Log.e(TAG, "Failed to save Firebase transaction");
-                    // Handle failure
                 }
             }
         });
     }
 
     /**
-     * Updates an existing transaction
-     * @param cashbookId The ID of the cashbook (ignored for guest users)
+     * Updates an existing transaction in Firebase.
+     * @param cashbookId The ID of the cashbook
      * @param transaction The transaction to update
      */
     public void updateTransaction(String cashbookId, TransactionModel transaction) {
@@ -108,42 +66,12 @@ public class CashInOutViewModel extends AndroidViewModel {
             return;
         }
 
-        if (isGuest) {
-            updateGuestTransaction(transaction);
-        } else {
-            updateFirebaseTransaction(cashbookId, transaction);
-        }
-    }
-
-    /**
-     * Updates guest transaction in local SQLite database
-     * @param transaction The transaction to update
-     */
-    private void updateGuestTransaction(TransactionModel transaction) {
-        repository.updateGuestTransaction(transaction, new DataRepository.DataCallback<Boolean>() {
-            @Override
-            public void onCallback(Boolean success) {
-                if (success) {
-                    Log.d(TAG, "Guest transaction updated successfully");
-                } else {
-                    Log.e(TAG, "Failed to update guest transaction");
-                }
-            }
-        });
-    }
-
-    /**
-     * Updates Firebase transaction
-     * @param cashbookId The ID of the cashbook
-     * @param transaction The transaction to update
-     */
-    private void updateFirebaseTransaction(String cashbookId, TransactionModel transaction) {
         if (cashbookId == null || cashbookId.isEmpty()) {
             Log.e(TAG, "Cashbook ID is null or empty, cannot update Firebase transaction");
             return;
         }
 
-        repository.updateFirebaseTransaction(cashbookId, transaction, new DataRepository.DataCallback<Boolean>() {
+        repository.updateTransaction(cashbookId, transaction, new DataRepository.DataCallback<Boolean>() {
             @Override
             public void onCallback(Boolean success) {
                 if (success) {
@@ -156,8 +84,8 @@ public class CashInOutViewModel extends AndroidViewModel {
     }
 
     /**
-     * Deletes a transaction
-     * @param cashbookId The ID of the cashbook (ignored for guest users)
+     * Deletes a transaction from Firebase.
+     * @param cashbookId The ID of the cashbook
      * @param transactionId The ID of the transaction to delete
      */
     public void deleteTransaction(String cashbookId, String transactionId) {
@@ -166,42 +94,12 @@ public class CashInOutViewModel extends AndroidViewModel {
             return;
         }
 
-        if (isGuest) {
-            deleteGuestTransaction(transactionId);
-        } else {
-            deleteFirebaseTransaction(cashbookId, transactionId);
-        }
-    }
-
-    /**
-     * Deletes guest transaction from local SQLite database
-     * @param transactionId The ID of the transaction to delete
-     */
-    private void deleteGuestTransaction(String transactionId) {
-        repository.deleteGuestTransaction(transactionId, new DataRepository.DataCallback<Boolean>() {
-            @Override
-            public void onCallback(Boolean success) {
-                if (success) {
-                    Log.d(TAG, "Guest transaction deleted successfully");
-                } else {
-                    Log.e(TAG, "Failed to delete guest transaction");
-                }
-            }
-        });
-    }
-
-    /**
-     * Deletes Firebase transaction
-     * @param cashbookId The ID of the cashbook
-     * @param transactionId The ID of the transaction to delete
-     */
-    private void deleteFirebaseTransaction(String cashbookId, String transactionId) {
         if (cashbookId == null || cashbookId.isEmpty()) {
             Log.e(TAG, "Cashbook ID is null or empty, cannot delete Firebase transaction");
             return;
         }
 
-        repository.deleteFirebaseTransaction(cashbookId, transactionId, new DataRepository.DataCallback<Boolean>() {
+        repository.deleteTransaction(cashbookId, transactionId, new DataRepository.DataCallback<Boolean>() {
             @Override
             public void onCallback(Boolean success) {
                 if (success) {
@@ -243,21 +141,9 @@ public class CashInOutViewModel extends AndroidViewModel {
         return true;
     }
 
-    /**
-     * Gets the current mode (guest or authenticated)
-     * @return true if in guest mode, false if authenticated
-     */
-    public boolean isGuestMode() {
-        return isGuest;
-    }
-
-    /**
-     * Cleanup method called when ViewModel is cleared
-     */
     @Override
     protected void onCleared() {
         super.onCleared();
-        // Clean up resources if needed
         Log.d(TAG, "CashInOutViewModel cleared");
     }
 }
