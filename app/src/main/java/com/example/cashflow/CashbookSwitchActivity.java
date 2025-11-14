@@ -14,12 +14,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.cashflow.adapters.CashbookAdapter;
+import com.example.cashflow.utils.ErrorHandler; // [FIX] Added ErrorHandler
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -34,6 +36,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors; // [FIX] Added for filtering
 
 /**
  * CashbookSwitchActivity - Comprehensive cashbook management and switching
@@ -46,22 +49,19 @@ import java.util.List;
  * - Create, edit, delete, and duplicate cashbooks
  * - Toggle favorite status
  * - Switch between cashbooks
- * - Manage cashbook details
- * - Google Sign-In integration
- * - Firebase Realtime Database
  *
- * Updated: November 2025 - Complete implementation with Firebase
+ * Updated: November 2025 - All Guest Mode logic removed.
  */
 public class CashbookSwitchActivity extends AppCompatActivity {
 
     private static final String TAG = "CashbookSwitchActivity";
 
-    // UI Components - RecyclerView
+    // UI Components
     private RecyclerView cashbookRecyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private LinearLayout emptyStateLayout;
     private LinearLayout loadingLayout;
-    private LinearLayout mainCard;
+    private View mainContent; // [FIX] Changed to View for easier hiding
 
     // UI Components - Buttons
     private Button cancelButton;
@@ -83,11 +83,14 @@ public class CashbookSwitchActivity extends AppCompatActivity {
     private CashbookAdapter cashbookAdapter;
     private final List<CashbookModel> allCashbooks = new ArrayList<>();
     private String currentFilter = "active";
+    private String currentSort = "recent"; // [FIX] Added to track sort
+    private String currentCashbookId;
 
     // Firebase
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    private DatabaseReference userCashbooksRef;
     private ValueEventListener cashbooksListener;
+    private FirebaseUser currentUser;
 
     // State
     private boolean isLoading = false;
@@ -101,30 +104,37 @@ public class CashbookSwitchActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        currentUser = mAuth.getCurrentUser();
+        currentCashbookId = getIntent().getStringExtra("current_cashbook_id");
+
+        if (currentUser == null) {
+            showSnackbar("Not authenticated. Please log in again.");
+            Log.w(TAG, "No authenticated user");
+            finish();
+            return;
+        }
+
+        userCashbooksRef = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(currentUser.getUid()).child("cashbooks");
 
         initViews();
         setupRecyclerView();
         setupClickListeners();
         setupSearchListener();
         setupFilterListener();
-        loadCashbooks();
+        loadCashbooks(); // Initial load
 
         Log.d(TAG, "CashbookSwitchActivity created");
     }
 
-    /**
-     * Initialize all UI views
-     */
     private void initViews() {
         // RecyclerView & Layout
         cashbookRecyclerView = findViewById(R.id.cashbookRecyclerView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         emptyStateLayout = findViewById(R.id.emptyStateLayout);
         loadingLayout = findViewById(R.id.loadingLayout);
-        mainCard = findViewById(R.id.mainCard);
+        mainContent = findViewById(R.id.mainCard); // [FIX] Point to main card
 
         // Buttons
         cancelButton = findViewById(R.id.cancelButton);
@@ -142,7 +152,6 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         totalCashbooksText = findViewById(R.id.totalCashbooksText);
         activeCashbooksText = findViewById(R.id.activeCashbooksText);
 
-        // Set content descriptions for accessibility
         try {
             closeButton.setContentDescription(getString(R.string.close_button));
             addNewButton.setContentDescription(getString(R.string.add_cashbook_desc));
@@ -155,16 +164,11 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         Log.d(TAG, "Views initialized");
     }
 
-    /**
-     * Setup RecyclerView with adapter and listener
-     */
     private void setupRecyclerView() {
         cashbookRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        cashbookRecyclerView.setHasFixedSize(true);
-        cashbookRecyclerView.setNestedScrollingEnabled(false);
 
         // Create adapter with callback listener
-        cashbookAdapter = new CashbookAdapter(this, allCashbooks, new CashbookAdapter.OnCashbookClickListener() {
+        cashbookAdapter = new CashbookAdapter(this, new ArrayList<>(), new CashbookAdapter.OnCashbookClickListener() {
             @Override
             public void onCashbookClick(CashbookModel cashbook) {
                 onCashbookSelected(cashbook);
@@ -182,73 +186,51 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         });
 
         cashbookRecyclerView.setAdapter(cashbookAdapter);
-
-        // Swipe refresh listener
         swipeRefreshLayout.setOnRefreshListener(this::loadCashbooks);
         swipeRefreshLayout.setColorSchemeResources(
-                R.color.primary_blue,
-                R.color.success_color,
-                R.color.warning_orange
-        );
+                R.color.primary_blue, R.color.success_color, R.color.warning_orange);
 
         Log.d(TAG, "RecyclerView setup complete");
     }
 
-    /**
-     * Setup click listeners for all buttons
-     */
     private void setupClickListeners() {
-        if (closeButton != null) closeButton.setOnClickListener(v -> finish());
-        if (cancelButton != null) cancelButton.setOnClickListener(v -> finish());
-        if (addNewButton != null) addNewButton.setOnClickListener(v -> handleAddNewCashbook());
-        if (emptyStateCreateButton != null) emptyStateCreateButton.setOnClickListener(v -> handleAddNewCashbook());
-        if (quickAddFab != null) quickAddFab.setOnClickListener(v -> handleAddNewCashbook());
-        if (sortButton != null) sortButton.setOnClickListener(v -> showSortOptions());
-
+        closeButton.setOnClickListener(v -> finish());
+        cancelButton.setOnClickListener(v -> finish());
+        addNewButton.setOnClickListener(v -> handleAddNewCashbook());
+        emptyStateCreateButton.setOnClickListener(v -> handleAddNewCashbook());
+        quickAddFab.setOnClickListener(v -> handleAddNewCashbook());
+        sortButton.setOnClickListener(v -> showSortOptions());
         Log.d(TAG, "Click listeners setup complete");
     }
 
-    /**
-     * Setup filter chip listener
-     */
     private void setupFilterListener() {
-        if (chipGroup != null) {
-            chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
-                if (!checkedIds.isEmpty()) {
-                    int checkedId = checkedIds.get(0);
-                    if (checkedId == R.id.chipActive) {
-                        handleFilterClick("active");
-                    } else if (checkedId == R.id.chipRecent) {
-                        handleFilterClick("recent");
-                    } else if (checkedId == R.id.chipFavorites) {
-                        handleFilterClick("favorites");
-                    }
+        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (!checkedIds.isEmpty()) {
+                int checkedId = checkedIds.get(0);
+                if (checkedId == R.id.chipActive) {
+                    currentFilter = "active";
+                } else if (checkedId == R.id.chipRecent) {
+                    currentFilter = "recent";
+                } else if (checkedId == R.id.chipFavorites) {
+                    currentFilter = "favorites";
                 }
-            });
-        }
-
+                applyFiltersAndSort();
+            }
+        });
         Log.d(TAG, "Filter listener setup complete");
     }
 
-    /**
-     * Setup search text listener
-     */
     private void setupSearchListener() {
-        if (searchEditText != null) {
-            searchEditText.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    filterCashbooks(s.toString());
-                }
-
-                @Override
-                public void beforeTextChanged(CharSequence s, int st, int count, int after) {}
-
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
-
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                applyFiltersAndSort();
+            }
+            @Override
+            public void beforeTextChanged(CharSequence s, int st, int count, int after) {}
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
         Log.d(TAG, "Search listener setup complete");
     }
 
@@ -257,97 +239,81 @@ public class CashbookSwitchActivity extends AppCompatActivity {
      */
     private void loadCashbooks() {
         if (isLoading) return;
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             showSnackbar("Not authenticated");
-            Log.w(TAG, "No authenticated user");
             return;
         }
 
         showLoading(true);
         Log.d(TAG, "Loading cashbooks for user: " + currentUser.getUid());
 
-        String userId = currentUser.getUid();
-
-        // Remove previous listener if exists
         if (cashbooksListener != null) {
-            mDatabase.child("users").child(userId).child("cashbooks")
-                    .removeEventListener(cashbooksListener);
+            userCashbooksRef.removeEventListener(cashbooksListener);
         }
 
         cashbooksListener = new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    swipeRefreshLayout.setRefreshing(false);
-
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                allCashbooks.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     try {
-                        allCashbooks.clear();
-
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
-                            if (cashbook != null) {
-                                if (cashbook.getCashbookId() == null) {
-                                    cashbook.setCashbookId(snapshot.getKey());
-                                }
-                                allCashbooks.add(cashbook);
+                        CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
+                        if (cashbook != null) {
+                            cashbook.setCashbookId(snapshot.getKey());
+                            // [FIX] Set 'isCurrent' flag
+                            if (cashbook.getCashbookId().equals(currentCashbookId)) {
+                                cashbook.setCurrent(true);
+                            } else {
+                                cashbook.setCurrent(false);
                             }
-                        }
-
-                        if (allCashbooks.isEmpty()) {
-                            showEmptyState(true);
-                            Log.d(TAG, "No cashbooks found");
-                        } else {
-                            showEmptyState(false);
-                            applyFilter(currentFilter);
-                            updateStats(allCashbooks.size(), getActiveCashbooksCount(allCashbooks));
-                            Log.d(TAG, "Loaded " + allCashbooks.size() + " cashbooks");
+                            allCashbooks.add(cashbook);
                         }
                     } catch (Exception e) {
-                        Log.e(TAG, "Error processing cashbooks", e);
-                        showSnackbar("Error loading cashbooks");
+                        Log.e(TAG, "Error parsing cashbook: " + snapshot.getKey(), e);
                     }
-                });
+                }
+
+                Log.d(TAG, "Loaded " + allCashbooks.size() + " cashbooks");
+                updateStats(allCashbooks);
+                applyFiltersAndSort();
+                showLoading(false);
+                swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    swipeRefreshLayout.setRefreshing(false);
-                    Log.e(TAG, "Error loading cashbooks", error.toException());
-                    showSnackbar("Error: " + error.getMessage());
-                });
+            public void onCancelled(@NonNull DatabaseError error) {
+                showLoading(false);
+                swipeRefreshLayout.setRefreshing(false);
+                Log.e(TAG, "Error loading cashbooks", error.toException());
+                ErrorHandler.handleFirebaseError(CashbookSwitchActivity.this, error);
             }
         };
-
-        mDatabase.child("users").child(userId).child("cashbooks")
-                .addValueEventListener(cashbooksListener);
+        userCashbooksRef.addValueEventListener(cashbooksListener);
     }
 
-    /**
-     * Handle add new cashbook action
-     */
     private void handleAddNewCashbook() {
-        showCreateCashbookDialog();
+        showCreateCashbookDialog(null);
         Log.d(TAG, "Add new cashbook clicked");
     }
 
-    /**
-     * Show create cashbook dialog
-     */
-    private void showCreateCashbookDialog() {
+    private void showCreateCashbookDialog(@Nullable CashbookModel cashbookToEdit) {
         try {
             View dialogView = getLayoutInflater().inflate(R.layout.dialog_create_cashbook, null);
             EditText nameInput = dialogView.findViewById(R.id.cashbookNameInput);
             EditText descInput = dialogView.findViewById(R.id.cashbookDescInput);
 
+            String title = (cashbookToEdit == null) ? "Create New Cashbook" : "Edit Cashbook";
+            String positiveButton = (cashbookToEdit == null) ? "Create" : "Update";
+
+            if (cashbookToEdit != null) {
+                nameInput.setText(cashbookToEdit.getName());
+                descInput.setText(cashbookToEdit.getDescription());
+            }
+
             new MaterialAlertDialogBuilder(this)
-                    .setTitle("Create New Cashbook")
+                    .setTitle(title)
                     .setView(dialogView)
-                    .setPositiveButton("Create", (dialog, which) -> {
+                    .setPositiveButton(positiveButton, (dialog, which) -> {
                         String name = nameInput.getText().toString().trim();
                         String description = descInput.getText().toString().trim();
 
@@ -356,431 +322,249 @@ public class CashbookSwitchActivity extends AppCompatActivity {
                             return;
                         }
 
-                        createNewCashbook(name, description);
+                        if (cashbookToEdit == null) {
+                            createNewCashbook(name, description);
+                        } else {
+                            updateCashbook(cashbookToEdit, name, description);
+                        }
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
         } catch (Exception e) {
-            Log.e(TAG, "Error showing create cashbook dialog", e);
+            Log.e(TAG, "Error showing create/edit cashbook dialog", e);
             showSnackbar("Error creating dialog");
         }
     }
 
-    /**
-     * Create new cashbook using Firebase
-     */
     private void createNewCashbook(String name, String description) {
-        if (name == null || name.trim().isEmpty()) {
-            showSnackbar("Cashbook name cannot be empty");
-            return;
-        }
-
-        showLoading(true);
-        Log.d(TAG, "Creating new cashbook: " + name);
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
-            showLoading(false);
             showSnackbar("Not authenticated");
             return;
         }
 
-        String userId = currentUser.getUid();
-        DatabaseReference cashbooksRef = mDatabase.child("users").child(userId).child("cashbooks");
-
-        String cashbookId = cashbooksRef.push().getKey();
+        String cashbookId = userCashbooksRef.push().getKey();
         if (cashbookId == null) {
-            showLoading(false);
             showSnackbar("Error generating cashbook ID");
             return;
         }
 
-        CashbookModel newCashbook = new CashbookModel();
-        newCashbook.setCashbookId(cashbookId);
-        newCashbook.setName(name.trim());
-        newCashbook.setDescription(description != null ? description.trim() : "");
-        newCashbook.setActive(true);
-        newCashbook.setFavorite(false);
-        newCashbook.setLastModified(System.currentTimeMillis());
-        newCashbook.setBalance(0.0);
-        newCashbook.setTransactionCount(0);
+        CashbookModel newCashbook = new CashbookModel(cashbookId, name);
+        newCashbook.setDescription(description);
+        newCashbook.setUserId(currentUser.getUid());
 
-        cashbooksRef.child(cashbookId).setValue(newCashbook)
+        userCashbooksRef.child(cashbookId).setValue(newCashbook)
                 .addOnSuccessListener(aVoid -> {
-                    showLoading(false);
                     showSnackbar("Cashbook created successfully!");
-                    loadCashbooks();
                     Log.d(TAG, "Cashbook created: " + name);
+                    // No need to call loadCashbooks(), listener will do it
                 })
                 .addOnFailureListener(e -> {
-                    showLoading(false);
                     showSnackbar("Failed to create cashbook: " + e.getMessage());
                     Log.e(TAG, "Error creating cashbook", e);
                 });
     }
 
-    /**
-     * Handle favorite toggle
-     */
-    private void handleFavoriteToggle(CashbookModel cashbook) {
-        if (cashbook == null) return;
-
-        cashbook.setFavorite(!cashbook.isFavorite());
-        updateCashbookInFirebase(cashbook);
-    }
-
-    /**
-     * Update cashbook in Firebase
-     */
-    private void updateCashbookInFirebase(CashbookModel cashbook) {
-        if (cashbook == null || cashbook.getCashbookId() == null) {
-            showSnackbar("Invalid cashbook");
-            return;
-        }
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            showSnackbar("Not authenticated");
-            return;
-        }
-
-        String userId = currentUser.getUid();
+    private void updateCashbook(CashbookModel cashbook, String newName, String newDescription) {
+        cashbook.setName(newName);
+        cashbook.setDescription(newDescription);
         cashbook.setLastModified(System.currentTimeMillis());
 
-        mDatabase.child("users").child(userId)
-                .child("cashbooks").child(cashbook.getCashbookId())
-                .setValue(cashbook)
+        userCashbooksRef.child(cashbook.getCashbookId()).setValue(cashbook)
+                .addOnSuccessListener(aVoid -> showSnackbar("Cashbook updated"))
+                .addOnFailureListener(e -> showSnackbar("Failed to update cashbook"));
+    }
+
+    private void handleFavoriteToggle(CashbookModel cashbook) {
+        if (cashbook == null) return;
+        cashbook.setFavorite(!cashbook.isFavorite());
+        cashbook.setLastModified(System.currentTimeMillis());
+
+        userCashbooksRef.child(cashbook.getCashbookId()).setValue(cashbook)
                 .addOnSuccessListener(aVoid -> {
                     showSnackbar(cashbook.isFavorite() ? "Added to favorites" : "Removed from favorites");
-                    Log.d(TAG, "Cashbook updated: " + cashbook.getName());
-                    new Handler(Looper.getMainLooper()).postDelayed(this::loadCashbooks, 300);
+                    // Listener will auto-update the UI
                 })
                 .addOnFailureListener(e -> {
-                    showSnackbar("Failed to update cashbook");
-                    Log.e(TAG, "Error updating cashbook", e);
+                    showSnackbar("Failed to update favorite status");
+                    Log.e(TAG, "Error updating favorite", e);
                 });
     }
 
-    /**
-     * Show cashbook options menu
-     */
     private void showCashbookOptions(CashbookModel cashbook, View anchorView) {
         if (cashbook == null) return;
 
-        String[] options = {"Edit", "Duplicate", "Delete", "View Details"};
+        PopupMenu popup = new PopupMenu(this, anchorView);
+        popup.getMenuInflater().inflate(R.menu.menu_cashbook_item, popup.getMenu());
 
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(cashbook.getName())
-                .setItems(options, (dialog, which) -> {
-                    switch (which) {
-                        case 0:
-                            showEditCashbookDialog(cashbook);
-                            break;
-                        case 1:
-                            duplicateCashbook(cashbook);
-                            break;
-                        case 2:
-                            showDeleteConfirmation(cashbook);
-                            break;
-                        case 3:
-                            showCashbookDetails(cashbook);
-                            break;
-                    }
-                })
-                .show();
+        // [FIX] Update menu titles based on state
+        popup.getMenu().findItem(R.id.menu_favorite)
+                .setTitle(cashbook.isFavorite() ? R.string.remove_from_favorites : R.string.add_to_favorites);
+        popup.getMenu().findItem(R.id.menu_toggle_active)
+                .setTitle(cashbook.isActive() ? R.string.deactivate_cashbook : R.string.activate_cashbook);
+
+        popup.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_edit) {
+                showCreateCashbookDialog(cashbook);
+                return true;
+            } else if (itemId == R.id.menu_favorite) {
+                handleFavoriteToggle(cashbook);
+                return true;
+            } else if (itemId == R.id.menu_toggle_active) {
+                toggleCashbookActive(cashbook);
+                return true;
+            } else if (itemId == R.id.menu_export) {
+                showSnackbar("Export feature coming soon!");
+                return true;
+            } else if (itemId == R.id.menu_delete) {
+                showDeleteConfirmation(cashbook);
+                return true;
+            }
+            return false;
+        });
+        popup.show();
     }
 
-    /**
-     * Show edit cashbook dialog
-     */
-    private void showEditCashbookDialog(CashbookModel cashbook) {
-        if (cashbook == null) return;
+    private void toggleCashbookActive(CashbookModel cashbook) {
+        cashbook.setActive(!cashbook.isActive());
+        cashbook.setLastModified(System.currentTimeMillis());
 
-        try {
-            View dialogView = getLayoutInflater().inflate(R.layout.dialog_create_cashbook, null);
-            EditText nameInput = dialogView.findViewById(R.id.cashbookNameInput);
-            EditText descInput = dialogView.findViewById(R.id.cashbookDescInput);
-
-            nameInput.setText(cashbook.getName());
-            descInput.setText(cashbook.getDescription() != null ? cashbook.getDescription() : "");
-
-            new MaterialAlertDialogBuilder(this)
-                    .setTitle("Edit Cashbook")
-                    .setView(dialogView)
-                    .setPositiveButton("Update", (dialog, which) -> {
-                        String name = nameInput.getText().toString().trim();
-                        String desc = descInput.getText().toString().trim();
-
-                        if (name.isEmpty()) {
-                            showSnackbar("Name cannot be empty");
-                            return;
-                        }
-
-                        cashbook.setName(name);
-                        cashbook.setDescription(desc);
-                        updateCashbookInFirebase(cashbook);
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
-        } catch (Exception e) {
-            Log.e(TAG, "Error showing edit dialog", e);
-            showSnackbar("Error editing cashbook");
-        }
+        userCashbooksRef.child(cashbook.getCashbookId()).setValue(cashbook)
+                .addOnSuccessListener(aVoid -> showSnackbar(cashbook.isActive() ? "Cashbook activated" : "Cashbook deactivated"))
+                .addOnFailureListener(e -> showSnackbar("Failed to update status"));
     }
 
-    /**
-     * Duplicate cashbook
-     */
-    private void duplicateCashbook(CashbookModel original) {
-        if (original == null) return;
-
-        CashbookModel duplicate = new CashbookModel();
-        duplicate.setName(original.getName() + " (Copy)");
-        duplicate.setDescription(original.getDescription());
-        duplicate.setActive(true);
-        duplicate.setFavorite(false);
-
-        showLoading(true);
-        Log.d(TAG, "Duplicating cashbook: " + original.getName());
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            showLoading(false);
-            showSnackbar("Not authenticated");
-            return;
-        }
-
-        String userId = currentUser.getUid();
-        DatabaseReference cashbooksRef = mDatabase.child("users").child(userId).child("cashbooks");
-        String newCashbookId = cashbooksRef.push().getKey();
-
-        if (newCashbookId == null) {
-            showLoading(false);
-            showSnackbar("Error generating ID");
-            return;
-        }
-
-        duplicate.setCashbookId(newCashbookId);
-        duplicate.setLastModified(System.currentTimeMillis());
-
-        cashbooksRef.child(newCashbookId).setValue(duplicate)
-                .addOnSuccessListener(aVoid -> {
-                    showLoading(false);
-                    showSnackbar("Cashbook duplicated successfully");
-                    loadCashbooks();
-                    Log.d(TAG, "Cashbook duplicated");
-                })
-                .addOnFailureListener(e -> {
-                    showLoading(false);
-                    showSnackbar("Failed to duplicate cashbook");
-                    Log.e(TAG, "Error duplicating cashbook", e);
-                });
-    }
-
-    /**
-     * Show delete confirmation dialog
-     */
     private void showDeleteConfirmation(CashbookModel cashbook) {
         if (cashbook == null) return;
 
+        // [FIX] Add safety checks
+        if (allCashbooks.size() <= 1) {
+            showSnackbar(getString(R.string.error_delete_last_cashbook));
+            return;
+        }
+        if (cashbook.isCurrent()) {
+            showSnackbar(getString(R.string.error_delete_current_cashbook));
+            return;
+        }
+
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Delete Cashbook")
-                .setMessage("Are you sure you want to delete \"" + cashbook.getName() + "\"?\n\n" +
-                        "All associated transactions will also be deleted. This action cannot be undone.")
-                .setPositiveButton("Delete", (dialog, which) -> deleteCashbookFromFirebase(cashbook))
-                .setNegativeButton("Cancel", null)
+                .setTitle(getString(R.string.title_delete_cashbook))
+                .setMessage(getString(R.string.msg_delete_cashbook_confirmation, cashbook.getName()))
+                .setPositiveButton(getString(R.string.btn_delete), (dialog, which) -> deleteCashbookFromFirebase(cashbook))
+                .setNegativeButton(getString(R.string.btn_cancel), null)
                 .show();
     }
 
-    /**
-     * Delete cashbook from Firebase
-     */
     private void deleteCashbookFromFirebase(CashbookModel cashbook) {
-        if (cashbook == null || cashbook.getCashbookId() == null) {
-            showSnackbar("Invalid cashbook");
-            return;
-        }
-
-        showLoading(true);
-        Log.d(TAG, "Deleting cashbook: " + cashbook.getName());
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            showLoading(false);
-            showSnackbar("Not authenticated");
-            return;
-        }
-
-        String userId = currentUser.getUid();
-
-        mDatabase.child("users").child(userId)
-                .child("cashbooks").child(cashbook.getCashbookId())
-                .removeValue()
+        userCashbooksRef.child(cashbook.getCashbookId()).removeValue()
                 .addOnSuccessListener(aVoid -> {
-                    showLoading(false);
                     showSnackbar("Cashbook deleted successfully");
-                    loadCashbooks();
                     Log.d(TAG, "Cashbook deleted: " + cashbook.getName());
+                    // Listener will auto-update
                 })
                 .addOnFailureListener(e -> {
-                    showLoading(false);
                     showSnackbar("Failed to delete cashbook");
                     Log.e(TAG, "Error deleting cashbook", e);
                 });
     }
 
-    /**
-     * Show cashbook details dialog
-     */
-    private void showCashbookDetails(CashbookModel cashbook) {
-        if (cashbook == null) return;
-
-        String details = "Name: " + cashbook.getName() + "\n" +
-                "Description: " + (cashbook.getDescription() != null ? cashbook.getDescription() : "N/A") + "\n" +
-                "Status: " + (cashbook.isActive() ? "Active" : "Inactive") + "\n" +
-                "Favorite: " + (cashbook.isFavorite() ? "Yes" : "No") + "\n" +
-                "Transactions: " + cashbook.getTransactionCount() + "\n" +
-                "Balance: ₹" + String.format("%.2f", cashbook.getBalance());
-
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(cashbook.getName())
-                .setMessage(details)
-                .setPositiveButton("Close", null)
-                .show();
-    }
-
-    /**
-     * Handle filter selection
-     */
-    private void handleFilterClick(String filter) {
-        currentFilter = filter;
-        applyFilter(filter);
-        Log.d(TAG, "Filter changed to: " + filter);
-    }
-
-    /**
-     * Apply filter to cashbook list
-     */
-    private void applyFilter(String filter) {
-        List<CashbookModel> filteredList = new ArrayList<>();
-
-        switch (filter) {
-            case "active":
-                for (CashbookModel cashbook : allCashbooks) {
-                    if (cashbook.isActive()) {
-                        filteredList.add(cashbook);
-                    }
-                }
-                break;
-
-            case "recent":
-                filteredList.addAll(allCashbooks);
-                filteredList.sort((c1, c2) ->
-                        Long.compare(c2.getLastModified(), c1.getLastModified()));
-                break;
-
-            case "favorites":
-                for (CashbookModel cashbook : allCashbooks) {
-                    if (cashbook.isFavorite()) {
-                        filteredList.add(cashbook);
-                    }
-                }
-                break;
-
-            default:
-                filteredList.addAll(allCashbooks);
-                break;
-        }
-
-        cashbookAdapter.updateList(filteredList);
-        Log.d(TAG, "Filter applied: " + filter + " - " + filteredList.size() + " items");
-    }
-
-    /**
-     * Filter cashbooks by search query
-     */
-    private void filterCashbooks(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            applyFilter(currentFilter);
-            return;
-        }
-
-        List<CashbookModel> filteredList = new ArrayList<>();
-        String lowerQuery = query.toLowerCase().trim();
-
-        for (CashbookModel cashbook : allCashbooks) {
-            boolean nameMatches = cashbook.getName() != null &&
-                    cashbook.getName().toLowerCase().contains(lowerQuery);
-            boolean descMatches = cashbook.getDescription() != null &&
-                    cashbook.getDescription().toLowerCase().contains(lowerQuery);
-
-            if (nameMatches || descMatches) {
-                filteredList.add(cashbook);
-            }
-        }
-
-        cashbookAdapter.updateList(filteredList);
-        Log.d(TAG, "Search filtered to: " + filteredList.size() + " items");
-    }
-
-    /**
-     * Show sort options dialog
-     */
     private void showSortOptions() {
         try {
             String[] sortOptions = {
+                    getString(R.string.sort_recent_first),
                     getString(R.string.sort_name_asc),
                     getString(R.string.sort_name_desc),
-                    getString(R.string.sort_recent_first),
                     getString(R.string.sort_oldest_first),
                     getString(R.string.sort_most_transactions)
             };
 
             new MaterialAlertDialogBuilder(this)
                     .setTitle(getString(R.string.sort_cashbooks_title))
-                    .setItems(sortOptions, (dialog, which) -> applySortOption(which))
+                    .setItems(sortOptions, (dialog, which) -> {
+                        switch (which) {
+                            case 0: currentSort = "recent"; break;
+                            case 1: currentSort = "name_asc"; break;
+                            case 2: currentSort = "name_desc"; break;
+                            case 3: currentSort = "oldest"; break;
+                            case 4: currentSort = "most_transactions"; break;
+                        }
+                        applyFiltersAndSort();
+                        Log.d(TAG, "Sort applied: " + currentSort);
+                    })
                     .show();
-
-            Log.d(TAG, "Sort options shown");
         } catch (Exception e) {
             Log.e(TAG, "Error showing sort options", e);
         }
     }
 
     /**
-     * Apply sort option to list
+     * [FIX] Centralized method to apply filtering and sorting
      */
-    private void applySortOption(int option) {
-        List<CashbookModel> sortedList = new ArrayList<>(allCashbooks);
+    private void applyFiltersAndSort() {
+        List<CashbookModel> filteredList = new ArrayList<>();
+        String query = searchEditText.getText().toString().toLowerCase().trim();
 
-        switch (option) {
-            case 0:
-                sortedList.sort((c1, c2) -> c1.getName().compareToIgnoreCase(c2.getName()));
+        // 1. Apply Search Query
+        List<CashbookModel> searchResults;
+        if (query.isEmpty()) {
+            searchResults = new ArrayList<>(allCashbooks);
+        } else {
+            searchResults = allCashbooks.stream()
+                    .filter(c -> (c.getName() != null && c.getName().toLowerCase().contains(query)) ||
+                            (c.getDescription() != null && c.getDescription().toLowerCase().contains(query)))
+                    .collect(Collectors.toList());
+        }
+
+        // 2. Apply Chip Filter
+        switch (currentFilter) {
+            case "active":
+                filteredList = searchResults.stream().filter(CashbookModel::isActive).collect(Collectors.toList());
                 break;
-            case 1:
-                sortedList.sort((c1, c2) -> c2.getName().compareToIgnoreCase(c1.getName()));
+            case "favorites":
+                filteredList = searchResults.stream().filter(CashbookModel::isFavorite).collect(Collectors.toList());
                 break;
-            case 2:
-                sortedList.sort((c1, c2) -> Long.compare(c2.getLastModified(), c1.getLastModified()));
-                break;
-            case 3:
-                sortedList.sort((c1, c2) -> Long.compare(c1.getLastModified(), c2.getLastModified()));
-                break;
-            case 4:
-                sortedList.sort((c1, c2) -> Integer.compare(c2.getTransactionCount(), c1.getTransactionCount()));
+            case "recent":
+            default:
+                filteredList = searchResults;
                 break;
         }
 
-        cashbookAdapter.updateList(sortedList);
-        Log.d(TAG, "Sort applied: option " + option);
+        // 3. Apply Sort
+        switch (currentSort) {
+            case "name_asc":
+                filteredList.sort((c1, c2) -> c1.getName().compareToIgnoreCase(c2.getName()));
+                break;
+            case "name_desc":
+                filteredList.sort((c1, c2) -> c2.getName().compareToIgnoreCase(c1.getName()));
+                break;
+            case "oldest":
+                filteredList.sort((c1, c2) -> Long.compare(c1.getCreatedDate(), c2.getCreatedDate()));
+                break;
+            case "most_transactions":
+                filteredList.sort((c1, c2) -> Integer.compare(c2.getTransactionCount(), c1.getTransactionCount()));
+                break;
+            case "recent":
+            default:
+                filteredList.sort((c1, c2) -> Long.compare(c2.getLastModified(), c1.getLastModified()));
+                break;
+        }
+
+        // 4. Update Adapter
+        cashbookAdapter.updateCashbooks(filteredList);
+
+        // 5. Update UI State
+        if (allCashbooks.isEmpty()) {
+            showEmptyState(true);
+        } else {
+            showEmptyState(false);
+        }
+
+        Log.d(TAG, "Filters/Sort applied. Filter: " + currentFilter + ", Sort: " + currentSort + ", Query: " + query + ". Result: " + filteredList.size() + " items");
     }
 
-    /**
-     * Handle cashbook selection - return to caller
-     */
     private void onCashbookSelected(CashbookModel cashbook) {
         if (cashbook == null) {
-            Log.e(TAG, "Cashbook is null");
+            Log.e(TAG, "onCashbookSelected: cashbook is null");
             return;
         }
 
@@ -788,64 +572,30 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         result.putExtra("selected_cashbook_id", cashbook.getCashbookId());
         result.putExtra("cashbook_name", cashbook.getName());
         setResult(RESULT_OK, result);
-
         Log.d(TAG, "Cashbook selected: " + cashbook.getName());
         finish();
     }
 
-    /**
-     * Show loading state
-     */
     private void showLoading(boolean show) {
         isLoading = show;
-        if (loadingLayout != null) {
-            loadingLayout.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
-        if (mainCard != null) {
-            mainCard.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        loadingLayout.setVisibility(show ? View.VISIBLE : View.GONE);
+        mainContent.setVisibility(show ? View.GONE : View.VISIBLE);
+        emptyStateLayout.setVisibility(View.GONE); // Hide empty state while loading
     }
 
-    /**
-     * Show empty state
-     */
     private void showEmptyState(boolean show) {
-        if (emptyStateLayout != null) {
-            emptyStateLayout.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
-        if (mainCard != null) {
-            mainCard.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        emptyStateLayout.setVisibility(show ? View.VISIBLE : View.GONE);
+        mainContent.setVisibility(show ? View.GONE : View.VISIBLE);
+        loadingLayout.setVisibility(View.GONE); // Hide loading state
     }
 
-    /**
-     * Update statistics display
-     */
-    private void updateStats(int total, int active) {
-        if (totalCashbooksText != null) {
-            totalCashbooksText.setText(String.valueOf(total));
-        }
-        if (activeCashbooksText != null) {
-            activeCashbooksText.setText(String.valueOf(active));
-        }
+    private void updateStats(List<CashbookModel> cashbooks) {
+        int total = cashbooks.size();
+        int active = (int) cashbooks.stream().filter(CashbookModel::isActive).count();
+        totalCashbooksText.setText(String.valueOf(total));
+        activeCashbooksText.setText(String.valueOf(active));
     }
 
-    /**
-     * Get count of active cashbooks
-     */
-    private int getActiveCashbooksCount(List<CashbookModel> cashbooks) {
-        int count = 0;
-        for (CashbookModel cashbook : cashbooks) {
-            if (cashbook.isActive()) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    /**
-     * Show Snackbar message
-     */
     private void showSnackbar(String message) {
         Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
     }
@@ -853,18 +603,10 @@ public class CashbookSwitchActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        // Remove Firebase listener to prevent memory leaks
-        if (cashbooksListener != null) {
-            FirebaseUser currentUser = mAuth.getCurrentUser();
-            if (currentUser != null) {
-                mDatabase.child("users").child(currentUser.getUid())
-                        .child("cashbooks")
-                        .removeEventListener(cashbooksListener);
-                Log.d(TAG, "Firebase listener removed");
-            }
+        if (cashbooksListener != null && userCashbooksRef != null) {
+            userCashbooksRef.removeEventListener(cashbooksListener);
+            Log.d(TAG, "Firebase listener removed");
         }
-
         Log.d(TAG, "CashbookSwitchActivity destroyed");
     }
 }
