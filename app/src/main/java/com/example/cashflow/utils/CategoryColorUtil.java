@@ -25,6 +25,7 @@ public class CategoryColorUtil {
         categoryColorMap.put("Health", R.color.category_health);
         categoryColorMap.put("Education", R.color.category_education);
         categoryColorMap.put("Other", R.color.category_other);
+        categoryColorMap.put("No Category", R.color.category_default); // [FIX] Added
         categoryColorMap.put("Select Category", R.color.category_default);
     }
 
@@ -35,6 +36,9 @@ public class CategoryColorUtil {
      * @return The resolved color integer.
      */
     public static int getCategoryColor(Context context, String categoryName) {
+        if (categoryName == null) {
+            return ContextCompat.getColor(context, R.color.category_default);
+        }
         Integer colorResId = categoryColorMap.get(categoryName);
         if (colorResId == null) {
             // Return a default color if the category name is not found.

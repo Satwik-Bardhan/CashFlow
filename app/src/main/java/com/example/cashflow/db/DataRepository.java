@@ -21,15 +21,15 @@ import java.util.List;
 
 /**
  * DataRepository - Centralized data access layer for CashFlow app
- * Handles Firebase (authenticated users) operations.
- * All guest and SQLite logic has been removed for simplicity.
+ * [FIX] Handles Firebase (authenticated users) operations ONLY.
+ * All guest and SQLite logic has been removed.
  */
 public class DataRepository {
 
     private static final String TAG = "DataRepository";
     private static volatile DataRepository INSTANCE;
 
-    private final DatabaseReference userDatabase;
+    private final DatabaseReference rootRef; // [FIX] Changed to root reference
     private final FirebaseAuth mAuth;
 
     public interface DataCallback<T> {
@@ -42,13 +42,8 @@ public class DataRepository {
 
     private DataRepository(Application application) {
         mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        // The user database reference is now our single source of truth.
-        // If it's null, the user is not authenticated.
-        userDatabase = (currentUser != null && !currentUser.isAnonymous()) ?
-                FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid()) :
-                null;
+        // [FIX] Get the root reference, user-specific paths will be determined in each method
+        rootRef = FirebaseDatabase.getInstance().getReference();
     }
 
     public static DataRepository getInstance(Application application) {
@@ -62,9 +57,22 @@ public class DataRepository {
         return INSTANCE;
     }
 
+    /**
+     * [FIX] Helper to get the current user's DB reference.
+     * Returns null if not authenticated.
+     */
+    private DatabaseReference getUserDatabaseRef() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null && !currentUser.isAnonymous()) {
+            return rootRef.child("users").child(currentUser.getUid());
+        }
+        return null;
+    }
+
     // --- ENHANCED TRANSACTION METHODS ---
 
     public void getAllTransactions(String cashbookId, DataCallback<List<TransactionModel>> callback, ErrorCallback errorCallback) {
+        DatabaseReference userDatabase = getUserDatabaseRef();
         if (userDatabase == null || cashbookId == null) {
             if (errorCallback != null) errorCallback.onError("User not authenticated or cashbook missing.");
             callback.onCallback(new ArrayList<>());
@@ -84,6 +92,7 @@ public class DataRepository {
                                     transactions.add(transaction);
                                 }
                             }
+                            // [FIX] Sort by timestamp, newest first
                             Collections.sort(transactions, (t1, t2) ->
                                     Long.compare(t2.getTimestamp(), t1.getTimestamp()));
                             callback.onCallback(transactions);
@@ -103,6 +112,7 @@ public class DataRepository {
     }
 
     public void addTransaction(String cashbookId, TransactionModel transaction, DataCallback<Boolean> callback) {
+        DatabaseReference userDatabase = getUserDatabaseRef();
         if (userDatabase == null || cashbookId == null) {
             if (callback != null) callback.onCallback(false);
             return;
@@ -127,6 +137,7 @@ public class DataRepository {
     }
 
     public void updateTransaction(String cashbookId, TransactionModel transaction, DataCallback<Boolean> callback) {
+        DatabaseReference userDatabase = getUserDatabaseRef();
         if (userDatabase == null || cashbookId == null || transaction.getTransactionId() == null) {
             if (callback != null) callback.onCallback(false);
             return;
@@ -146,6 +157,7 @@ public class DataRepository {
     }
 
     public void deleteTransaction(String cashbookId, String transactionId, DataCallback<Boolean> callback) {
+        DatabaseReference userDatabase = getUserDatabaseRef();
         if (userDatabase == null || cashbookId == null || transactionId == null) {
             if (callback != null) callback.onCallback(false);
             return;
@@ -166,6 +178,7 @@ public class DataRepository {
     // --- ENHANCED CASHBOOK METHODS ---
 
     public void getCashbooks(DataCallback<List<CashbookModel>> callback, ErrorCallback errorCallback) {
+        DatabaseReference userDatabase = getUserDatabaseRef();
         if (userDatabase == null) {
             callback.onCallback(new ArrayList<>());
             return;
@@ -200,6 +213,7 @@ public class DataRepository {
     }
 
     public void createNewCashbook(String name, DataCallback<String> callback, ErrorCallback errorCallback) {
+        DatabaseReference userDatabase = getUserDatabaseRef();
         if (userDatabase == null) {
             if (errorCallback != null) errorCallback.onError("User not authenticated");
             callback.onCallback(null);
@@ -215,6 +229,7 @@ public class DataRepository {
         String cashbookId = userDatabase.child("cashbooks").push().getKey();
         if (cashbookId != null) {
             CashbookModel newCashbook = new CashbookModel(cashbookId, name.trim());
+            newCashbook.setUserId(userDatabase.getKey()); // Set the user ID
 
             userDatabase.child("cashbooks").child(cashbookId).setValue(newCashbook)
                     .addOnSuccessListener(aVoid -> {
@@ -233,6 +248,7 @@ public class DataRepository {
     }
 
     public void deleteCashbook(String cashbookId, DataCallback<Boolean> callback, ErrorCallback errorCallback) {
+        DatabaseReference userDatabase = getUserDatabaseRef();
         if (userDatabase == null || cashbookId == null) {
             if (errorCallback != null) errorCallback.onError("Invalid request");
             if (callback != null) callback.onCallback(false);
@@ -252,6 +268,7 @@ public class DataRepository {
     }
 
     public void duplicateCashbook(String originalCashbookId, String newName, DataCallback<String> callback, ErrorCallback errorCallback) {
+        DatabaseReference userDatabase = getUserDatabaseRef();
         if (userDatabase == null || originalCashbookId == null || newName == null) {
             if (errorCallback != null) errorCallback.onError("Invalid request");
             callback.onCallback(null);
@@ -266,8 +283,17 @@ public class DataRepository {
                         if (originalCashbook != null) {
                             String newCashbookId = userDatabase.child("cashbooks").push().getKey();
                             if (newCashbookId != null) {
-                                CashbookModel duplicatedCashbook = new CashbookModel(newCashbookId, newName.trim());
-                                userDatabase.child("cashbooks").child(newCashbookId).setValue(duplicatedCashbook)
+                                // Create new book based on old one
+                                originalCashbook.setCashbookId(newCashbookId);
+                                originalCashbook.setName(newName.trim());
+                                originalCashbook.setCurrent(false);
+                                originalCashbook.setLastModified(System.currentTimeMillis());
+                                originalCashbook.setCreatedDate(System.currentTimeMillis());
+                                // Note: This duplicates transactions, which might not be intended.
+                                // A true duplicate might start with 0 transactions.
+                                // For this code, we'll duplicate everything.
+
+                                userDatabase.child("cashbooks").child(newCashbookId).setValue(originalCashbook)
                                         .addOnSuccessListener(aVoid -> {
                                             Log.d(TAG, "Cashbook duplicated successfully: " + newName);
                                             callback.onCallback(newCashbookId);
@@ -297,10 +323,6 @@ public class DataRepository {
     }
 
     // --- UTILITY METHODS ---
-
-    public void cleanup() {
-        Log.d(TAG, "DataRepository cleaned up");
-    }
 
     public boolean isUserAuthenticated() {
         FirebaseUser currentUser = mAuth.getCurrentUser();

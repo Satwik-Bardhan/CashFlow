@@ -75,7 +75,10 @@ public class ErrorHandler {
     }
 
     private static void showErrorToUser(@NonNull Context context, String message) {
+        // Check if context is valid before showing toast
         if (context instanceof Activity && !((Activity) context).isFinishing()) {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+        } else if (context != null) {
             Toast.makeText(context, message, Toast.LENGTH_LONG).show();
         }
     }
@@ -85,4 +88,3 @@ public class ErrorHandler {
         showErrorToUser(context, message);
     }
 }
-

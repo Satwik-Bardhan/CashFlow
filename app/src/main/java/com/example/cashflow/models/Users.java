@@ -1,14 +1,13 @@
-package com.example.cashflow.models;
+package com.example.cashflow.models; // [FIX] Ensure this is in the 'models' package
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
-@IgnoreExtraProperties // Added this annotation back, as it's best practice for Firebase
+@IgnoreExtraProperties
 public class Users {
     private String profile;
     private String mail;
     private String userName;
     private String userId;
-    // --- [ADDED] New fields to store additional profile information ---
     private String phoneNumber;
     private long dateOfBirthTimestamp;
 
@@ -48,7 +47,6 @@ public class Users {
         this.userId = userId;
     }
 
-    // --- [ADDED] Getters and setters for the new fields ---
     public String getPhoneNumber() {
         return phoneNumber;
     }
@@ -65,4 +63,3 @@ public class Users {
         this.dateOfBirthTimestamp = dateOfBirthTimestamp;
     }
 }
-

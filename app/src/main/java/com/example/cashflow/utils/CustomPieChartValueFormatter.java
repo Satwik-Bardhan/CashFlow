@@ -11,14 +11,19 @@ public class CustomPieChartValueFormatter extends ValueFormatter {
 
     public CustomPieChartValueFormatter() {
         // Format to show a whole number for the percentage
-        format = new DecimalFormat("###,###,##0");
+        format = new DecimalFormat("###,###,##0'%'"); // [FIX] Added % symbol
     }
 
     @Override
     public String getPieLabel(float value, PieEntry pieEntry) {
-        // This is where we create the multi-line label, e.g., "34%\nLeisure"
-        // The 'value' is the percentage, and 'pieEntry.getLabel()' is the category name.
-        return format.format(value) + "%\n" + pieEntry.getLabel();
+        // [FIX] This formatter is for the value *outside* the slice.
+        // The label is separate.
+        return format.format(value);
+    }
+
+    @Override
+    public String getFormattedValue(float value) {
+        // This is used for the value inside the slice
+        return format.format(value);
     }
 }
-
