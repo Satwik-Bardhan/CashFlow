@@ -1,6 +1,8 @@
 package com.example.cashflow;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -8,7 +10,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.cashflow.models.Users; // Assuming Users is in models package
+import com.example.cashflow.models.Users; // [FIX] Corrected package
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -21,73 +23,49 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * HomePageViewModel - ViewModel for HomePage activity
- *
- * Responsibilities:
- * - Manage cashbooks and transactions data for authenticated users
- * - Handle Firebase data loading and caching
- * - Provide LiveData for UI observation
- *
- * Updated: November 2025 - All Guest Mode logic removed.
- */
 public class HomePageViewModel extends AndroidViewModel {
 
     private static final String TAG = "HomePageViewModel";
 
     // Firebase
-    private final DatabaseReference userDatabaseRef; // Renamed for clarity
+    private final DatabaseReference userDatabaseRef;
     private String currentCashbookId;
+    private String currentUserId; // [FIX] Added user ID field
 
-    // LiveData for UI observation
+    // LiveData
     private final MutableLiveData<List<TransactionModel>> transactions = new MutableLiveData<>();
     private final MutableLiveData<List<CashbookModel>> cashbooks = new MutableLiveData<>();
-    private final MutableLiveData<String> activeCashbookName = new MutableLiveData<>();
+    private final MutableLiveData<CashbookModel> activeCashbook = new MutableLiveData<>(); // [FIX] Changed to return full model
     private final MutableLiveData<Users> userProfile = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
-    // Firebase listeners
+    // Listeners
     private ValueEventListener transactionsListener;
     private ValueEventListener cashbooksListener;
     private ValueEventListener userProfileListener;
 
-    // Previous cashbook reference for cleanup
     private DatabaseReference previousTransactionsRef;
 
-    /**
-     * Constructor for HomePageViewModel
-     */
     public HomePageViewModel(@NonNull Application application) {
         super(application);
         this.transactions.setValue(new ArrayList<>());
         this.cashbooks.setValue(new ArrayList<>());
 
-        Log.d(TAG, "ViewModel initialized for authenticated user.");
+        Log.d(TAG, "ViewModel initialized.");
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         if (currentUser != null) {
+            currentUserId = currentUser.getUid();
             userDatabaseRef = FirebaseDatabase.getInstance().getReference("users")
-                    .child(currentUser.getUid());
-            loadUserProfile(currentUser.getUid());
+                    .child(currentUserId);
+            loadUserProfile();
             loadCashbooks();
         } else {
             userDatabaseRef = null;
             Log.e(TAG, "ViewModel created, but user is not authenticated!");
             errorMessage.setValue("User not logged in.");
-        }
-    }
-
-    /**
-     * Constructor with cashbook ID
-     */
-    public HomePageViewModel(@NonNull Application application, String cashbookId) {
-        this(application);
-        this.currentCashbookId = cashbookId;
-
-        if (currentCashbookId != null) {
-            switchCashbook(currentCashbookId);
         }
     }
 
@@ -103,8 +81,8 @@ public class HomePageViewModel extends AndroidViewModel {
         return cashbooks;
     }
 
-    public LiveData<String> getActiveCashbookName() {
-        return activeCashbookName;
+    public LiveData<CashbookModel> getActiveCashbook() {
+        return activeCashbook;
     }
 
     public LiveData<Users> getUserProfile() {
@@ -127,189 +105,164 @@ public class HomePageViewModel extends AndroidViewModel {
     // User Profile
     // ============================================
 
-    /**
-     * Load user profile information from Firebase
-     */
-    private void loadUserProfile(String userId) {
+    private void loadUserProfile() {
         if (userDatabaseRef == null) return;
 
-        try {
-            userProfileListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    try {
-                        Users user = snapshot.getValue(Users.class);
-                        userProfile.setValue(user);
-                        Log.d(TAG, "User profile loaded successfully");
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error parsing user profile", e);
-                        errorMessage.setValue("Error loading user profile");
-                    }
-                }
+        userProfileListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Users user = snapshot.getValue(Users.class);
+                userProfile.setValue(user);
+                Log.d(TAG, "User profile loaded.");
+            }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e(TAG, "User profile loading cancelled", error.toException());
-                    errorMessage.setValue("Error: " + error.getMessage());
-                }
-            };
-            userDatabaseRef.addListenerForSingleValueEvent(userProfileListener);
-        } catch (Exception e) {
-            Log.e(TAG, "Error setting up user profile listener", e);
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "User profile loading cancelled", error.toException());
+                errorMessage.setValue("Error: " + error.getMessage());
+            }
+        };
+        userDatabaseRef.addValueEventListener(userProfileListener);
     }
 
     // ============================================
     // Cashbook Management
     // ============================================
 
-    /**
-     * Load all cashbooks for the current user from Firebase
-     */
     private void loadCashbooks() {
-        if (userDatabaseRef == null) {
-            Log.w(TAG, "Cannot load cashbooks: userDatabaseRef is null");
-            return;
-        }
+        if (userDatabaseRef == null) return;
 
-        try {
-            isLoading.setValue(true);
+        isLoading.setValue(true);
 
-            cashbooksListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    try {
-                        List<CashbookModel> cashbookList = new ArrayList<>();
-                        for (DataSnapshot cashbookSnapshot : snapshot.getChildren()) {
-                            CashbookModel cashbook = cashbookSnapshot.getValue(CashbookModel.class);
-                            if (cashbook != null) {
-                                if (cashbook.getCashbookId() == null) {
-                                    cashbook.setCashbookId(cashbookSnapshot.getKey());
-                                }
-                                cashbookList.add(cashbook);
-                            }
+        cashbooksListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<CashbookModel> cashbookList = new ArrayList<>();
+                for (DataSnapshot cashbookSnapshot : snapshot.getChildren()) {
+                    CashbookModel cashbook = cashbookSnapshot.getValue(CashbookModel.class);
+                    if (cashbook != null) {
+                        cashbook.setCashbookId(cashbookSnapshot.getKey());
+                        cashbookList.add(cashbook);
+                    }
+                }
+                cashbooks.setValue(cashbookList);
+                Log.d(TAG, "Loaded " + cashbookList.size() + " cashbooks");
+
+                // Get the last active cashbook ID from SharedPreferences
+                currentCashbookId = getActiveCashbookIdFromPrefs();
+
+                boolean activeCashbookFound = false;
+                if (currentCashbookId != null) {
+                    for (CashbookModel book : cashbookList) {
+                        if (book.getCashbookId().equals(currentCashbookId)) {
+                            activeCashbookFound = true;
+                            break;
                         }
-                        cashbooks.setValue(cashbookList);
-                        Log.d(TAG, "Loaded " + cashbookList.size() + " cashbooks");
-
-                        if (!cashbookList.isEmpty() && currentCashbookId == null) {
-                            switchCashbook(cashbookList.get(0).getCashbookId());
-                        }
-                        isLoading.setValue(false);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error processing cashbooks", e);
-                        errorMessage.setValue("Error loading cashbooks: " + e.getMessage());
-                        isLoading.setValue(false);
                     }
                 }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e(TAG, "Cashbooks listener cancelled", error.toException());
-                    errorMessage.setValue("Error: " + error.getMessage());
-                    isLoading.setValue(false);
+                if (!activeCashbookFound && !cashbookList.isEmpty()) {
+                    // Default to the first cashbook if last active one isn't found or isn't set
+                    currentCashbookId = cashbookList.get(0).getCashbookId();
+                    saveActiveCashbookIdToPrefs(currentCashbookId);
                 }
-            };
-            userDatabaseRef.child("cashbooks").addValueEventListener(cashbooksListener);
-        } catch (Exception e) {
-            Log.e(TAG, "Error setting up cashbooks listener", e);
-            errorMessage.setValue("Error setting up cashbooks listener");
-            isLoading.setValue(false);
-        }
+
+                if (currentCashbookId != null) {
+                    switchCashbook(currentCashbookId);
+                } else {
+                    // This is a new user with no cashbooks
+                    isLoading.setValue(false);
+                    // HomePage will detect this and show the "Create First Cashbook" dialog
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Cashbooks listener cancelled", error.toException());
+                errorMessage.setValue("Error: " + error.getMessage());
+                isLoading.setValue(false);
+            }
+        };
+        userDatabaseRef.child("cashbooks").addValueEventListener(cashbooksListener);
     }
 
-    /**
-     * Switch to a different cashbook and load its transactions
-     */
     public void switchCashbook(String cashbookId) {
         if (userDatabaseRef == null || cashbookId == null) {
-            Log.w(TAG, "Cannot switch cashbook: invalid parameters");
             return;
         }
 
-        try {
-            isLoading.setValue(true);
-            currentCashbookId = cashbookId;
+        isLoading.setValue(true);
+        currentCashbookId = cashbookId;
+        saveActiveCashbookIdToPrefs(cashbookId);
 
-            List<CashbookModel> currentCashbooks = cashbooks.getValue();
-            if (currentCashbooks != null) {
-                for (CashbookModel book : currentCashbooks) {
-                    if (book.getCashbookId() != null && book.getCashbookId().equals(cashbookId)) {
-                        activeCashbookName.setValue(book.getName());
-                        Log.d(TAG, "Switched to cashbook: " + book.getName());
-                        break;
-                    }
+        // Update the active cashbook LiveData
+        if (cashbooks.getValue() != null) {
+            for (CashbookModel book : cashbooks.getValue()) {
+                if (book.getCashbookId().equals(cashbookId)) {
+                    activeCashbook.setValue(book);
+                    Log.d(TAG, "Switched to cashbook: " + book.getName());
+                    break;
                 }
             }
-
-            if (previousTransactionsRef != null && transactionsListener != null) {
-                previousTransactionsRef.removeEventListener(transactionsListener);
-                Log.d(TAG, "Removed previous transactions listener");
-            }
-
-            DatabaseReference newTransactionsRef = userDatabaseRef.child("cashbooks").child(cashbookId).child("transactions");
-            previousTransactionsRef = newTransactionsRef;
-
-            transactionsListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    try {
-                        List<TransactionModel> transactionList = new ArrayList<>();
-                        for (DataSnapshot transactionSnapshot : snapshot.getChildren()) {
-                            TransactionModel transaction = transactionSnapshot.getValue(TransactionModel.class);
-                            if (transaction != null) {
-                                transaction.setTransactionId(transactionSnapshot.getKey());
-                                transactionList.add(transaction);
-                            }
-                        }
-                        Collections.sort(transactionList, (t1, t2) ->
-                                Long.compare(t2.getTimestamp(), t1.getTimestamp()));
-
-                        transactions.setValue(transactionList);
-                        Log.d(TAG, "Loaded " + transactionList.size() + " transactions");
-                        isLoading.setValue(false);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error processing transactions", e);
-                        errorMessage.setValue("Error loading transactions: " + e.getMessage());
-                        isLoading.setValue(false);
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e(TAG, "Transactions listener cancelled", error.toException());
-                    errorMessage.setValue("Error: " + error.getMessage());
-                    isLoading.setValue(false);
-                }
-            };
-            newTransactionsRef.addValueEventListener(transactionsListener);
-        } catch (Exception e) {
-            Log.e(TAG, "Error switching cashbook", e);
-            errorMessage.setValue("Error switching cashbook: " + e.getMessage());
-            isLoading.setValue(false);
         }
+
+        // Detach the old listener if it exists
+        if (previousTransactionsRef != null && transactionsListener != null) {
+            previousTransactionsRef.removeEventListener(transactionsListener);
+            Log.d(TAG, "Removed previous transactions listener");
+        }
+
+        // Attach new listener
+        DatabaseReference newTransactionsRef = userDatabaseRef.child("cashbooks").child(cashbookId).child("transactions");
+        previousTransactionsRef = newTransactionsRef;
+
+        transactionsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<TransactionModel> transactionList = new ArrayList<>();
+                for (DataSnapshot transactionSnapshot : snapshot.getChildren()) {
+                    TransactionModel transaction = transactionSnapshot.getValue(TransactionModel.class);
+                    if (transaction != null) {
+                        transaction.setTransactionId(transactionSnapshot.getKey());
+                        transactionList.add(transaction);
+                    }
+                }
+                // Sort transactions by timestamp (newest first)
+                Collections.sort(transactionList, (t1, t2) ->
+                        Long.compare(t2.getTimestamp(), t1.getTimestamp()));
+
+                transactions.setValue(transactionList);
+                Log.d(TAG, "Loaded " + transactionList.size() + " transactions");
+                isLoading.setValue(false);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Transactions listener cancelled", error.toException());
+                errorMessage.setValue("Error: " + error.getMessage());
+                isLoading.setValue(false);
+            }
+        };
+        newTransactionsRef.addValueEventListener(transactionsListener);
     }
 
     // ============================================
-    // Data Updates
+    // SharedPreferences for saving active cashbook
     // ============================================
 
-    public void refreshData() {
-        Log.d(TAG, "Refreshing data...");
-        if (currentCashbookId != null) {
-            switchCashbook(currentCashbookId);
-        } else {
-            loadCashbooks();
-        }
+    private void saveActiveCashbookIdToPrefs(String cashbookId) {
+        SharedPreferences prefs = getApplication().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        prefs.edit().putString("active_cashbook_id_" + currentUserId, cashbookId).apply();
     }
 
-    public void clearError() {
-        errorMessage.setValue(null);
+    private String getActiveCashbookIdFromPrefs() {
+        SharedPreferences prefs = getApplication().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        return prefs.getString("active_cashbook_id_" + currentUserId, null);
     }
 
-    public void setLoading(boolean loading) {
-        isLoading.setValue(loading);
-    }
+    // ============================================
+    // Cleanup
+    // ============================================
 
     @Override
     protected void onCleared() {

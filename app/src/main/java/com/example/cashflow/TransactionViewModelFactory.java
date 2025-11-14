@@ -18,7 +18,8 @@ public class TransactionViewModelFactory implements ViewModelProvider.Factory {
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(TransactionViewModel.class)) {
-            // [FIX] Removed isGuest, now only passes cashbookId
+            // [FIX] Passes the cashbookId to the ViewModel
+            // noinspection unchecked
             return (T) new TransactionViewModel(application, cashbookId);
         }
         throw new IllegalArgumentException("Unknown ViewModel class");

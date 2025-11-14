@@ -57,6 +57,7 @@ public class SplashActivity extends AppCompatActivity {
         Intent intent = new Intent(SplashActivity.this, activityClass);
         startActivity(intent);
 
+
         // Finish this splash activity so the user can't navigate back to it
         finish();
     }

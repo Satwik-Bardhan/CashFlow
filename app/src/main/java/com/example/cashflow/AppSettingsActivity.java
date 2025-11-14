@@ -114,4 +114,3 @@ public class AppSettingsActivity extends AppCompatActivity {
         editor.apply();
     }
 }
-

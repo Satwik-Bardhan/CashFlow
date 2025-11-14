@@ -8,11 +8,9 @@ import androidx.lifecycle.AndroidViewModel;
 
 import com.example.cashflow.db.DataRepository;
 
-import java.util.UUID;
-
 /**
  * CashInOutViewModel - ViewModel for handling transaction creation and editing
- * Manages authenticated mode (Firebase) transactions.
+ * [FIX] Manages authenticated mode (Firebase) transactions only.
  * Guest mode logic has been removed.
  */
 public class CashInOutViewModel extends AndroidViewModel {
@@ -33,7 +31,7 @@ public class CashInOutViewModel extends AndroidViewModel {
      * @param transaction The transaction to save
      */
     public void saveTransaction(String cashbookId, TransactionModel transaction) {
-        if (!isTransactionValid(transaction)) {
+        if (!isTransactionValid(transaction, false)) { // [FIX] Use new validation flag
             Log.e(TAG, "Invalid transaction. Save aborted.");
             return;
         }
@@ -61,8 +59,8 @@ public class CashInOutViewModel extends AndroidViewModel {
      * @param transaction The transaction to update
      */
     public void updateTransaction(String cashbookId, TransactionModel transaction) {
-        if (transaction == null || transaction.getTransactionId() == null) {
-            Log.e(TAG, "Transaction or transaction ID is null, cannot update");
+        if (!isTransactionValid(transaction, true)) { // [FIX] Use new validation flag
+            Log.e(TAG, "Invalid transaction, update aborted.");
             return;
         }
 
@@ -114,11 +112,18 @@ public class CashInOutViewModel extends AndroidViewModel {
     /**
      * Validates transaction data before saving
      * @param transaction The transaction to validate
+     * @param isUpdate Check for transactionId only if it's an update
      * @return true if valid, false otherwise
      */
-    public boolean isTransactionValid(TransactionModel transaction) {
+    public boolean isTransactionValid(TransactionModel transaction, boolean isUpdate) {
         if (transaction == null) {
             Log.w(TAG, "Transaction validation failed: transaction is null");
+            return false;
+        }
+
+        // [FIX] Only require transactionId if we are updating an existing entry
+        if (isUpdate && (transaction.getTransactionId() == null || transaction.getTransactionId().isEmpty())) {
+            Log.w(TAG, "Transaction validation failed: transaction ID is empty for update");
             return false;
         }
 
@@ -127,7 +132,9 @@ public class CashInOutViewModel extends AndroidViewModel {
             return false;
         }
 
-        if (transaction.getTransactionCategory() == null || transaction.getTransactionCategory().trim().isEmpty()) {
+        if (transaction.getTransactionCategory() == null ||
+                transaction.getTransactionCategory().trim().isEmpty() ||
+                transaction.getTransactionCategory().equals("Select Category")) {
             Log.w(TAG, "Transaction validation failed: category is empty");
             return false;
         }

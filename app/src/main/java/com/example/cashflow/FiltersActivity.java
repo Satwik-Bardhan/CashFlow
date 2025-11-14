@@ -2,9 +2,11 @@ package com.example.cashflow;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.Context; // [FIX] Added context import
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue; // [FIX] Added for ThemeUtil
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -38,7 +39,7 @@ import java.util.Set;
  * - Search by remarks
  * - Tag filtering
  *
- * Updated: November 2025 - Added null safety and improved UX
+ * Updated: November 2025 - Fixed layout and theme issues
  */
 public class FiltersActivity extends AppCompatActivity {
 
@@ -64,7 +65,8 @@ public class FiltersActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search_filters);
+        // [FIX] Point to the correct layout file
+        setContentView(R.layout.activity_filters);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -79,7 +81,7 @@ public class FiltersActivity extends AppCompatActivity {
     }
 
     /**
-     * Initialize all UI components with null safety
+     * Initialize all UI components
      */
     private void initializeUI() {
         // Header
@@ -102,7 +104,7 @@ public class FiltersActivity extends AppCompatActivity {
         inOutToggle = findViewById(R.id.inOutToggle);
         cashOnlineToggle = findViewById(R.id.cashOnlineToggle);
 
-        // Category & Party (with null safety)
+        // Category & Party
         selectedCategoryTextView = findViewById(R.id.selectedCategoryTextView);
         categorySelectorLayout = findViewById(R.id.categorySelectorLayout);
         partySelectorLayout = findViewById(R.id.partySelectorLayout);
@@ -129,9 +131,14 @@ public class FiltersActivity extends AppCompatActivity {
 
         if (initialStartDate > 0) {
             startCalendar.setTimeInMillis(initialStartDate);
+        } else {
+            startCalendar.setTimeInMillis(0); // [FIX] Ensure it's 0 if not provided
         }
+
         if (initialEndDate > 0) {
             endCalendar.setTimeInMillis(initialEndDate);
+        } else {
+            endCalendar.setTimeInMillis(0); // [FIX] Ensure it's 0 if not provided
         }
 
         entryType = intent.getStringExtra("entryType");
@@ -155,12 +162,17 @@ public class FiltersActivity extends AppCompatActivity {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        ArrayList<String> returnedCategories = result.getData()
-                                .getStringArrayListExtra("selected_categories");
-                        if (returnedCategories != null) {
-                            selectedCategories = new HashSet<>(returnedCategories);
+                        // [FIX] This should be 'selected_category', not 'selected_categories' from ChooseCategoryActivity
+                        String returnedCategory = result.getData().getStringExtra("selected_category");
+                        if (returnedCategory != null) {
+                            // This filter UI seems to only support one category, but the logic supports many.
+                            // For simplicity, we'll replace the set with the one new category.
+                            selectedCategories.clear();
+                            if (!"No Category".equals(returnedCategory)) {
+                                selectedCategories.add(returnedCategory);
+                            }
                             updateUIWithCurrentFilters();
-                            Log.d(TAG, "Categories updated: " + selectedCategories.size());
+                            Log.d(TAG, "Category updated: " + selectedCategories.size());
                         }
                     }
                 }
@@ -168,7 +180,7 @@ public class FiltersActivity extends AppCompatActivity {
     }
 
     /**
-     * Setup all click listeners with null checks
+     * Setup all click listeners
      */
     private void setupClickListeners() {
         backButton.setOnClickListener(v -> finish());
@@ -183,52 +195,48 @@ public class FiltersActivity extends AppCompatActivity {
         startDateLayout.setOnClickListener(v -> showDatePicker(true));
         endDateLayout.setOnClickListener(v -> showDatePicker(false));
 
-        // Category Listener - with null check
-        if (categorySelectorLayout != null) {
-            categorySelectorLayout.setOnClickListener(v -> {
-                Intent categoryIntent = new Intent(this, ChooseCategoryActivity.class);
-                categoryIntent.putStringArrayListExtra("selected_categories",
-                        new ArrayList<>(selectedCategories));
-                categoryLauncher.launch(categoryIntent);
-                Log.d(TAG, "Category selector opened");
-            });
-        }
+        // Category Listener
+        categorySelectorLayout.setOnClickListener(v -> {
+            Intent categoryIntent = new Intent(this, ChooseCategoryActivity.class);
+            // Pass the first (and likely only) category back
+            if (!selectedCategories.isEmpty()) {
+                categoryIntent.putExtra("selected_category", selectedCategories.iterator().next());
+            }
+            categoryLauncher.launch(categoryIntent);
+            Log.d(TAG, "Category selector opened");
+        });
 
-        // Party Listener - with null check
-        if (partySelectorLayout != null) {
-            partySelectorLayout.setOnClickListener(v ->
-                    showSnackbar("Party selection coming soon!"));
-        }
+        // Party Listener
+        partySelectorLayout.setOnClickListener(v ->
+                showSnackbar("Party selection coming soon!"));
 
         // Radio Group Listeners
-        if (inOutToggle != null) {
-            inOutToggle.setOnCheckedChangeListener((group, checkedId) -> {
-                if (checkedId == R.id.radioIn) {
-                    entryType = "IN";
-                } else if (checkedId == R.id.radioOut) {
-                    entryType = "OUT";
-                }
-                updateActiveFilterCount();
-            });
-        }
+        inOutToggle.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.radioIn) {
+                entryType = "IN";
+            } else if (checkedId == R.id.radioOut) {
+                entryType = "OUT";
+            }
+            updateActiveFilterCount();
+        });
 
-        if (cashOnlineToggle != null) {
-            cashOnlineToggle.setOnCheckedChangeListener((group, checkedId) -> {
-                if (checkedId == R.id.radioCash) {
-                    paymentMode = "Cash";
-                } else if (checkedId == R.id.radioOnline) {
-                    paymentMode = "Online";
-                }
-                updateActiveFilterCount();
-            });
-        }
+        cashOnlineToggle.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.radioCash) {
+                paymentMode = "Cash";
+            } else if (checkedId == R.id.radioOnline) {
+                paymentMode = "Online";
+            }
+            updateActiveFilterCount();
+        });
     }
 
-    /**
-     * Show date picker dialog
-     */
     private void showDatePicker(boolean isStartDate) {
         Calendar calendarToShow = isStartDate ? startCalendar : endCalendar;
+        // [FIX] Ensure calendar is not 0
+        if (calendarToShow.getTimeInMillis() == 0) {
+            calendarToShow = Calendar.getInstance();
+        }
+
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
                 (view, year, month, dayOfMonth) -> {
@@ -248,9 +256,6 @@ public class FiltersActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    /**
-     * Set date range to today
-     */
     private void setDateRangeToToday() {
         startCalendar = Calendar.getInstance();
         startCalendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -267,9 +272,6 @@ public class FiltersActivity extends AppCompatActivity {
         Log.d(TAG, "Date range set to Today");
     }
 
-    /**
-     * Set date range to this week
-     */
     private void setDateRangeToThisWeek() {
         startCalendar = Calendar.getInstance();
         startCalendar.set(Calendar.DAY_OF_WEEK, startCalendar.getFirstDayOfWeek());
@@ -288,9 +290,6 @@ public class FiltersActivity extends AppCompatActivity {
         Log.d(TAG, "Date range set to This Week");
     }
 
-    /**
-     * Set date range to this month
-     */
     private void setDateRangeToThisMonth() {
         startCalendar = Calendar.getInstance();
         startCalendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -309,9 +308,6 @@ public class FiltersActivity extends AppCompatActivity {
         Log.d(TAG, "Date range set to This Month");
     }
 
-    /**
-     * Clear all filters and reset to default state
-     */
     private void clearAllFilters() {
         startCalendar.setTimeInMillis(0);
         endCalendar.setTimeInMillis(0);
@@ -319,55 +315,47 @@ public class FiltersActivity extends AppCompatActivity {
         paymentMode = "All";
         selectedCategories.clear();
 
-        if (searchTransactionInput != null) {
-            searchTransactionInput.setText("");
-        }
-        if (filterTagsInput != null) {
-            filterTagsInput.setText("");
-        }
-        if (inOutToggle != null) {
-            inOutToggle.clearCheck();
-        }
-        if (cashOnlineToggle != null) {
-            cashOnlineToggle.clearCheck();
-        }
+        searchTransactionInput.setText("");
+        filterTagsInput.setText("");
+        inOutToggle.clearCheck(); // This will default to nothing, which is fine
+        cashOnlineToggle.clearCheck();
 
         updateUIWithCurrentFilters();
         showSnackbar("All filters cleared");
         Log.d(TAG, "All filters cleared");
     }
 
-    /**
-     * Update UI to reflect current filter state
-     */
     private void updateUIWithCurrentFilters() {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        int hintColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorHint);
+        int primaryColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary);
 
         // Update start date display
         if (startCalendar.getTimeInMillis() != 0) {
             startDateText.setText(sdf.format(startCalendar.getTime()));
-            startDateText.setTextColor(getColor(R.color.white));
+            startDateText.setTextColor(primaryColor);
         } else {
             startDateText.setText("Start Date");
-            startDateText.setTextColor(getColor(R.color.text_secondary));
+            startDateText.setTextColor(hintColor);
         }
 
         // Update end date display
         if (endCalendar.getTimeInMillis() != 0) {
             endDateText.setText(sdf.format(endCalendar.getTime()));
-            endDateText.setTextColor(getColor(R.color.white));
+            endDateText.setTextColor(primaryColor);
         } else {
             endDateText.setText("End Date");
-            endDateText.setTextColor(getColor(R.color.text_secondary));
+            endDateText.setTextColor(hintColor);
         }
 
         // Update category display
-        if (selectedCategoryTextView != null) {
-            if (selectedCategories.isEmpty()) {
-                selectedCategoryTextView.setText("Select Category");
-            } else {
-                selectedCategoryTextView.setText(selectedCategories.size() + " categories selected");
-            }
+        if (selectedCategories.isEmpty()) {
+            selectedCategoryTextView.setText("Select Category");
+            selectedCategoryTextView.setTextColor(hintColor);
+        } else {
+            // Display the first selected category
+            selectedCategoryTextView.setText(selectedCategories.iterator().next());
+            selectedCategoryTextView.setTextColor(primaryColor);
         }
 
         updateActiveFilterCount();
@@ -380,25 +368,19 @@ public class FiltersActivity extends AppCompatActivity {
         int count = 0;
 
         if (startCalendar.getTimeInMillis() != 0) count++;
-        if (endCalendar.getTimeInMillis() != 0) count++;
-        if (!"All".equals(entryType) && inOutToggle != null && inOutToggle.getCheckedRadioButtonId() != -1) {
-            count++;
-        }
-        if (!"All".equals(paymentMode) && cashOnlineToggle != null && cashOnlineToggle.getCheckedRadioButtonId() != -1) {
-            count++;
-        }
+        // [FIX] Don't count end date if it's the same as start date (e.g. "Today")
+        if (endCalendar.getTimeInMillis() != 0 && endCalendar.getTimeInMillis() > startCalendar.getTimeInMillis()) count++;
+        if (!"All".equals(entryType) && inOutToggle.getCheckedRadioButtonId() != -1) count++;
+        if (!"All".equals(paymentMode) && cashOnlineToggle.getCheckedRadioButtonId() != -1) count++;
         if (!selectedCategories.isEmpty()) count++;
-        if (searchTransactionInput != null && !searchTransactionInput.getText().toString().trim().isEmpty()) {
-            count++;
-        }
-        if (filterTagsInput != null && !filterTagsInput.getText().toString().trim().isEmpty()) {
-            count++;
-        }
+        if (!searchTransactionInput.getText().toString().trim().isEmpty()) count++;
+        if (!filterTagsInput.getText().toString().trim().isEmpty()) count++;
 
         if (count > 0) {
             activeFiltersCount.setText(String.valueOf(count));
             activeFiltersCount.setVisibility(View.VISIBLE);
         } else {
+            activeFiltersCount.setText("0");
             activeFiltersCount.setVisibility(View.GONE);
         }
 
@@ -415,14 +397,8 @@ public class FiltersActivity extends AppCompatActivity {
         resultIntent.putExtra("entryType", entryType);
         resultIntent.putExtra("paymentMode", paymentMode);
         resultIntent.putStringArrayListExtra("categories", new ArrayList<>(selectedCategories));
-
-        String searchQuery = searchTransactionInput != null ?
-                searchTransactionInput.getText().toString() : "";
-        resultIntent.putExtra("searchQuery", searchQuery);
-
-        String tagsQuery = filterTagsInput != null ?
-                filterTagsInput.getText().toString() : "";
-        resultIntent.putExtra("tagsQuery", tagsQuery);
+        resultIntent.putExtra("searchQuery", searchTransactionInput.getText().toString());
+        resultIntent.putExtra("tagsQuery", filterTagsInput.getText().toString());
 
         setResult(Activity.RESULT_OK, resultIntent);
 
@@ -430,16 +406,16 @@ public class FiltersActivity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Show snackbar message
-     */
     private void showSnackbar(String message) {
         Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "FiltersActivity destroyed");
+    // [FIX] Added a simple helper class to resolve theme attributes
+    static class ThemeUtil {
+        static int getThemeAttrColor(Context context, int attr) {
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
+        }
     }
 }

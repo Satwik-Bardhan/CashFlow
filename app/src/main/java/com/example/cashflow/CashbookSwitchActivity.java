@@ -12,16 +12,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.cashflow.adapters.CashbookAdapter;
-import com.example.cashflow.utils.ErrorHandler; // [FIX] Added ErrorHandler
+import com.example.cashflow.utils.ErrorHandler;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -36,22 +38,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors; // [FIX] Added for filtering
+import java.util.stream.Collectors;
 
-/**
- * CashbookSwitchActivity - Comprehensive cashbook management and switching
- *
- * Features:
- * - Browse all cashbooks
- * - Filter by active/recent/favorites
- * - Search cashbooks by name or description
- * - Sort by various criteria
- * - Create, edit, delete, and duplicate cashbooks
- * - Toggle favorite status
- * - Switch between cashbooks
- *
- * Updated: November 2025 - All Guest Mode logic removed.
- */
 public class CashbookSwitchActivity extends AppCompatActivity {
 
     private static final String TAG = "CashbookSwitchActivity";
@@ -61,7 +49,7 @@ public class CashbookSwitchActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefreshLayout;
     private LinearLayout emptyStateLayout;
     private LinearLayout loadingLayout;
-    private View mainContent; // [FIX] Changed to View for easier hiding
+    private View mainContent; // Use the main content view for visibility toggling
 
     // UI Components - Buttons
     private Button cancelButton;
@@ -83,7 +71,7 @@ public class CashbookSwitchActivity extends AppCompatActivity {
     private CashbookAdapter cashbookAdapter;
     private final List<CashbookModel> allCashbooks = new ArrayList<>();
     private String currentFilter = "active";
-    private String currentSort = "recent"; // [FIX] Added to track sort
+    private String currentSort = "recent";
     private String currentCashbookId;
 
     // Firebase
@@ -129,25 +117,21 @@ public class CashbookSwitchActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        // RecyclerView & Layout
         cashbookRecyclerView = findViewById(R.id.cashbookRecyclerView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         emptyStateLayout = findViewById(R.id.emptyStateLayout);
         loadingLayout = findViewById(R.id.loadingLayout);
-        mainContent = findViewById(R.id.mainCard); // [FIX] Point to main card
+        mainContent = findViewById(R.id.mainCard); // Main content is the CardView
 
-        // Buttons
         cancelButton = findViewById(R.id.cancelButton);
         addNewButton = findViewById(R.id.addNewButton);
         emptyStateCreateButton = findViewById(R.id.emptyStateCreateButton);
         closeButton = findViewById(R.id.closeButton);
 
-        // Search & Filter
         searchEditText = findViewById(R.id.searchEditText);
         chipGroup = findViewById(R.id.chipGroup);
         sortButton = findViewById(R.id.sortButton);
 
-        // FAB & Stats
         quickAddFab = findViewById(R.id.quickAddFab);
         totalCashbooksText = findViewById(R.id.totalCashbooksText);
         activeCashbooksText = findViewById(R.id.activeCashbooksText);
@@ -167,7 +151,6 @@ public class CashbookSwitchActivity extends AppCompatActivity {
     private void setupRecyclerView() {
         cashbookRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Create adapter with callback listener
         cashbookAdapter = new CashbookAdapter(this, new ArrayList<>(), new CashbookAdapter.OnCashbookClickListener() {
             @Override
             public void onCashbookClick(CashbookModel cashbook) {
@@ -234,9 +217,6 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         Log.d(TAG, "Search listener setup complete");
     }
 
-    /**
-     * Load cashbooks from Firebase
-     */
     private void loadCashbooks() {
         if (isLoading) return;
         if (currentUser == null) {
@@ -260,12 +240,8 @@ public class CashbookSwitchActivity extends AppCompatActivity {
                         CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
                         if (cashbook != null) {
                             cashbook.setCashbookId(snapshot.getKey());
-                            // [FIX] Set 'isCurrent' flag
-                            if (cashbook.getCashbookId().equals(currentCashbookId)) {
-                                cashbook.setCurrent(true);
-                            } else {
-                                cashbook.setCurrent(false);
-                            }
+                            // Set 'isCurrent' flag
+                            cashbook.setCurrent(cashbook.getCashbookId().equals(currentCashbookId));
                             allCashbooks.add(cashbook);
                         }
                     } catch (Exception e) {
@@ -351,12 +327,13 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         CashbookModel newCashbook = new CashbookModel(cashbookId, name);
         newCashbook.setDescription(description);
         newCashbook.setUserId(currentUser.getUid());
+        // All other fields are set by default in the constructor
 
         userCashbooksRef.child(cashbookId).setValue(newCashbook)
                 .addOnSuccessListener(aVoid -> {
                     showSnackbar("Cashbook created successfully!");
                     Log.d(TAG, "Cashbook created: " + name);
-                    // No need to call loadCashbooks(), listener will do it
+                    // Listener will auto-refresh the list
                 })
                 .addOnFailureListener(e -> {
                     showSnackbar("Failed to create cashbook: " + e.getMessage());
@@ -369,19 +346,23 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         cashbook.setDescription(newDescription);
         cashbook.setLastModified(System.currentTimeMillis());
 
-        userCashbooksRef.child(cashbook.getCashbookId()).setValue(cashbook)
+        // Update only specific fields instead of overwriting the whole object
+        userCashbooksRef.child(cashbook.getCashbookId()).child("name").setValue(newName);
+        userCashbooksRef.child(cashbook.getCashbookId()).child("description").setValue(newDescription);
+        userCashbooksRef.child(cashbook.getCashbookId()).child("lastModified").setValue(cashbook.getLastModified())
                 .addOnSuccessListener(aVoid -> showSnackbar("Cashbook updated"))
                 .addOnFailureListener(e -> showSnackbar("Failed to update cashbook"));
     }
 
     private void handleFavoriteToggle(CashbookModel cashbook) {
         if (cashbook == null) return;
-        cashbook.setFavorite(!cashbook.isFavorite());
-        cashbook.setLastModified(System.currentTimeMillis());
+        boolean newFavoriteState = !cashbook.isFavorite();
+        long lastModified = System.currentTimeMillis();
 
-        userCashbooksRef.child(cashbook.getCashbookId()).setValue(cashbook)
+        userCashbooksRef.child(cashbook.getCashbookId()).child("favorite").setValue(newFavoriteState);
+        userCashbooksRef.child(cashbook.getCashbookId()).child("lastModified").setValue(lastModified)
                 .addOnSuccessListener(aVoid -> {
-                    showSnackbar(cashbook.isFavorite() ? "Added to favorites" : "Removed from favorites");
+                    showSnackbar(newFavoriteState ? "Added to favorites" : "Removed from favorites");
                     // Listener will auto-update the UI
                 })
                 .addOnFailureListener(e -> {
@@ -396,7 +377,6 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         PopupMenu popup = new PopupMenu(this, anchorView);
         popup.getMenuInflater().inflate(R.menu.menu_cashbook_item, popup.getMenu());
 
-        // [FIX] Update menu titles based on state
         popup.getMenu().findItem(R.id.menu_favorite)
                 .setTitle(cashbook.isFavorite() ? R.string.remove_from_favorites : R.string.add_to_favorites);
         popup.getMenu().findItem(R.id.menu_toggle_active)
@@ -426,18 +406,18 @@ public class CashbookSwitchActivity extends AppCompatActivity {
     }
 
     private void toggleCashbookActive(CashbookModel cashbook) {
-        cashbook.setActive(!cashbook.isActive());
-        cashbook.setLastModified(System.currentTimeMillis());
+        boolean newActiveState = !cashbook.isActive();
+        long lastModified = System.currentTimeMillis();
 
-        userCashbooksRef.child(cashbook.getCashbookId()).setValue(cashbook)
-                .addOnSuccessListener(aVoid -> showSnackbar(cashbook.isActive() ? "Cashbook activated" : "Cashbook deactivated"))
+        userCashbooksRef.child(cashbook.getCashbookId()).child("active").setValue(newActiveState);
+        userCashbooksRef.child(cashbook.getCashbookId()).child("lastModified").setValue(lastModified)
+                .addOnSuccessListener(aVoid -> showSnackbar(newActiveState ? "Cashbook activated" : "Cashbook deactivated"))
                 .addOnFailureListener(e -> showSnackbar("Failed to update status"));
     }
 
     private void showDeleteConfirmation(CashbookModel cashbook) {
         if (cashbook == null) return;
 
-        // [FIX] Add safety checks
         if (allCashbooks.size() <= 1) {
             showSnackbar(getString(R.string.error_delete_last_cashbook));
             return;
@@ -497,11 +477,8 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * [FIX] Centralized method to apply filtering and sorting
-     */
     private void applyFiltersAndSort() {
-        List<CashbookModel> filteredList = new ArrayList<>();
+        List<CashbookModel> filteredList;
         String query = searchEditText.getText().toString().toLowerCase().trim();
 
         // 1. Apply Search Query
@@ -580,13 +557,17 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         isLoading = show;
         loadingLayout.setVisibility(show ? View.VISIBLE : View.GONE);
         mainContent.setVisibility(show ? View.GONE : View.VISIBLE);
-        emptyStateLayout.setVisibility(View.GONE); // Hide empty state while loading
+        if (show) {
+            emptyStateLayout.setVisibility(View.GONE);
+        }
     }
 
     private void showEmptyState(boolean show) {
         emptyStateLayout.setVisibility(show ? View.VISIBLE : View.GONE);
         mainContent.setVisibility(show ? View.GONE : View.VISIBLE);
-        loadingLayout.setVisibility(View.GONE); // Hide loading state
+        if (show) {
+            loadingLayout.setVisibility(View.GONE);
+        }
     }
 
     private void updateStats(List<CashbookModel> cashbooks) {

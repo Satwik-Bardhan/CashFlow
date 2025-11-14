@@ -3,6 +3,7 @@ package com.example.cashflow;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -65,24 +66,30 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             emailEditText.setError("Please enter a valid email address.");
             emailEditText.requestFocus();
             // Show the validation text message
-            emailValidationText.setVisibility(View.VISIBLE);
+            if (emailValidationText != null) {
+                emailValidationText.setVisibility(View.VISIBLE);
+            }
             return;
         } else {
             // Hide validation message if email is valid
-            emailValidationText.setVisibility(View.GONE);
+            if (emailValidationText != null) {
+                emailValidationText.setVisibility(View.GONE);
+            }
         }
 
         // Show a progress indicator here if you have one
+        // (e.g., loadingIndicator.setVisibility(View.VISIBLE))
 
         mAuth.sendPasswordResetEmail(email)
                 .addOnCompleteListener(task -> {
-                    // Hide progress indicator
+                    // (e.g., loadingIndicator.setVisibility(View.GONE))
                     if (task.isSuccessful()) {
-                        Toast.makeText(ForgotPasswordActivity.this, "Password reset email sent successfully.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(ForgotPasswordActivity.this, "Password reset email sent.", Toast.LENGTH_LONG).show();
                         // Finish the activity and return to the login screen
                         finish();
                     } else {
-                        Toast.makeText(ForgotPasswordActivity.this, "Failed to send reset email. Please check the address and try again.", Toast.LENGTH_LONG).show();
+                        Log.e("ForgotPassword", "Error sending reset email", task.getException());
+                        Toast.makeText(ForgotPasswordActivity.this, "Failed to send reset email. Please check the address.", Toast.LENGTH_LONG).show();
                     }
                 });
     }

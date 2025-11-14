@@ -7,8 +7,6 @@ import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cashflow.utils.ErrorHandler;
-import com.example.cashflow.utils.ThemeManager;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -17,6 +15,8 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
  * MainActivity serves as the application entry point and authentication router.
  * This activity determines whether to navigate to SigninActivity or HomePage
  * based on the user's authentication status.
+ *
+ * [FIXED] Removed all Guest Mode logic for a cleaner, auth-focused flow.
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -24,8 +24,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Theme is already applied by MyApplication.java before this activity starts
+        // The theme is applied by MyApplication before this activity starts
         super.onCreate(savedInstanceState);
+        // [FIX] No layout is needed for this router activity
+        // setContentView(R.layout.activity_main);
 
         Log.d(TAG, getString(R.string.log_main_activity_started));
 
@@ -48,12 +50,15 @@ public class MainActivity extends AppCompatActivity {
             Intent navigationIntent;
 
             if (currentUser == null) {
+                // No user is signed in, navigate to Sign-in
                 Log.d(TAG, getString(R.string.log_no_authenticated_user));
                 navigationIntent = new Intent(this, SigninActivity.class);
             } else {
+                // User is signed in, navigate to Home
                 Log.d(TAG, getString(R.string.log_authenticated_user_found, currentUser.getUid()));
                 navigationIntent = new Intent(this, HomePage.class);
-                navigationIntent.putExtra("isGuest", false);
+                // [FIX] Removed isGuest flag, it's no longer needed
+                // navigationIntent.putExtra("isGuest", false);
 
                 try {
                     FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
@@ -66,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             startActivity(navigationIntent);
+            // Optional: Add a fade-in/out transition
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
 
         } catch (Exception e) {
@@ -79,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(fallbackIntent);
 
         } finally {
+            // Finish this activity so the user can't navigate back to it
             finish();
         }
     }

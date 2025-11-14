@@ -11,7 +11,7 @@ import com.example.cashflow.db.DataRepository;
 /**
  * TransactionDetailViewModel - ViewModel for managing transaction details
  * Handles updating and deleting transactions for authenticated users.
- * Guest mode logic has been removed.
+ * [FIX] Guest mode logic has been removed.
  */
 public class TransactionDetailViewModel extends AndroidViewModel {
 

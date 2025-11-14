@@ -1,20 +1,27 @@
 package com.example.cashflow;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DiffUtil; // [FIX] Added for DiffUtil
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder> {
 
@@ -22,21 +29,24 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     private List<TransactionModel> transactionList;
     private final OnItemClickListener listener;
 
-    // --- [NEW] Define constants for the two view types ---
+    // [FIX] Define constants for the two view types
     private static final int VIEW_TYPE_IN = 1;
     private static final int VIEW_TYPE_OUT = 2;
-    // --- End of New ---
 
     public interface OnItemClickListener {
         void onItemClick(TransactionModel transaction);
+        // [FIX] Added for delete/edit buttons
+        void onEditClick(TransactionModel transaction);
+        void onDeleteClick(TransactionModel transaction);
+        void onCopyClick(TransactionModel transaction);
     }
 
     public TransactionAdapter(List<TransactionModel> transactionList, OnItemClickListener listener) {
-        this.transactionList = transactionList;
+        this.transactionList = new ArrayList<>(transactionList); // [FIX] Create a new list
         this.listener = listener;
     }
 
-    // --- [MODIFIED] This method now determines which layout to use ---
+    // [FIX] This method now determines which layout to use
     @Override
     public int getItemViewType(int position) {
         TransactionModel transaction = transactionList.get(position);
@@ -51,7 +61,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     @Override
     public TransactionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
-        // --- [MODIFIED] Inflate the correct layout based on the viewType ---
+        // [FIX] Inflate the correct layout based on the viewType
         if (viewType == VIEW_TYPE_IN) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_transaction_in, parent, false);
@@ -75,18 +85,25 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         return transactionList != null ? transactionList.size() : 0;
     }
 
-    @SuppressLint("NotifyDataSetChanged")
+    // [FIX] Replaced with DiffUtil for better performance
     public void updateTransactions(List<TransactionModel> newTransactions) {
-        if (newTransactions != null) {
-            this.transactionList = newTransactions;
-            notifyDataSetChanged();
+        if (newTransactions == null) {
+            newTransactions = new ArrayList<>();
         }
+
+        TransactionDiffCallback diffCallback = new TransactionDiffCallback(this.transactionList, newTransactions);
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
+
+        this.transactionList.clear();
+        this.transactionList.addAll(newTransactions);
+        diffResult.dispatchUpdatesTo(this);
     }
 
     class TransactionViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, amountTextView, partyTextView, dateTextView,
                 remarkTextView, paymentModeTextView, transactionTimeTextView;
-        View transactionTypeIndicator, remarkLayout; // Added remarkLayout
+        View transactionTypeIndicator, remarkLayout;
+        ImageButton editButton, copyButton, deleteButton; // [FIX] Added buttons
 
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -102,7 +119,12 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             paymentModeTextView = itemView.findViewById(R.id.paymentModeTextView);
             transactionTimeTextView = itemView.findViewById(R.id.transactionTimeTextView);
             transactionTypeIndicator = itemView.findViewById(R.id.transactionTypeIndicator);
-            remarkLayout = itemView.findViewById(R.id.remarkLayout); // Initialize remark layout
+            remarkLayout = itemView.findViewById(R.id.remarkLayout);
+
+            // [FIX] Initialize buttons
+            editButton = itemView.findViewById(R.id.editButton);
+            copyButton = itemView.findViewById(R.id.copyButton);
+            deleteButton = itemView.findViewById(R.id.deleteButton);
         }
 
         @SuppressLint({"SetTextI18n", "DefaultLocale"})
@@ -110,6 +132,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             if (transaction == null) {
                 return;
             }
+
+            Context context = itemView.getContext();
 
             // Set data
             titleTextView.setText(transaction.getTransactionCategory());
@@ -119,12 +143,14 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             // Set amount and color based on type
             if ("IN".equalsIgnoreCase(transaction.getType())) {
                 amountTextView.setText("₹" + String.format("%.2f", transaction.getAmount()));
-                amountTextView.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.income_green)); // Assuming you have this color
-                transactionTypeIndicator.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.income_green));
+                // [FIX] Use theme-aware colors
+                amountTextView.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.incomeColor));
+                transactionTypeIndicator.setBackgroundColor(ThemeUtil.getThemeAttrColor(context, R.attr.incomeColor));
             } else {
                 amountTextView.setText("- ₹" + String.format("%.2f", transaction.getAmount()));
-                amountTextView.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.expense_red)); // Assuming you have this color
-                transactionTypeIndicator.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.expense_red));
+                // [FIX] Use theme-aware colors
+                amountTextView.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.expenseColor));
+                transactionTypeIndicator.setBackgroundColor(ThemeUtil.getThemeAttrColor(context, R.attr.expenseColor));
             }
 
             // Format and display timestamp
@@ -143,12 +169,77 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 remarkLayout.setVisibility(View.GONE);
             }
 
-            // Set click listener
+            // Set click listener for the whole item
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onItemClick(transaction);
                 }
             });
+
+            // [FIX] Set listeners for buttons
+            if (editButton != null) {
+                editButton.setOnClickListener(v -> {
+                    if (listener != null) listener.onEditClick(transaction);
+                });
+            }
+            if (copyButton != null) {
+                copyButton.setOnClickListener(v -> {
+                    if (listener != null) listener.onCopyClick(transaction);
+                });
+            }
+            if (deleteButton != null) {
+                deleteButton.setOnClickListener(v -> {
+                    if (listener != null) listener.onDeleteClick(transaction);
+                });
+            }
+        }
+    }
+
+    // [FIX] Added DiffUtil Callback for performance
+    private static class TransactionDiffCallback extends DiffUtil.Callback {
+        private final List<TransactionModel> oldList;
+        private final List<TransactionModel> newList;
+
+        public TransactionDiffCallback(List<TransactionModel> oldList, List<TransactionModel> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldList.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newList.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldList.get(oldItemPosition).getTransactionId().equals(newList.get(newItemPosition).getTransactionId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            TransactionModel oldItem = oldList.get(oldItemPosition);
+            TransactionModel newItem = newList.get(newItemPosition);
+            return oldItem.getAmount() == newItem.getAmount() &&
+                    oldItem.getTimestamp() == newItem.getTimestamp() &&
+                    oldItem.getType().equals(newItem.getType()) &&
+                    Objects.equals(oldItem.getRemark(), newItem.getRemark()) &&
+                    Objects.equals(oldItem.getTransactionCategory(), newItem.getTransactionCategory()) &&
+                    Objects.equals(oldItem.getPartyName(), newItem.getPartyName());
+        }
+    }
+
+    // [FIX] Added a simple helper class to resolve theme attributes
+    static class ThemeUtil {
+        static int getThemeAttrColor(Context context, int attr) {
+            if (context == null) return Color.BLACK; // Fallback
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
         }
     }
 }

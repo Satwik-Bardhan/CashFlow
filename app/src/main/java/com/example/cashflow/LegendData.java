@@ -1,12 +1,15 @@
 package com.example.cashflow;
 
-public class LegendData {
+// [FIX] Implemented Serializable in case you ever need to pass it
+import java.io.Serializable;
+
+public class LegendData implements Serializable {
     private String categoryName;
     private String amount;
-    private int percentage;
+    private float percentage; // [FIX] Changed from int to float for precision
     private int color;
 
-    public LegendData(String categoryName, String amount, int percentage, int color) {
+    public LegendData(String categoryName, String amount, float percentage, int color) {
         this.categoryName = categoryName;
         this.amount = amount;
         this.percentage = percentage;
@@ -16,6 +19,6 @@ public class LegendData {
     // Getters
     public String getCategoryName() { return categoryName; }
     public String getAmount() { return amount; }
-    public int getPercentage() { return percentage; }
+    public float getPercentage() { return percentage; } // [FIX]
     public int getColor() { return color; }
 }

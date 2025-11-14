@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import androidx.cardview.widget.CardView;
 
+import java.text.NumberFormat; // [FIX] Added NumberFormat import
 import java.util.Locale;
 
 public class AnimatedBalanceCard {
@@ -31,9 +32,14 @@ public class AnimatedBalanceCard {
     private double currentIncome = 0.0;
     private double currentExpense = 0.0;
 
+    // [FIX] Added currency formatter
+    private NumberFormat currencyFormat;
+
     public AnimatedBalanceCard(View rootView) {
         initializeViews(rootView);
         setupAnimations();
+        // [FIX] Initialize formatter
+        currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
     }
 
     private void initializeViews(View rootView) {
@@ -107,7 +113,8 @@ public class AnimatedBalanceCard {
         animator.addUpdateListener(animation -> {
             float progress = animation.getAnimatedFraction();
             double currentValue = oldBalance + (newBalance - oldBalance) * progress;
-            balanceText.setText("₹" + String.format(Locale.US, "%.2f", currentValue));
+            // [FIX] Use currency formatter
+            balanceText.setText(currencyFormat.format(currentValue));
 
             // Add subtle scale effect during animation
             float scale = 1f + (0.05f * (float) Math.sin(progress * Math.PI));
@@ -129,7 +136,8 @@ public class AnimatedBalanceCard {
         animator.addUpdateListener(animation -> {
             float progress = animation.getAnimatedFraction();
             double currentValue = oldIncome + (newIncome - oldIncome) * progress;
-            moneyInText.setText("₹" + String.format(Locale.US, "%.2f", currentValue));
+            // [FIX] Use currency formatter
+            moneyInText.setText(currencyFormat.format(currentValue));
         });
 
         animator.start();
@@ -146,7 +154,8 @@ public class AnimatedBalanceCard {
         animator.addUpdateListener(animation -> {
             float progress = animation.getAnimatedFraction();
             double currentValue = oldExpense + (newExpense - oldExpense) * progress;
-            moneyOutText.setText("₹" + String.format(Locale.US, "%.2f", currentValue));
+            // [FIX] Use currency formatter
+            moneyOutText.setText(currencyFormat.format(currentValue));
         });
 
         animator.start();
@@ -224,9 +233,10 @@ public class AnimatedBalanceCard {
         currentIncome = income;
         currentExpense = expense;
 
-        balanceText.setText("₹" + String.format(Locale.US, "%.2f", balance));
-        moneyInText.setText("₹" + String.format(Locale.US, "%.2f", income));
-        moneyOutText.setText("₹" + String.format(Locale.US, "%.2f", expense));
+        // [FIX] Use currency formatter
+        balanceText.setText(currencyFormat.format(balance));
+        moneyInText.setText(currencyFormat.format(income));
+        moneyOutText.setText(currencyFormat.format(expense));
     }
 
     public void setOnCardClickListener(View.OnClickListener listener) {

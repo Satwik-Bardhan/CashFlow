@@ -17,8 +17,7 @@ import java.util.stream.Collectors;
 
 /**
  * TransactionViewModel - ViewModel for managing transaction list and filtering
- * Handles loading, filtering, and managing transactions for authenticated users.
- * Guest mode logic has been removed.
+ * [FIX] Handles loading, filtering, and managing transactions for authenticated users only.
  */
 public class TransactionViewModel extends AndroidViewModel {
 
@@ -47,34 +46,23 @@ public class TransactionViewModel extends AndroidViewModel {
         loadTransactions();
     }
 
-    /**
-     * Gets the filtered transactions LiveData for UI observation
-     * @return LiveData containing filtered transactions
-     */
+    // --- [FIX] Public Getters for LiveData ---
     public LiveData<List<TransactionModel>> getFilteredTransactions() {
         return filteredTransactions;
     }
 
-    /**
-     * Gets the all transactions LiveData for UI observation
-     * @return LiveData containing all transactions
-     */
     public LiveData<List<TransactionModel>> getAllTransactions() {
         return allTransactions;
     }
 
-    /**
-     * Gets the error message LiveData for UI observation
-     * @return LiveData containing error messages
-     */
     public LiveData<String> getErrorMessage() {
         return errorMessage;
     }
 
-    /**
-     * Gets the loading state LiveData for UI observation
-     * @return LiveData containing loading state
-     */
+    public void clearError() {
+        errorMessage.setValue(null);
+    }
+
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
@@ -86,20 +74,23 @@ public class TransactionViewModel extends AndroidViewModel {
         Log.d(TAG, "Loading transactions...");
         isLoading.postValue(true);
 
+        if (cashbookId == null) {
+            errorMessage.postValue("Error: No cashbook selected.");
+            isLoading.postValue(false);
+            return;
+        }
+
         repository.getAllTransactions(cashbookId,
                 transactions -> {
                     Log.d(TAG, "Transactions loaded successfully: " + transactions.size() + " items");
                     allTransactions.postValue(transactions);
                     filteredTransactions.postValue(transactions); // Initially, show all
                     isLoading.postValue(false);
-                    errorMessage.postValue(null); // Clear any previous errors
                 },
                 error -> {
                     Log.e(TAG, "Error loading transactions: " + error);
                     errorMessage.postValue(error);
                     isLoading.postValue(false);
-
-                    // Set empty lists on error to prevent UI issues
                     allTransactions.postValue(new ArrayList<>());
                     filteredTransactions.postValue(new ArrayList<>());
                 }
@@ -120,28 +111,23 @@ public class TransactionViewModel extends AndroidViewModel {
      * @param startDate Start date for filtering (0 for no filter)
      * @param endDate End date for filtering (0 for no filter)
      * @param entryType Entry type filter ("All", "IN", "OUT")
-     * @param categories List of categories to filter by (empty for no filter)
-     * @param paymentModes List of payment modes to filter by (empty for no filter)
+     * @param categories List of categories to filter by (null or empty for no filter)
+     * @param paymentModes List of payment modes to filter by (null or empty for no filter)
      */
     public void filter(String query, long startDate, long endDate, String entryType,
                        List<String> categories, List<String> paymentModes) {
 
         List<TransactionModel> originalList = allTransactions.getValue();
-        if (originalList == null || originalList.isEmpty()) {
+        if (originalList == null) {
             Log.w(TAG, "No transactions to filter");
             filteredTransactions.postValue(new ArrayList<>());
             return;
         }
 
-        Log.d(TAG, "Applying filters - Query: " + query + ", Type: " + entryType +
-                ", Categories: " + (categories != null ? categories.size() : 0) +
-                ", Modes: " + (paymentModes != null ? paymentModes.size() : 0));
+        Log.d(TAG, "Applying filters - Query: " + query + ", Type: " + entryType);
 
         try {
-            // Ensure query is not null
             String searchQuery = (query != null) ? query.toLowerCase(Locale.getDefault()).trim() : "";
-
-            // Ensure lists are not null
             List<String> safeCategories = (categories != null) ? categories : new ArrayList<>();
             List<String> safePaymentModes = (paymentModes != null) ? paymentModes : new ArrayList<>();
 
@@ -158,13 +144,13 @@ public class TransactionViewModel extends AndroidViewModel {
                                 (transaction.getRemark() != null &&
                                         transaction.getRemark().toLowerCase(Locale.getDefault()).contains(searchQuery));
 
-                        // Date Filter
+                        // Date Filter (0 means no filter)
                         boolean matchesDate = (startDate == 0 && endDate == 0) ||
                                 (transaction.getTimestamp() >= startDate && transaction.getTimestamp() <= endDate);
 
                         // Entry Type Filter
-                        boolean matchesEntryType = "All".equalsIgnoreCase(entryType) ||
-                                (entryType != null && entryType.equalsIgnoreCase(transaction.getType()));
+                        boolean matchesEntryType = "All".equalsIgnoreCase(entryType) || (entryType == null) ||
+                                (entryType.equalsIgnoreCase(transaction.getType()));
 
                         // Category Filter
                         boolean matchesCategory = safeCategories.isEmpty() ||
@@ -183,8 +169,7 @@ public class TransactionViewModel extends AndroidViewModel {
 
         } catch (Exception e) {
             Log.e(TAG, "Error applying filters", e);
-            // On error, show all transactions
-            filteredTransactions.postValue(originalList);
+            filteredTransactions.postValue(originalList); // On error, show all
         }
     }
 
@@ -197,60 +182,6 @@ public class TransactionViewModel extends AndroidViewModel {
         if (originalList != null) {
             filteredTransactions.postValue(originalList);
         }
-    }
-
-    /**
-     * Gets count of filtered transactions
-     * @return Number of filtered transactions
-     */
-    public int getFilteredTransactionCount() {
-        List<TransactionModel> filtered = filteredTransactions.getValue();
-        return (filtered != null) ? filtered.size() : 0;
-    }
-
-    /**
-     * Gets count of all transactions
-     * @return Total number of transactions
-     */
-    public int getAllTransactionCount() {
-        List<TransactionModel> all = allTransactions.getValue();
-        return (all != null) ? all.size() : 0;
-    }
-
-    /**
-     * Calculates total income from filtered transactions
-     * @return Total income amount
-     */
-    public double getTotalIncome() {
-        List<TransactionModel> filtered = filteredTransactions.getValue();
-        if (filtered == null || filtered.isEmpty()) return 0.0;
-
-        return filtered.stream()
-                .filter(t -> "IN".equalsIgnoreCase(t.getType()))
-                .mapToDouble(TransactionModel::getAmount)
-                .sum();
-    }
-
-    /**
-     * Calculates total expenses from filtered transactions
-     * @return Total expense amount
-     */
-    public double getTotalExpense() {
-        List<TransactionModel> filtered = filteredTransactions.getValue();
-        if (filtered == null || filtered.isEmpty()) return 0.0;
-
-        return filtered.stream()
-                .filter(t -> "OUT".equalsIgnoreCase(t.getType()))
-                .mapToDouble(TransactionModel::getAmount)
-                .sum();
-    }
-
-    /**
-     * Calculates net balance from filtered transactions
-     * @return Net balance (income - expense)
-     */
-    public double getNetBalance() {
-        return getTotalIncome() - getTotalExpense();
     }
 
     /**

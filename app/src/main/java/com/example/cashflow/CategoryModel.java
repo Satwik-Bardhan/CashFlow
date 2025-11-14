@@ -2,6 +2,7 @@ package com.example.cashflow;
 
 import java.io.Serializable;
 
+// [FIX] Implement Serializable to pass this object in Intents
 public class CategoryModel implements Serializable {
     private String name;
     private String colorHex;
@@ -11,7 +12,7 @@ public class CategoryModel implements Serializable {
         // Default constructor required for Firebase
     }
 
-    // --- [ADDED] Constructor for easier object creation ---
+    // Constructor for easier object creation
     public CategoryModel(String name, String colorHex) {
         this.name = name;
         this.colorHex = colorHex;

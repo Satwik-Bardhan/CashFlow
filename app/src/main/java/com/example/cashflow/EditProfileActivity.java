@@ -21,7 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import com.example.cashflow.models.Users;
+import com.example.cashflow.models.Users; // [FIX] Ensure correct model import
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -54,14 +54,15 @@ public class EditProfileActivity extends AppCompatActivity {
     private FirebaseUser currentUser;
 
     private Calendar dobCalendar;
-    private Uri imageUri;
+    private Uri imageUri; // This holds the URI of the *new* image selected by the user
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
                     imageUri = result.getData().getData();
-                    profileImageView.setImageURI(imageUri);
+                    // Set the new image in the preview
+                    Glide.with(this).load(imageUri).into(profileImageView);
                 }
             }
     );
@@ -104,6 +105,7 @@ public class EditProfileActivity extends AppCompatActivity {
         saveProfileButton = findViewById(R.id.saveProfileButton);
 
         dobCalendar = Calendar.getInstance();
+        dateOfBirthText.setText("Select Date"); // Placeholder
     }
 
     private void setupClickListeners() {
@@ -120,7 +122,9 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private void loadUserProfile() {
         // Set email (it's read-only)
-        displayEmail.setText(currentUser.getEmail());
+        if (currentUser.getEmail() != null) {
+            displayEmail.setText(currentUser.getEmail());
+        }
 
         // Load other data from Realtime Database
         userDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -129,15 +133,23 @@ public class EditProfileActivity extends AppCompatActivity {
                 Users user = snapshot.getValue(Users.class);
                 if (user != null) {
                     editFullName.setText(user.getUserName());
-                    // You'll need to add phone and dob to your Users model to load them
-                    // editPhoneNumber.setText(user.getPhoneNumber());
-                    // updateDobText(user.getDateOfBirthTimestamp());
+
+                    // [FIX] Load phone number
+                    if (user.getPhoneNumber() != null) {
+                        editPhoneNumber.setText(user.getPhoneNumber());
+                    }
+
+                    // [FIX] Load date of birth
+                    if (user.getDateOfBirthTimestamp() > 0) {
+                        updateDobText(user.getDateOfBirthTimestamp());
+                    }
 
                     // Load profile image using Glide
                     if (user.getProfile() != null && !user.getProfile().isEmpty()) {
                         Glide.with(EditProfileActivity.this)
                                 .load(user.getProfile())
-                                .placeholder(R.drawable.ic_person_placeholder)
+                                .placeholder(R.drawable.ic_person_placeholder) // Fallback
+                                .error(R.drawable.ic_person_placeholder) // On error
                                 .into(profileImageView);
                     }
                 }
@@ -166,6 +178,8 @@ public class EditProfileActivity extends AppCompatActivity {
             dobCalendar.setTimeInMillis(timestamp);
             SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd, yyyy", Locale.US);
             dateOfBirthText.setText(sdf.format(dobCalendar.getTime()));
+        } else {
+            dateOfBirthText.setText("Select Date");
         }
     }
 
@@ -176,6 +190,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private void saveProfileChanges() {
         String fullName = editFullName.getText().toString().trim();
+        String phoneNumber = editPhoneNumber.getText().toString().trim(); // [FIX] Get phone number
 
         if (TextUtils.isEmpty(fullName)) {
             editFullName.setError("Full name is required.");
@@ -185,31 +200,34 @@ public class EditProfileActivity extends AppCompatActivity {
 
         if (imageUri != null) {
             // If a new image was selected, upload it first
-            uploadImageAndSaveData(fullName);
+            uploadImageAndSaveData(fullName, phoneNumber, dobCalendar.getTimeInMillis());
         } else {
             // Otherwise, just save the other data
-            saveDataToDatabase(fullName, null);
+            saveDataToDatabase(fullName, phoneNumber, dobCalendar.getTimeInMillis(), null);
         }
     }
 
-    private void uploadImageAndSaveData(String fullName) {
+    private void uploadImageAndSaveData(String fullName, String phoneNumber, long dobTimestamp) {
         final StorageReference fileReference = storageReference.child(currentUser.getUid() + "/" + UUID.randomUUID().toString());
         Toast.makeText(this, "Uploading photo...", Toast.LENGTH_SHORT).show();
 
         fileReference.putFile(imageUri)
                 .addOnSuccessListener(taskSnapshot -> fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
                     String imageUrl = uri.toString();
-                    saveDataToDatabase(fullName, imageUrl);
+                    saveDataToDatabase(fullName, phoneNumber, dobTimestamp, imageUrl);
                 }))
                 .addOnFailureListener(e -> Toast.makeText(EditProfileActivity.this, "Upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    private void saveDataToDatabase(String fullName, @Nullable String imageUrl) {
+    private void saveDataToDatabase(String fullName, String phoneNumber, long dobTimestamp, @Nullable String imageUrl) {
         Map<String, Object> profileUpdates = new HashMap<>();
         profileUpdates.put("userName", fullName);
-        // Add other fields to save here
-        // profileUpdates.put("phoneNumber", editPhoneNumber.getText().toString());
-        // profileUpdates.put("dateOfBirthTimestamp", dobCalendar.getTimeInMillis());
+
+        // [FIX] Add phone number and DOB to the save map
+        profileUpdates.put("phoneNumber", phoneNumber);
+        if (dobTimestamp > 0) {
+            profileUpdates.put("dateOfBirthTimestamp", dobTimestamp);
+        }
 
         if (imageUrl != null) {
             profileUpdates.put("profile", imageUrl);

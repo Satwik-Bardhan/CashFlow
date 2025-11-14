@@ -17,6 +17,7 @@ public class CashInOutViewModelFactory implements ViewModelProvider.Factory {
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(CashInOutViewModel.class)) {
             // [FIX] Removed the isGuest parameter from the constructor
+            // noinspection unchecked
             return (T) new CashInOutViewModel(application);
         }
         throw new IllegalArgumentException("Unknown ViewModel class");

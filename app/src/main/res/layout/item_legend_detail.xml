@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Leisure"
-        android:textColor="#FFFFFF"
+        android:textColor="?attr/textColorPrimary"
         android:textSize="16sp"
         android:textStyle="normal" />
 
@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="108.00$"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/textColorPrimary"
             android:textSize="16sp"
             android:textStyle="normal" />
 
@@ -44,7 +44,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="34%"
-            android:textColor="#AAAAAA"
+            android:textColor="?attr/textColorSecondary"
             android:textSize="14sp"
             android:layout_marginTop="2dp" />
 

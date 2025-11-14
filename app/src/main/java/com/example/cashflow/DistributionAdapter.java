@@ -1,5 +1,9 @@
 package com.example.cashflow;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Color;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +39,7 @@ public class DistributionAdapter extends RecyclerView.Adapter<DistributionAdapte
         return distributionItems.size();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void updateData(List<DistributionItem> newItems) {
         this.distributionItems = newItems;
         notifyDataSetChanged();
@@ -54,9 +59,15 @@ public class DistributionAdapter extends RecyclerView.Adapter<DistributionAdapte
 
         public void bind(DistributionItem item) {
             categoryName.setText(item.getCategoryName());
-            categoryAmount.setText(String.format(Locale.US, "%.2f$", item.getAmount()));
+            categoryAmount.setText(String.format(Locale.US, "₹%.2f", item.getAmount())); // [FIX] Added currency symbol
             categoryPercentage.setText(String.format(Locale.US, "%.0f%%", item.getPercentage()));
             colorIndicator.setBackgroundColor(item.getColor());
+
+            // [FIX] Apply theme-aware colors
+            Context context = itemView.getContext();
+            categoryName.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.textColorPrimary));
+            categoryAmount.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.textColorPrimary));
+            categoryPercentage.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.textColorSecondary));
         }
     }
 
@@ -78,5 +89,15 @@ public class DistributionAdapter extends RecyclerView.Adapter<DistributionAdapte
         public double getAmount() { return amount; }
         public float getPercentage() { return percentage; }
         public int getColor() { return color; }
+    }
+
+    // [FIX] Added a simple helper class to resolve theme attributes
+    static class ThemeUtil {
+        static int getThemeAttrColor(Context context, int attr) {
+            if (context == null) return Color.BLACK; // Fallback
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
+        }
     }
 }

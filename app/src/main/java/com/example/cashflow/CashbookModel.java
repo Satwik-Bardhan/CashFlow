@@ -3,7 +3,7 @@ package com.example.cashflow;
 import java.io.Serializable;
 import java.util.Objects;
 
-// [FIX] Implemented Serializable so it can be passed in Intents
+// [FIX] Implement Serializable so this object can be passed in an Intent
 public class CashbookModel implements Serializable {
     private String cashbookId;
     private String name;
@@ -37,6 +37,7 @@ public class CashbookModel implements Serializable {
         this.isCurrent = false;
         this.isFavorite = false;
         this.currency = "INR";
+        // [FIX] No need to set userId here, it's set when saved if needed
     }
 
     // Getters and Setters
@@ -64,7 +65,7 @@ public class CashbookModel implements Serializable {
         this.description = description;
     }
 
-    // [FIX] Renamed to getBalance() to match Java code
+    // [FIX] Renamed to getBalance() to match your Java code's usage
     public double getBalance() {
         return totalBalance;
     }

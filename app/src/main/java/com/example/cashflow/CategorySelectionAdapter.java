@@ -50,10 +50,15 @@ public class CategorySelectionAdapter extends RecyclerView.Adapter<CategorySelec
 
         void bind(final String category) {
             categoryName.setText(category);
+
+            // [FIX] Set listener to null before changing checked state
+            // This prevents the listener from firing during view recycling
+            categoryCheckbox.setOnCheckedChangeListener(null);
+
             // Set the checkbox state based on whether the category is in the selected set
             categoryCheckbox.setChecked(selectedCategories.contains(category));
 
-            // Listener for the checkbox
+            // [FIX] Re-attach the listener
             categoryCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
                     selectedCategories.add(category);

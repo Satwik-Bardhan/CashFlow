@@ -15,7 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
-import com.example.cashflow.models.Users;
+import com.example.cashflow.models.Users; // [FIX] Import the correct Users model
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -23,6 +23,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult; // [FIX] Added for new user check
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
@@ -52,6 +53,9 @@ public class SignupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -140,11 +144,15 @@ public class SignupActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "createUserWithEmail:success");
                         FirebaseUser user = mAuth.getCurrentUser();
+                        // [FIX] Save user info to database on new email sign up
+                        if (user != null) {
+                            saveNewUserData(user.getUid(), user.getEmail(), "CashFlow User");
+                        }
                         Toast.makeText(SignupActivity.this, "Account created.", Toast.LENGTH_SHORT).show();
                         updateUI(user);
                     } else {
                         Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                        Toast.makeText(SignupActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SignupActivity.this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         updateUI(null);
                     }
                 });
@@ -178,14 +186,12 @@ public class SignupActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "signInWithCredential:success");
                         FirebaseUser user = mAuth.getCurrentUser();
+                        // [FIX] Check if this is a new user
                         boolean isNewUser = task.getResult().getAdditionalUserInfo().isNewUser();
                         if (isNewUser && user != null) {
                             Log.d(TAG, "New user signed up with Google.");
-                            Users newUser = new Users();
-                            newUser.setUserName(user.getDisplayName());
-                            // This is the corrected line
-                            newUser.setMail(user.getEmail());
-                            mDatabase.child("users").child(user.getUid()).setValue(newUser);
+                            // [FIX] Save new user's data to the database
+                            saveNewUserData(user.getUid(), user.getEmail(), user.getDisplayName());
                         }
                         updateUI(user);
                     } else {
@@ -194,6 +200,23 @@ public class SignupActivity extends AppCompatActivity {
                         updateUI(null);
                     }
                 });
+    }
+
+    /**
+     * [FIX] New helper method to save user info to Realtime Database
+     */
+    private void saveNewUserData(String userId, String email, String username) {
+        if (userId == null) return;
+
+        Users newUser = new Users();
+        newUser.setUserId(userId);
+        newUser.setMail(email);
+        newUser.setUserName(username != null ? username : "CashFlow User");
+        newUser.setProfile(""); // Empty profile pic URL by default
+
+        mDatabase.child("users").child(userId).setValue(newUser)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "New user data saved to database."))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to save new user data", e));
     }
 
     private void togglePasswordVisibility() {

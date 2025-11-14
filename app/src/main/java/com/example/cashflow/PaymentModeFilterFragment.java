@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -40,7 +39,8 @@ public class PaymentModeFilterFragment extends Fragment {
         if (context instanceof PaymentModeListener) {
             listener = (PaymentModeListener) context;
         } else {
-            throw new RuntimeException(context.toString() + " must implement PaymentModeListener");
+            // [FIX] Make this optional, as FiltersActivity might not implement all listeners
+            // throw new RuntimeException(context.toString() + " must implement PaymentModeListener");
         }
     }
 

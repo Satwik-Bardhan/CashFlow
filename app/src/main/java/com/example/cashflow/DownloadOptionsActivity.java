@@ -2,9 +2,10 @@ package com.example.cashflow;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.util.TypedValue; // [FIX] Added for ThemeUtil
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -118,31 +119,53 @@ public class DownloadOptionsActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         startDateText.setText(sdf.format(startCalendar.getTime()));
         endDateText.setText(sdf.format(endCalendar.getTime()));
-        startDateText.setTextColor(ContextCompat.getColor(this, R.color.white));
-        endDateText.setTextColor(ContextCompat.getColor(this, R.color.white));
+
+        // [FIX] Use theme-aware colors
+        int textColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary);
+        startDateText.setTextColor(textColor);
+        endDateText.setTextColor(textColor);
     }
 
     private void setDateRangeToToday() {
         startCalendar = Calendar.getInstance();
         startCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        startCalendar.set(Calendar.MINUTE, 0);
+        startCalendar.set(Calendar.SECOND, 0);
+
         endCalendar = Calendar.getInstance();
-        endCalendar.set(Calendar.HOUR_OF_DAY, 24);
+        endCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        endCalendar.set(Calendar.MINUTE, 59);
+        endCalendar.set(Calendar.SECOND, 59);
         updateDateTextViews();
     }
 
     private void setDateRangeToThisWeek() {
         startCalendar = Calendar.getInstance();
         startCalendar.set(Calendar.DAY_OF_WEEK, startCalendar.getFirstDayOfWeek());
+        startCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        startCalendar.set(Calendar.MINUTE, 0);
+        startCalendar.set(Calendar.SECOND, 0);
+
         endCalendar = (Calendar) startCalendar.clone();
         endCalendar.add(Calendar.DAY_OF_WEEK, 6);
+        endCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        endCalendar.set(Calendar.MINUTE, 59);
+        endCalendar.set(Calendar.SECOND, 59);
         updateDateTextViews();
     }
 
     private void setDateRangeToThisMonth() {
         startCalendar = Calendar.getInstance();
         startCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        startCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        startCalendar.set(Calendar.MINUTE, 0);
+        startCalendar.set(Calendar.SECOND, 0);
+
         endCalendar = Calendar.getInstance();
         endCalendar.set(Calendar.DAY_OF_MONTH, endCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+        endCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        endCalendar.set(Calendar.MINUTE, 59);
+        endCalendar.set(Calendar.SECOND, 59);
         updateDateTextViews();
     }
 
@@ -152,13 +175,13 @@ public class DownloadOptionsActivity extends AppCompatActivity {
             formatPdfButton.setBackgroundResource(R.drawable.format_button_selected);
             formatPdfButton.setTextColor(ContextCompat.getColor(this, R.color.white));
             formatExcelButton.setBackgroundResource(R.drawable.format_button_unselected);
-            formatExcelButton.setTextColor(ContextCompat.getColor(this, R.color.textColorSecondary));
+            formatExcelButton.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorSecondary));
         } else {
             selectedFormat = "Excel";
             formatExcelButton.setBackgroundResource(R.drawable.format_button_selected);
             formatExcelButton.setTextColor(ContextCompat.getColor(this, R.color.white));
             formatPdfButton.setBackgroundResource(R.drawable.format_button_unselected);
-            formatPdfButton.setTextColor(ContextCompat.getColor(this, R.color.textColorSecondary));
+            formatPdfButton.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorSecondary));
         }
     }
 
@@ -167,9 +190,9 @@ public class DownloadOptionsActivity extends AppCompatActivity {
         String entryType = "All";
         int selectedEntryTypeId = entryTypeRadioGroup.getCheckedRadioButtonId();
         if (selectedEntryTypeId == R.id.radioCashIn) {
-            entryType = "Cash In";
+            entryType = "IN"; // [FIX] Use "IN" to match TransactionModel
         } else if (selectedEntryTypeId == R.id.radioCashOut) {
-            entryType = "Cash Out";
+            entryType = "OUT"; // [FIX] Use "OUT" to match TransactionModel
         }
 
         // Get selected payment mode
@@ -191,5 +214,14 @@ public class DownloadOptionsActivity extends AppCompatActivity {
 
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
+    }
+
+    // [FIX] Added a simple helper class to resolve theme attributes
+    static class ThemeUtil {
+        static int getThemeAttrColor(Context context, int attr) {
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
+        }
     }
 }

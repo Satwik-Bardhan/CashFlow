@@ -1,5 +1,6 @@
 package com.example.cashflow;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -13,7 +14,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.lifecycle.ViewModelProvider;
@@ -29,30 +33,50 @@ import com.google.firebase.auth.FirebaseUser;
 public class SigninActivity extends AppCompatActivity {
 
     private static final String TAG = "SigninActivity";
-    private static final int RC_SIGN_IN = 9001;
 
     private EditText emailEditText, passwordEditText;
-    private Button signinButton, guestButton;
+    private Button signinButton, guestButton; // [FIX] Added guestButton
     private TextView forgotPasswordText, signUpText;
     private ImageView togglePasswordVisibility, backButton, helpButton;
     private CardView googleSignInCard;
     private ProgressBar loadingIndicator;
 
-    // --- [NEW] ViewModel instance ---
     private SigninViewModel viewModel;
     private GoogleSignInClient mGoogleSignInClient;
 
     private boolean isPasswordVisible = false;
 
+    // [FIX] Modern way to handle Activity Results for Google Sign-In
+    private final ActivityResultLauncher<Intent> googleSignInLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                    try {
+                        GoogleSignInAccount account = task.getResult(ApiException.class);
+                        if (account != null) {
+                            viewModel.firebaseAuthWithGoogle(account);
+                        } else {
+                            Toast.makeText(this, "Google sign in failed.", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (ApiException e) {
+                        Log.w(TAG, "Google sign in failed", e);
+                        Toast.makeText(this, "Google sign in failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signin);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
-        // --- [MODIFIED] Initialize ViewModel ---
         viewModel = new ViewModelProvider(this).get(SigninViewModel.class);
 
-        // Configure Google Sign In (UI part remains in Activity)
+        // Configure Google Sign In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -61,14 +85,14 @@ public class SigninActivity extends AppCompatActivity {
 
         initializeUI();
         setupClickListeners();
-        observeViewModel(); // --- [NEW] Start observing ViewModel changes ---
+        observeViewModel();
     }
 
     private void initializeUI() {
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         signinButton = findViewById(R.id.signinButton);
-
+        guestButton = findViewById(R.id.guestButton); // [FIX] Initialized guestButton
         forgotPasswordText = findViewById(R.id.forgotPassword);
         signUpText = findViewById(R.id.signUpText);
         togglePasswordVisibility = findViewById(R.id.togglePasswordVisibility);
@@ -78,33 +102,41 @@ public class SigninActivity extends AppCompatActivity {
         helpButton = findViewById(R.id.helpButton);
     }
 
-    // --- [NEW] Method to observe LiveData from ViewModel ---
     private void observeViewModel() {
-        viewModel.user.observe(this, firebaseUser -> {
+        viewModel.getUser().observe(this, firebaseUser -> { // [FIX] Use getter
             if (firebaseUser != null) {
                 updateUI(firebaseUser);
             }
         });
 
-        viewModel.error.observe(this, errorMessage -> {
+        viewModel.getError().observe(this, errorMessage -> { // [FIX] Use getter
             if (errorMessage != null && !errorMessage.isEmpty()) {
                 Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
+                viewModel.clearError(); // [FIX] Clear error after showing
             }
         });
 
-        viewModel.loading.observe(this, isLoading -> {
+        viewModel.getLoading().observe(this, isLoading -> { // [FIX] Use getter
             setLoading(isLoading);
         });
     }
 
     private void setupClickListeners() {
-        // --- [MODIFIED] Call ViewModel methods instead of Firebase directly ---
         signinButton.setOnClickListener(v -> attemptEmailPasswordSignIn());
-        guestButton.setOnClickListener(v -> viewModel.signInAnonymously());
-        googleSignInCard.setOnClickListener(v -> signInWithGoogle());
 
+        // [FIX] Updated guest button to prompt for sign-up
+        guestButton.setOnClickListener(v -> showGuestLimitationDialog());
+
+        googleSignInCard.setOnClickListener(v -> signInWithGoogle());
         signUpText.setOnClickListener(v -> startActivity(new Intent(this, SignupActivity.class)));
-        forgotPasswordText.setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
+
+        forgotPasswordText.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ForgotPasswordActivity.class);
+            // [FIX] Pass the email to the forgot password screen
+            intent.putExtra("email", emailEditText.getText().toString().trim());
+            startActivity(intent);
+        });
+
         togglePasswordVisibility.setOnClickListener(v -> togglePasswordVisibility());
         backButton.setOnClickListener(v -> onBackPressed());
         helpButton.setOnClickListener(v -> Toast.makeText(this, "Help button clicked", Toast.LENGTH_SHORT).show());
@@ -114,42 +146,26 @@ public class SigninActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
-        if (TextUtils.isEmpty(email)) {
-            emailEditText.setError("Email is required.");
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) { // [FIX] Added email validation
+            emailEditText.setError("A valid email is required.");
+            emailEditText.requestFocus();
             return;
         }
         if (TextUtils.isEmpty(password)) {
             passwordEditText.setError("Password is required.");
+            passwordEditText.requestFocus();
             return;
         }
 
-        // --- [MODIFIED] Delegate to ViewModel ---
         viewModel.signInWithEmail(email, password);
     }
 
     private void signInWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        googleSignInLauncher.launch(signInIntent); // [FIX] Use modern launcher
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                if (account != null) {
-                    // --- [MODIFIED] Delegate to ViewModel ---
-                    viewModel.firebaseAuthWithGoogle(account);
-                }
-            } catch (ApiException e) {
-                Log.w(TAG, "Google sign in failed", e);
-                Toast.makeText(this, "Google sign in failed", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
+    // [FIX] Removed deprecated onActivityResult
 
     private void togglePasswordVisibility() {
         if (isPasswordVisible) {
@@ -170,8 +186,21 @@ public class SigninActivity extends AppCompatActivity {
         googleSignInCard.setEnabled(!isLoading);
     }
 
+    // [FIX] Added dialog for guest button
+    private void showGuestLimitationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.title_guest_mode)
+                .setMessage(R.string.msg_guest_signup_prompt)
+                .setPositiveButton(R.string.btn_sign_up, (dialog, which) -> {
+                    startActivity(new Intent(this, SignupActivity.class));
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private void updateUI(FirebaseUser user) {
         if (user != null) {
+            Toast.makeText(this, "Sign In Successful", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, HomePage.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);

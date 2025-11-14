@@ -2,8 +2,7 @@ package com.example.cashflow;
 
 import java.io.Serializable;
 
-// This is a Plain Old Java Object (POJO) to hold transaction data.
-// It implements Serializable so it can be passed between activities.
+// [FIX] Implement Serializable so this object can be passed in an Intent
 public class TransactionModel implements Serializable {
     private String transactionId;
     private String transactionCategory;
@@ -84,7 +83,10 @@ public class TransactionModel implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public String getDescription() {
-        return null;
-    }
+    // [FIX] This was in your original file but returned null.
+    // It's likely an error from an older version.
+    // It is safe to remove, but I will keep it commented out.
+    // public String getDescription() {
+    //     return null;
+    // }
 }

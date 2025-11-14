@@ -1,11 +1,16 @@
-package com.example.cashflow; // Your actual package name
+package com.example.cashflow;
 
+import android.content.Context;
+import android.graphics.Color;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
+import java.util.Locale; // [FIX] Added for formatting
 
 public class LegendAdapter extends RecyclerView.Adapter<LegendAdapter.ViewHolder> {
 
@@ -15,28 +20,19 @@ public class LegendAdapter extends RecyclerView.Adapter<LegendAdapter.ViewHolder
         this.legendList = legendList;
     }
 
+    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // [FIX] Using item_legend.xml as you specified
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.legend_item, parent, false);
+                .inflate(R.layout.item_legend_detail, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         LegendData data = legendList.get(position);
-
-        // Set category name
-        holder.categoryName.setText(data.getCategoryName());
-
-        // Set amount
-        holder.categoryAmount.setText("₹" + data.getAmount());
-
-        // Set percentage
-        holder.categoryPercentage.setText(data.getPercentage() + "%");
-
-        // Set color indicator
-        holder.colorIndicator.setBackgroundColor(data.getColor());
+        holder.bind(data); // [FIX] Call bind method
     }
 
     @Override
@@ -45,15 +41,49 @@ public class LegendAdapter extends RecyclerView.Adapter<LegendAdapter.ViewHolder
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        View colorIndicator;
+        View colorSwatch;
         TextView categoryName, categoryAmount, categoryPercentage;
 
         public ViewHolder(View view) {
             super(view);
-            colorIndicator = view.findViewById(R.id.colorIndicator);
-            categoryName = view.findViewById(R.id.categoryName);
-            categoryAmount = view.findViewById(R.id.categoryAmount);
-            categoryPercentage = view.findViewById(R.id.categoryPercentage);
+            // [FIX] Corrected IDs from item_legend.xml
+            colorSwatch = view.findViewById(R.id.colorSwatch);
+            categoryName = view.findViewById(R.id.categoryNameTextView);
+            categoryAmount = view.findViewById(R.id.amountTextView);
+            categoryPercentage = view.findViewById(R.id.percentageTextView);
+        }
+
+        // [FIX] Added bind method to set data and theme-aware colors
+        public void bind(LegendData data) {
+            Context context = itemView.getContext();
+
+            categoryName.setText(data.getCategoryName());
+
+            // [FIX] Format amount and percentage from LegendData
+            try {
+                double amountValue = Double.parseDouble(data.getAmount());
+                categoryAmount.setText(String.format(Locale.US, "₹%.2f", amountValue));
+            } catch (NumberFormatException e) {
+                categoryAmount.setText("₹--.--");
+            }
+
+            categoryPercentage.setText(String.format(Locale.US, "(%.1f%%)", data.getPercentage()));
+            colorSwatch.setBackgroundColor(data.getColor());
+
+            // [FIX] Apply theme colors
+            categoryName.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.textColorPrimary));
+            categoryAmount.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.textColorPrimary));
+            categoryPercentage.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.textColorSecondary));
+        }
+    }
+
+    // [FIX] Added a simple helper class to resolve theme attributes
+    static class ThemeUtil {
+        static int getThemeAttrColor(Context context, int attr) {
+            if (context == null) return Color.BLACK; // Fallback
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
         }
     }
 }

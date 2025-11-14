@@ -1,14 +1,17 @@
 package com.example.cashflow;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -27,21 +30,22 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider; // [FIX] Added ViewModelProvider
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+// [FIX] Removed Firebase imports, ViewModel will handle this
+// import com.google.firebase.auth.FirebaseAuth;
+// import com.google.firebase.auth.FirebaseUser;
+// import com.google.firebase.database.DatabaseReference;
+// import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.UUID;
 
 public class CashInOutActivity extends AppCompatActivity {
 
@@ -52,13 +56,14 @@ public class CashInOutActivity extends AppCompatActivity {
     private TextView headerTitle, headerSubtitle;
     private ImageView backButton, menuButton;
     private TextView dateTextView, timeTextView, selectedCategoryTextView;
-    private LinearLayout dateSelectorLayout, timeSelectorLayout;
+    private LinearLayout dateSelectorLayout, timeSelectorLayout, categorySelectorLayout; // [FIX] Added categorySelectorLayout
     private RadioGroup inOutToggle, cashOnlineToggle;
     private RadioButton radioIn, radioOut, radioCash, radioOnline;
     private ImageView swapButton;
     private CheckBox taxCheckbox;
     private TextInputLayout taxAmountLayout;
-    private TextInputEditText taxAmountEditText, amountEditText, remarkEditText, tagsEditText;
+    private TextInputEditText taxAmountEditText, remarkEditText, tagsEditText;
+    private EditText amountEditText; // [FIX] This is an EditText in your layout, not TextInputEditText
     private ImageView calculatorButton, voiceInputButton, locationButton;
     private Button quickAmount100, quickAmount500, quickAmount1000, quickAmount5000;
     private ImageView cameraButton, scanButton, attachFileButton;
@@ -66,15 +71,13 @@ public class CashInOutActivity extends AppCompatActivity {
     private LinearLayout partySelectorLayout;
     private Button saveEntryButton, saveAndAddNewButton, clearButton;
 
-    // Firebase
-    private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    // [FIX] ViewModel
+    private CashInOutViewModel viewModel;
     private String currentCashbookId;
-    private FirebaseUser currentUser;
 
     // State Variables
     private Calendar calendar;
-    private String selectedCategory = null;
+    private String selectedCategory = "Other"; // [FIX] Default to "Other"
     private String selectedParty = null;
     private String currentLocation = null;
 
@@ -84,7 +87,7 @@ public class CashInOutActivity extends AppCompatActivity {
     // Activity Result Launchers
     private ActivityResultLauncher<Intent> voiceInputLauncher;
     private ActivityResultLauncher<Intent> cameraLauncher;
-    private ActivityResultLauncher<Intent> categoryLauncher; // Added category launcher
+    private ActivityResultLauncher<Intent> categoryLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,16 +95,10 @@ public class CashInOutActivity extends AppCompatActivity {
         setContentView(R.layout.activity_cash_in_out);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        // Guest mode is removed, so we MUST have a valid user and cashbook ID
-        if (currentUser == null) {
-            Toast.makeText(this, "Error: You are not logged in.", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        // [FIX] Initialize ViewModel
+        // We removed Guest Mode, so we don't need the factory to pass 'isGuest'
+        viewModel = new ViewModelProvider(this, new CashInOutViewModelFactory(getApplication()))
+                .get(CashInOutViewModel.class);
 
         currentCashbookId = getIntent().getStringExtra("cashbook_id");
         if (currentCashbookId == null) {
@@ -119,7 +116,7 @@ public class CashInOutActivity extends AppCompatActivity {
         setupActivityLaunchers();
         setupInitialState(transactionType);
 
-        Log.d(TAG, "CashInOutActivity initialized for user: " + currentUser.getUid());
+        Log.d(TAG, "CashInOutActivity initialized for cashbook: " + currentCashbookId);
     }
 
     private void initializeUI() {
@@ -163,6 +160,7 @@ public class CashInOutActivity extends AppCompatActivity {
 
         // Category
         selectedCategoryTextView = findViewById(R.id.selectedCategoryTextView);
+        categorySelectorLayout = findViewById(R.id.categorySelectorLayout); // [FIX] Find layout
 
         // Attachments
         cameraButton = findViewById(R.id.cameraButton);
@@ -190,27 +188,26 @@ public class CashInOutActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        if (backButton != null) backButton.setOnClickListener(v -> finish());
-        if (menuButton != null) menuButton.setOnClickListener(v -> showMenuOptions());
-        if (dateSelectorLayout != null) dateSelectorLayout.setOnClickListener(v -> showDatePicker());
-        if (timeSelectorLayout != null) timeSelectorLayout.setOnClickListener(v -> showTimePicker());
-        if (swapButton != null) swapButton.setOnClickListener(v -> swapTransactionType());
-        if (inOutToggle != null) inOutToggle.setOnCheckedChangeListener(this::onTransactionTypeChanged);
-        if (cashOnlineToggle != null) cashOnlineToggle.setOnCheckedChangeListener(this::onPaymentMethodChanged);
-        if (calculatorButton != null) calculatorButton.setOnClickListener(v -> openCalculator());
-        if (taxCheckbox != null) taxCheckbox.setOnCheckedChangeListener((bv, isChecked) -> {
-            if (taxAmountLayout != null) taxAmountLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        backButton.setOnClickListener(v -> finish());
+        menuButton.setOnClickListener(v -> showMenuOptions());
+        dateSelectorLayout.setOnClickListener(v -> showDatePicker());
+        timeSelectorLayout.setOnClickListener(v -> showTimePicker());
+        swapButton.setOnClickListener(v -> swapTransactionType());
+        inOutToggle.setOnCheckedChangeListener(this::onTransactionTypeChanged);
+        calculatorButton.setOnClickListener(v -> openCalculator());
+        taxCheckbox.setOnCheckedChangeListener((bv, isChecked) -> {
+            taxAmountLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
-        if (voiceInputButton != null) voiceInputButton.setOnClickListener(v -> startVoiceInput());
-        if (selectedCategoryTextView != null) selectedCategoryTextView.setOnClickListener(v -> openCategorySelector());
-        if (cameraButton != null) cameraButton.setOnClickListener(v -> openCamera());
-        if (scanButton != null) scanButton.setOnClickListener(v -> openScanner());
-        if (attachFileButton != null) attachFileButton.setOnClickListener(v -> openFilePicker());
-        if (partySelectorLayout != null) partySelectorLayout.setOnClickListener(v -> openPartySelector());
-        if (locationButton != null) locationButton.setOnClickListener(v -> getCurrentLocation());
-        if (saveEntryButton != null) saveEntryButton.setOnClickListener(v -> saveTransaction(false));
-        if (saveAndAddNewButton != null) saveAndAddNewButton.setOnClickListener(v -> saveTransaction(true));
-        if (clearButton != null) clearButton.setOnClickListener(v -> clearForm());
+        voiceInputButton.setOnClickListener(v -> startVoiceInput());
+        categorySelectorLayout.setOnClickListener(v -> openCategorySelector()); // [FIX] Use layout
+        cameraButton.setOnClickListener(v -> openCamera());
+        scanButton.setOnClickListener(v -> openScanner());
+        attachFileButton.setOnClickListener(v -> openFilePicker());
+        partySelectorLayout.setOnClickListener(v -> openPartySelector());
+        locationButton.setOnClickListener(v -> getCurrentLocation());
+        saveEntryButton.setOnClickListener(v -> saveTransaction(false));
+        saveAndAddNewButton.setOnClickListener(v -> saveTransaction(true));
+        clearButton.setOnClickListener(v -> clearForm());
 
         setupQuickAmountButtons();
     }
@@ -222,20 +219,20 @@ public class CashInOutActivity extends AppCompatActivity {
             Button clickedButton = (Button) v;
             String amountText = clickedButton.getText().toString();
             String cleanAmount = amountText.replace("₹", "").replace("K", "000");
-            if (amountEditText != null) amountEditText.setText(cleanAmount);
+            amountEditText.setText(cleanAmount);
             showQuickAmountSelectionFeedback(clickedButton);
         };
-        if (quickAmount100 != null) quickAmount100.setOnClickListener(quickAmountClickListener);
-        if (quickAmount500 != null) quickAmount500.setOnClickListener(quickAmountClickListener);
-        if (quickAmount1000 != null) quickAmount1000.setOnClickListener(quickAmountClickListener);
-        if (quickAmount5000 != null) quickAmount5000.setOnClickListener(quickAmountClickListener);
+        quickAmount100.setOnClickListener(quickAmountClickListener);
+        quickAmount500.setOnClickListener(quickAmountClickListener);
+        quickAmount1000.setOnClickListener(quickAmountClickListener);
+        quickAmount5000.setOnClickListener(quickAmountClickListener);
     }
 
     private void clearQuickAmountSelections() {
-        if (quickAmount100 != null) quickAmount100.setSelected(false);
-        if (quickAmount500 != null) quickAmount500.setSelected(false);
-        if (quickAmount1000 != null) quickAmount1000.setSelected(false);
-        if (quickAmount5000 != null) quickAmount5000.setSelected(false);
+        quickAmount100.setSelected(false);
+        quickAmount500.setSelected(false);
+        quickAmount1000.setSelected(false);
+        quickAmount5000.setSelected(false);
     }
 
     private void showQuickAmountSelectionFeedback(Button selectedButton) {
@@ -252,17 +249,13 @@ public class CashInOutActivity extends AppCompatActivity {
         }
     }
 
-    private void onPaymentMethodChanged(RadioGroup group, int checkedId) {
-        // Logic for payment method change
-    }
-
     private void setupActivityLaunchers() {
         voiceInputLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         ArrayList<String> results = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                        if (results != null && !results.isEmpty() && remarkEditText != null) {
+                        if (results != null && !results.isEmpty()) {
                             remarkEditText.setText(results.get(0));
                         }
                     }
@@ -286,6 +279,7 @@ public class CashInOutActivity extends AppCompatActivity {
                         selectedCategory = result.getData().getStringExtra("selected_category");
                         if (selectedCategory != null) {
                             selectedCategoryTextView.setText(selectedCategory);
+                            selectedCategoryTextView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
                         }
                     }
                 }
@@ -294,13 +288,14 @@ public class CashInOutActivity extends AppCompatActivity {
 
     private void setupInitialState(String transactionType) {
         if ("OUT".equals(transactionType)) {
-            if (radioOut != null) radioOut.setChecked(true);
+            radioOut.setChecked(true);
             updateHeaderForTransactionType("OUT");
         } else {
-            if (radioIn != null) radioIn.setChecked(true);
+            radioIn.setChecked(true);
             updateHeaderForTransactionType("IN");
         }
-        if (amountEditText != null) amountEditText.requestFocus();
+        amountEditText.requestFocus();
+        selectedCategoryTextView.setText(selectedCategory); // Set default "Other"
     }
 
     private void showDatePicker() {
@@ -327,35 +322,30 @@ public class CashInOutActivity extends AppCompatActivity {
     }
 
     private void updateDateText() {
-        if (dateTextView != null) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-            dateTextView.setText(dateFormat.format(calendar.getTime()));
-        }
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        dateTextView.setText(dateFormat.format(calendar.getTime()));
     }
 
     private void updateTimeText() {
-        if (timeTextView != null) {
-            SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
-            timeTextView.setText(timeFormat.format(calendar.getTime()));
-        }
+        SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
+        timeTextView.setText(timeFormat.format(calendar.getTime()));
     }
 
     private void swapTransactionType() {
-        if (radioIn != null && radioOut != null) {
-            if (radioIn.isChecked()) radioOut.setChecked(true);
-            else radioIn.setChecked(true);
+        if (radioIn.isChecked()) {
+            radioOut.setChecked(true);
+        } else {
+            radioIn.setChecked(true);
         }
     }
 
     private void updateHeaderForTransactionType(String type) {
-        if (headerTitle != null && headerSubtitle != null) {
-            if ("IN".equals(type)) {
-                headerTitle.setText("Add Income");
-                headerSubtitle.setText("Record money received");
-            } else {
-                headerTitle.setText("Add Expense");
-                headerSubtitle.setText("Record money spent");
-            }
+        if ("IN".equals(type)) {
+            headerTitle.setText("Add Income");
+            headerSubtitle.setText("Record money received");
+        } else {
+            headerTitle.setText("Add Expense");
+            headerSubtitle.setText("Record money spent");
         }
     }
 
@@ -383,8 +373,8 @@ public class CashInOutActivity extends AppCompatActivity {
     }
 
     private void openCategorySelector() {
-        // Launch the dedicated activity
         Intent intent = new Intent(this, ChooseCategoryActivity.class);
+        intent.putExtra("selected_category", selectedCategory);
         categoryLauncher.launch(intent);
     }
 
@@ -421,7 +411,8 @@ public class CashInOutActivity extends AppCompatActivity {
                     String partyName = input.getText().toString().trim();
                     if (!partyName.isEmpty()) {
                         selectedParty = partyName;
-                        if (partyTextView != null) partyTextView.setText(partyName);
+                        partyTextView.setText(partyName);
+                        partyTextView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
                     }
                 })
                 .setNegativeButton("Cancel", null)
@@ -474,12 +465,18 @@ public class CashInOutActivity extends AppCompatActivity {
 
         TransactionModel transaction = createTransactionFromForm();
 
-        // Simplified: Always save to Firebase
-        saveFirebaseTransaction(transaction, addNew);
+        // [FIX] Delegate saving to the ViewModel
+        viewModel.saveTransaction(currentCashbookId, transaction);
+
+        Toast.makeText(this, "Entry Saved", Toast.LENGTH_SHORT).show();
+        if (addNew) {
+            clearForm();
+        } else {
+            finish();
+        }
     }
 
     private boolean validateForm() {
-        if (amountEditText == null) return false;
         String amountStr = amountEditText.getText().toString().trim();
 
         if (TextUtils.isEmpty(amountStr)) {
@@ -515,56 +512,48 @@ public class CashInOutActivity extends AppCompatActivity {
         transaction.setPaymentMode(radioCash.isChecked() ? "Cash" : "Online");
         transaction.setTransactionCategory(selectedCategory);
         transaction.setTimestamp(calendar.getTimeInMillis());
-        if (remarkEditText != null) transaction.setRemark(remarkEditText.getText().toString().trim());
+        transaction.setRemark(remarkEditText.getText().toString().trim());
         if (selectedParty != null) transaction.setPartyName(selectedParty);
+        // [FIX] Add tags and location if you implement them
+        // transaction.setTags(tagsEditText.getText().toString().trim());
+        // transaction.setLocation(currentLocation);
 
-        // Transaction ID will be set by Firebase on push
         return transaction;
     }
 
-    private void saveFirebaseTransaction(TransactionModel transaction, boolean addNew) {
-        if (currentUser == null) {
-            Toast.makeText(this, "Error: User not authenticated.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String userId = currentUser.getUid();
-        mDatabase.child("users").child(userId).child("cashbooks").child(currentCashbookId).child("transactions")
-                .push() // Creates a unique key
-                .setValue(transaction)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(this, "Entry Saved", Toast.LENGTH_SHORT).show();
-                        if (addNew) {
-                            clearForm();
-                        } else {
-                            finish();
-                        }
-                    } else {
-                        Toast.makeText(this, "Failed to save entry. Please try again.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
+    // [FIX] Removed saveFirebaseTransaction, ViewModel now handles this
 
     private void clearForm() {
-        if (amountEditText != null) amountEditText.setText("");
-        if (remarkEditText != null) remarkEditText.setText("");
-        if (selectedCategoryTextView != null) selectedCategoryTextView.setText("Select Category");
-        if (partyTextView != null) partyTextView.setText("Select Party (Customer/Supplier)");
+        amountEditText.setText("");
+        remarkEditText.setText("");
+        tagsEditText.setText("");
+        selectedCategoryTextView.setText("Select Category");
+        selectedCategoryTextView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorHint));
+        partyTextView.setText("Select Party (Customer/Supplier)");
+        partyTextView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorHint));
 
-        selectedCategory = null;
+        selectedCategory = "Other";
         selectedParty = null;
         currentLocation = null;
 
         clearQuickAmountSelections();
 
-        if (radioIn != null) radioIn.setChecked(true);
-        if (radioCash != null) radioCash.setChecked(true);
-        if (taxCheckbox != null) taxCheckbox.setChecked(false);
-        if (taxAmountLayout != null) taxAmountLayout.setVisibility(View.GONE);
+        radioIn.setChecked(true);
+        radioCash.setChecked(true);
+        taxCheckbox.setChecked(false);
+        taxAmountLayout.setVisibility(View.GONE);
 
         initializeDateTime();
-        if (amountEditText != null) amountEditText.requestFocus();
+        amountEditText.requestFocus();
         Toast.makeText(this, "Form cleared", Toast.LENGTH_SHORT).show();
+    }
+
+    // [FIX] Added a simple helper class to resolve theme attributes
+    static class ThemeUtil {
+        static int getThemeAttrColor(Context context, int attr) {
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
+        }
     }
 }

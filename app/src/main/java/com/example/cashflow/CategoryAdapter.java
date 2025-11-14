@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.util.Log;
+import android.util.TypedValue; // [FIX] Added for ThemeUtil
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +39,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     @NonNull
     @Override
     public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // This now correctly inflates the layout you created above
+        // [FIX] Inflates the correct layout file name from your list
         View view = LayoutInflater.from(context).inflate(R.layout.item_category_chip, parent, false);
         return new CategoryViewHolder(view);
     }
@@ -56,6 +58,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     // Call this method from your activity to update the selection
     @SuppressLint("NotifyDataSetChanged")
     public void setSelectedCategory(CategoryModel category) {
+        if (category == null || category.getName() == null) {
+            selectedPosition = RecyclerView.NO_POSITION;
+            notifyDataSetChanged();
+            return;
+        }
+
         for (int i = 0; i < categoryList.size(); i++) {
             if (categoryList.get(i).getName().equals(category.getName())) {
                 selectedPosition = i;
@@ -63,6 +71,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
                 return;
             }
         }
+        // If category not found, deselect all
+        selectedPosition = RecyclerView.NO_POSITION;
+        notifyDataSetChanged();
     }
 
 
@@ -99,26 +110,38 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
             // --- [IMPROVED] Update background and text color based on selection state ---
             if (selectedPosition == position) {
-                // Selected state: Blue background, white text
-                categoryChipLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.balance_blue));
+                // Selected state: Use theme's balance color
+                categoryChipLayout.setBackgroundColor(ThemeUtil.getThemeAttrColor(context, R.attr.balanceColor));
                 categoryNameTextView.setTextColor(Color.WHITE);
             } else {
-                // Unselected state: Dark background, white text (better for dark theme)
+                // Unselected state: Use theme-aware drawable and text color
                 categoryChipLayout.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_input_background));
-                categoryNameTextView.setTextColor(Color.WHITE);
+                categoryNameTextView.setTextColor(ThemeUtil.getThemeAttrColor(context, R.attr.textColorPrimary));
             }
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
-                    // Notify the activity of the click
                     listener.onCategoryClick(category);
-                    // Update selection state
+
                     int previousSelectedPosition = selectedPosition;
                     selectedPosition = getAdapterPosition();
-                    notifyItemChanged(previousSelectedPosition);
+
+                    // [FIX] Efficiently update only the changed items
+                    if (previousSelectedPosition != RecyclerView.NO_POSITION) {
+                        notifyItemChanged(previousSelectedPosition);
+                    }
                     notifyItemChanged(selectedPosition);
                 }
             });
+        }
+    }
+
+    // [FIX] Added a simple helper class to resolve theme attributes
+    static class ThemeUtil {
+        static int getThemeAttrColor(Context context, int attr) {
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
         }
     }
 }
