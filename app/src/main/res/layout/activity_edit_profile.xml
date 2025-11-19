@@ -177,7 +177,7 @@
                         android:background="@drawable/rounded_input_background"
                         android:paddingHorizontal="12dp"
                         android:textColor="@color/black"
-                        android:textColorHint="@color/text_hint"
+                        android:textColorHint="?attr/textColorHint"
                         android:layout_marginBottom="16dp" />
 
                     <TextView
@@ -230,7 +230,7 @@
                         android:background="@drawable/rounded_input_background"
                         android:paddingHorizontal="12dp"
                         android:textColor="@color/black"
-                        android:textColorHint="@color/text_hint"
+                        android:textColorHint="?attr/textColorHint"
                         android:layout_marginBottom="16dp" />
 
                     <TextView

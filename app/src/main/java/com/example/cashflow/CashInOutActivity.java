@@ -1,13 +1,14 @@
 package com.example.cashflow;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.RecognizerIntent;
 import android.text.TextUtils;
 import android.util.Log;
@@ -30,17 +31,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.ViewModelProvider; // [FIX] Added ViewModelProvider
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-// [FIX] Removed Firebase imports, ViewModel will handle this
-// import com.google.firebase.auth.FirebaseAuth;
-// import com.google.firebase.auth.FirebaseUser;
-// import com.google.firebase.database.DatabaseReference;
-// import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,14 +52,14 @@ public class CashInOutActivity extends AppCompatActivity {
     private TextView headerTitle, headerSubtitle;
     private ImageView backButton, menuButton;
     private TextView dateTextView, timeTextView, selectedCategoryTextView;
-    private LinearLayout dateSelectorLayout, timeSelectorLayout, categorySelectorLayout; // [FIX] Added categorySelectorLayout
+    private LinearLayout dateSelectorLayout, timeSelectorLayout, categorySelectorLayout;
     private RadioGroup inOutToggle, cashOnlineToggle;
     private RadioButton radioIn, radioOut, radioCash, radioOnline;
     private ImageView swapButton;
     private CheckBox taxCheckbox;
     private TextInputLayout taxAmountLayout;
     private TextInputEditText taxAmountEditText, remarkEditText, tagsEditText;
-    private EditText amountEditText; // [FIX] This is an EditText in your layout, not TextInputEditText
+    private EditText amountEditText;
     private ImageView calculatorButton, voiceInputButton, locationButton;
     private Button quickAmount100, quickAmount500, quickAmount1000, quickAmount5000;
     private ImageView cameraButton, scanButton, attachFileButton;
@@ -71,20 +67,21 @@ public class CashInOutActivity extends AppCompatActivity {
     private LinearLayout partySelectorLayout;
     private Button saveEntryButton, saveAndAddNewButton, clearButton;
 
-    // [FIX] ViewModel
     private CashInOutViewModel viewModel;
     private String currentCashbookId;
 
     // State Variables
     private Calendar calendar;
-    private String selectedCategory = "Other"; // [FIX] Default to "Other"
+    private String selectedCategory = "Other";
     private String selectedParty = null;
     private String currentLocation = null;
 
-    // Location Services
+    private final Handler timeHandler = new Handler(Looper.getMainLooper());
+    private boolean isManualTimeSet = false;
+    private Runnable timeRunnable;
+
     private FusedLocationProviderClient fusedLocationClient;
 
-    // Activity Result Launchers
     private ActivityResultLauncher<Intent> voiceInputLauncher;
     private ActivityResultLauncher<Intent> cameraLauncher;
     private ActivityResultLauncher<Intent> categoryLauncher;
@@ -95,8 +92,6 @@ public class CashInOutActivity extends AppCompatActivity {
         setContentView(R.layout.activity_cash_in_out);
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // [FIX] Initialize ViewModel
-        // We removed Guest Mode, so we don't need the factory to pass 'isGuest'
         viewModel = new ViewModelProvider(this, new CashInOutViewModelFactory(getApplication()))
                 .get(CashInOutViewModel.class);
 
@@ -116,29 +111,27 @@ public class CashInOutActivity extends AppCompatActivity {
         setupActivityLaunchers();
         setupInitialState(transactionType);
 
+        startRealTimeClock();
+
         Log.d(TAG, "CashInOutActivity initialized for cashbook: " + currentCashbookId);
     }
 
     private void initializeUI() {
-        // Header
         headerTitle = findViewById(R.id.headerTitle);
         headerSubtitle = findViewById(R.id.headerSubtitle);
         backButton = findViewById(R.id.back_button);
         menuButton = findViewById(R.id.menu_button);
 
-        // Date & Time
         dateTextView = findViewById(R.id.dateTextView);
         timeTextView = findViewById(R.id.timeTextView);
         dateSelectorLayout = findViewById(R.id.dateSelectorLayout);
         timeSelectorLayout = findViewById(R.id.timeSelectorLayout);
 
-        // Transaction Type
         inOutToggle = findViewById(R.id.inOutToggle);
         radioIn = findViewById(R.id.radioIn);
         radioOut = findViewById(R.id.radioOut);
         swapButton = findViewById(R.id.swap_horiz);
 
-        // Payment Method
         cashOnlineToggle = findViewById(R.id.cashOnlineToggle);
         radioCash = findViewById(R.id.radioCash);
         radioOnline = findViewById(R.id.radioOnline);
@@ -146,7 +139,6 @@ public class CashInOutActivity extends AppCompatActivity {
         taxAmountLayout = findViewById(R.id.taxAmountLayout);
         taxAmountEditText = findViewById(R.id.taxAmountEditText);
 
-        // Amount
         amountEditText = findViewById(R.id.amountEditText);
         calculatorButton = findViewById(R.id.calculatorButton);
         quickAmount100 = findViewById(R.id.quickAmount100);
@@ -154,28 +146,22 @@ public class CashInOutActivity extends AppCompatActivity {
         quickAmount1000 = findViewById(R.id.quickAmount1000);
         quickAmount5000 = findViewById(R.id.quickAmount5000);
 
-        // Remark & Voice
         remarkEditText = findViewById(R.id.remarkEditText);
         voiceInputButton = findViewById(R.id.voiceInputButton);
 
-        // Category
         selectedCategoryTextView = findViewById(R.id.selectedCategoryTextView);
-        categorySelectorLayout = findViewById(R.id.categorySelectorLayout); // [FIX] Find layout
+        categorySelectorLayout = findViewById(R.id.categorySelectorLayout);
 
-        // Attachments
         cameraButton = findViewById(R.id.cameraButton);
         scanButton = findViewById(R.id.scanButton);
         attachFileButton = findViewById(R.id.attachFileButton);
 
-        // Party & Reference
         partyTextView = findViewById(R.id.partyTextView);
         partySelectorLayout = findViewById(R.id.partySelectorLayout);
 
-        // Tags & Location
         tagsEditText = findViewById(R.id.tagsEditText);
         locationButton = findViewById(R.id.locationButton);
 
-        // Action Buttons
         saveEntryButton = findViewById(R.id.saveEntryButton);
         saveAndAddNewButton = findViewById(R.id.saveAndAddNewButton);
         clearButton = findViewById(R.id.clearButton);
@@ -187,11 +173,39 @@ public class CashInOutActivity extends AppCompatActivity {
         updateTimeText();
     }
 
+    private void startRealTimeClock() {
+        timeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isManualTimeSet) {
+                    calendar = Calendar.getInstance();
+                    updateDateText();
+                    updateTimeText();
+                    timeHandler.postDelayed(this, 1000);
+                }
+            }
+        };
+        timeHandler.post(timeRunnable);
+    }
+
+    private void stopRealTimeClock() {
+        isManualTimeSet = true;
+        timeHandler.removeCallbacks(timeRunnable);
+    }
+
     private void setupClickListeners() {
         backButton.setOnClickListener(v -> finish());
         menuButton.setOnClickListener(v -> showMenuOptions());
-        dateSelectorLayout.setOnClickListener(v -> showDatePicker());
-        timeSelectorLayout.setOnClickListener(v -> showTimePicker());
+
+        dateSelectorLayout.setOnClickListener(v -> {
+            stopRealTimeClock();
+            showDatePicker();
+        });
+        timeSelectorLayout.setOnClickListener(v -> {
+            stopRealTimeClock();
+            showTimePicker();
+        });
+
         swapButton.setOnClickListener(v -> swapTransactionType());
         inOutToggle.setOnCheckedChangeListener(this::onTransactionTypeChanged);
         calculatorButton.setOnClickListener(v -> openCalculator());
@@ -199,7 +213,7 @@ public class CashInOutActivity extends AppCompatActivity {
             taxAmountLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
         voiceInputButton.setOnClickListener(v -> startVoiceInput());
-        categorySelectorLayout.setOnClickListener(v -> openCategorySelector()); // [FIX] Use layout
+        categorySelectorLayout.setOnClickListener(v -> openCategorySelector());
         cameraButton.setOnClickListener(v -> openCamera());
         scanButton.setOnClickListener(v -> openScanner());
         attachFileButton.setOnClickListener(v -> openFilePicker());
@@ -271,7 +285,6 @@ public class CashInOutActivity extends AppCompatActivity {
                 }
         );
 
-        // Launcher for ChooseCategoryActivity
         categoryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -295,7 +308,7 @@ public class CashInOutActivity extends AppCompatActivity {
             updateHeaderForTransactionType("IN");
         }
         amountEditText.requestFocus();
-        selectedCategoryTextView.setText(selectedCategory); // Set default "Other"
+        selectedCategoryTextView.setText(selectedCategory);
     }
 
     private void showDatePicker() {
@@ -448,12 +461,22 @@ public class CashInOutActivity extends AppCompatActivity {
         }
     }
 
+    // [FIX] Updated menu options
     private void showMenuOptions() {
         String[] options = {"Duplicate Entry", "Save as Template"};
         new AlertDialog.Builder(this)
                 .setTitle("Menu Options")
                 .setItems(options, (dialog, which) -> {
-                    Toast.makeText(this, "Feature coming soon", Toast.LENGTH_SHORT).show();
+                    TransactionModel currentData = createTransactionFromForm();
+                    if (which == 0) {
+                        // Duplicate Entry
+                        viewModel.duplicateTransaction(currentCashbookId, currentData, false);
+                        Toast.makeText(this, "Entry Duplicated", Toast.LENGTH_SHORT).show();
+                    } else if (which == 1) {
+                        // Save as Template
+                        viewModel.duplicateTransaction(currentCashbookId, currentData, true);
+                        Toast.makeText(this, "Saved as Template", Toast.LENGTH_SHORT).show();
+                    }
                 })
                 .show();
     }
@@ -465,7 +488,6 @@ public class CashInOutActivity extends AppCompatActivity {
 
         TransactionModel transaction = createTransactionFromForm();
 
-        // [FIX] Delegate saving to the ViewModel
         viewModel.saveTransaction(currentCashbookId, transaction);
 
         Toast.makeText(this, "Entry Saved", Toast.LENGTH_SHORT).show();
@@ -514,14 +536,9 @@ public class CashInOutActivity extends AppCompatActivity {
         transaction.setTimestamp(calendar.getTimeInMillis());
         transaction.setRemark(remarkEditText.getText().toString().trim());
         if (selectedParty != null) transaction.setPartyName(selectedParty);
-        // [FIX] Add tags and location if you implement them
-        // transaction.setTags(tagsEditText.getText().toString().trim());
-        // transaction.setLocation(currentLocation);
 
         return transaction;
     }
-
-    // [FIX] Removed saveFirebaseTransaction, ViewModel now handles this
 
     private void clearForm() {
         amountEditText.setText("");
@@ -543,12 +560,21 @@ public class CashInOutActivity extends AppCompatActivity {
         taxCheckbox.setChecked(false);
         taxAmountLayout.setVisibility(View.GONE);
 
-        initializeDateTime();
+        isManualTimeSet = false;
+        startRealTimeClock();
+
         amountEditText.requestFocus();
         Toast.makeText(this, "Form cleared", Toast.LENGTH_SHORT).show();
     }
 
-    // [FIX] Added a simple helper class to resolve theme attributes
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (timeHandler != null && timeRunnable != null) {
+            timeHandler.removeCallbacks(timeRunnable);
+        }
+    }
+
     static class ThemeUtil {
         static int getThemeAttrColor(Context context, int attr) {
             TypedValue typedValue = new TypedValue();

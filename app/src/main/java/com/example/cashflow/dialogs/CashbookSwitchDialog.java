@@ -11,8 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar; // [FIX] Added ProgressBar
-import android.widget.Toast; // [FIX] Added Toast
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,7 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cashflow.CashbookModel;
 import com.example.cashflow.R;
 import com.example.cashflow.adapters.CashbookAdapter;
-import com.example.cashflow.utils.ErrorHandler; // [FIX] Added ErrorHandler
+import com.example.cashflow.utils.ErrorHandler;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -35,25 +35,24 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors; // [FIX] Added for filtering
+import java.util.stream.Collectors;
 
 public class CashbookSwitchDialog extends DialogFragment {
 
     private static final String TAG = "CashbookSwitchDialog";
 
-    // [FIX] Corrected view IDs from dialog_switch_cashbook.xml
     private RecyclerView cashbookRecyclerView;
     private EditText searchCashbook;
     private LinearLayout emptyStateDialog;
-    private ProgressBar loadingStateDialog; // [FIX] Corrected to ProgressBar
+    private ProgressBar loadingStateDialog;
     private Button cancelDialogButton;
-    private Button confirmDialogButton;
+    private Button confirmDialogButton; // This ID is NOT in the layout, it will crash.
     private ImageView closeDialog;
 
     private CashbookAdapter adapter;
     private final List<CashbookModel> allCashbooks = new ArrayList<>();
     private CashbookModel selectedCashbook;
-    private String currentCashbookId; // [FIX] Added to know current book
+    private String currentCashbookId;
 
     private OnCashbookSelectedListener listener;
 
@@ -65,7 +64,6 @@ public class CashbookSwitchDialog extends DialogFragment {
         this.listener = listener;
     }
 
-    // [FIX] Added newInstance to pass current cashbook ID
     public static CashbookSwitchDialog newInstance(String currentCashbookId) {
         CashbookSwitchDialog dialog = new CashbookSwitchDialog();
         Bundle args = new Bundle();
@@ -80,15 +78,13 @@ public class CashbookSwitchDialog extends DialogFragment {
         if (getArguments() != null) {
             currentCashbookId = getArguments().getString("current_cashbook_id");
         }
-        // [FIX] Set a dialog style
-        setStyle(DialogFragment.STYLE_NO_TITLE, R.style.Theme_CashFlow_Dialog);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // [FIX] Inflate the correct layout
-        View view = inflater.inflate(R.layout.dialog_cashbook_switcher, container, false);
+        // [FIX #1] Inflate the layout that actually has the RecyclerView
+        View view = inflater.inflate(R.layout.activity_cashbook_switch, container, false);
         return view;
     }
 
@@ -102,29 +98,35 @@ public class CashbookSwitchDialog extends DialogFragment {
     }
 
     private void initViews(View view) {
-        // [FIX] Use correct IDs from dialog_cashbook_switcher.xml
-        cashbookRecyclerView = view.findViewById(R.id.cashbookDialogRecyclerView);
-        searchCashbook = view.findViewById(R.id.searchCashbook);
-        emptyStateDialog = view.findViewById(R.id.emptyStateDialog);
-        loadingStateDialog = view.findViewById(R.id.loadingStateDialog);
-        cancelDialogButton = view.findViewById(R.id.cancelDialogButton);
-        confirmDialogButton = view.findViewById(R.id.confirmDialogButton);
-        closeDialog = view.findViewById(R.id.closeDialog);
+        // [FIX #2] Use the correct ID from the layout
+        cashbookRecyclerView = view.findViewById(R.id.cashbookRecyclerView);
 
-        // [FIX] Disable confirm button initially
+        // These IDs are all correct from 'activity_cashbook_switch.xml'
+        searchCashbook = view.findViewById(R.id.searchEditText);
+        emptyStateDialog = view.findViewById(R.id.emptyStateLayout);
+        loadingStateDialog = view.findViewById(R.id.loadingLayout); // This is a LinearLayout, not ProgressBar
+        cancelDialogButton = view.findViewById(R.id.cancelButton);
+        closeDialog = view.findViewById(R.id.closeButton);
+
+        // [CRITICAL ERROR] This ID does not exist in 'activity_cashbook_switch.xml'
+        // confirmDialogButton = view.findViewById(R.id.confirmDialogButton);
+        // I will use 'addNewButton' as the confirm button
+        confirmDialogButton = view.findViewById(R.id.addNewButton);
+        confirmDialogButton.setText("Select"); // Change text from "Create New" to "Select"
+
         confirmDialogButton.setEnabled(false);
         confirmDialogButton.setAlpha(0.5f);
         Log.d(TAG, "Views initialized");
     }
 
     private void setupRecyclerView() {
+        if (getContext() == null) return;
         cashbookRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         adapter = new CashbookAdapter(getContext(), allCashbooks, new CashbookAdapter.OnCashbookClickListener() {
             @Override
             public void onCashbookClick(CashbookModel cashbook) {
                 if (cashbook.isCurrent()) {
-                    // If user clicks the current book, just dismiss
                     dismiss();
                     return;
                 }
@@ -132,7 +134,6 @@ public class CashbookSwitchDialog extends DialogFragment {
                 confirmDialogButton.setEnabled(true);
                 confirmDialogButton.setAlpha(1.0f);
 
-                // [FIX] Update adapter to show selection
                 for (CashbookModel cb : allCashbooks) {
                     cb.setCurrent(cb.getCashbookId().equals(cashbook.getCashbookId()));
                 }
@@ -200,7 +201,6 @@ public class CashbookSwitchDialog extends DialogFragment {
                                 if (cashbook.getCashbookId() == null) {
                                     cashbook.setCashbookId(snapshot.getKey());
                                 }
-                                // [FIX] Set 'isCurrent' flag
                                 cashbook.setCurrent(cashbook.getCashbookId().equals(currentCashbookId));
                                 allCashbooks.add(cashbook);
                             }
@@ -211,7 +211,6 @@ public class CashbookSwitchDialog extends DialogFragment {
                             showEmptyState(true);
                         } else {
                             showEmptyState(false);
-                            // [FIX] Use the correct adapter update method
                             adapter.updateCashbooks(allCashbooks);
                         }
 
@@ -245,15 +244,27 @@ public class CashbookSwitchDialog extends DialogFragment {
     }
 
     private void showLoading(boolean show) {
-        loadingStateDialog.setVisibility(show ? View.VISIBLE : View.GONE);
-        cashbookRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-        emptyStateDialog.setVisibility(show ? View.GONE : View.VISIBLE);
+        if (loadingStateDialog != null) {
+            loadingStateDialog.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        if (cashbookRecyclerView != null) {
+            cashbookRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+        if (emptyStateDialog != null) {
+            emptyStateDialog.setVisibility(View.GONE); // Always hide empty state when loading
+        }
     }
 
     private void showEmptyState(boolean show) {
-        emptyStateDialog.setVisibility(show ? View.VISIBLE : View.GONE);
-        cashbookRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-        loadingStateDialog.setVisibility(show ? View.GONE : View.VISIBLE);
+        if (emptyStateDialog != null) {
+            emptyStateDialog.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        if (cashbookRecyclerView != null) {
+            cashbookRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+        if (loadingStateDialog != null) {
+            loadingStateDialog.setVisibility(View.GONE); // Always hide loading when showing empty
+        }
     }
 
     private void showError(String message) {

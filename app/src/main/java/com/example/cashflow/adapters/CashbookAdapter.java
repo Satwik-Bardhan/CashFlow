@@ -40,6 +40,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
     private int successColor;
     private int secondaryColor;
     private int favoriteColor;
+    private int expenseColor;
 
     public CashbookAdapter(Context context, List<CashbookModel> cashbookList,
                            OnCashbookClickListener listener) {
@@ -48,17 +49,20 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
         this.listener = listener;
         this.currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
-        // [FIX] Load theme colors once
+        // Load theme colors once
         this.primaryColor = ThemeUtil.getThemeAttrColor(context, R.attr.balanceColor);
         this.successColor = ThemeUtil.getThemeAttrColor(context, R.attr.incomeColor);
         this.secondaryColor = ThemeUtil.getThemeAttrColor(context, R.attr.textColorSecondary);
-        this.favoriteColor = ContextCompat.getColor(context, R.color.favorite_color); // This is a fixed color
+        this.expenseColor = ThemeUtil.getThemeAttrColor(context, R.attr.expenseColor);
+
+        // This color is defined in colors.xml, it is not a theme attribute
+        this.favoriteColor = ContextCompat.getColor(context, R.color.category_food);
     }
 
     @NonNull
     @Override
     public CashbookViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // [FIX] Inflates the correct layout file name
+        // This line requires you to have a file named 'item_cashbook.xml' in res/layout/
         View view = LayoutInflater.from(context).inflate(
                 R.layout.item_cashbook, parent, false);
         return new CashbookViewHolder(view);
@@ -75,9 +79,6 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
         return cashbookList != null ? cashbookList.size() : 0;
     }
 
-    /**
-     * [FIX] Use DiffUtil instead of notifyDataSetChanged for better performance
-     */
     public void updateCashbooks(List<CashbookModel> newCashbooks) {
         CashbookDiffCallback diffCallback = new CashbookDiffCallback(
                 this.cashbookList, newCashbooks);
@@ -88,9 +89,6 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
         diffResult.dispatchUpdatesTo(this);
     }
 
-    // [FIX] This was an empty method in your file, now removed.
-    // public void updateList(List<CashbookModel> filteredList) {}
-
     public class CashbookViewHolder extends RecyclerView.ViewHolder {
         private CardView cashbookItemCard, iconCard;
         private ImageView bookIcon, favoriteButton, menuButton;
@@ -98,6 +96,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
 
         public CashbookViewHolder(@NonNull View itemView) {
             super(itemView);
+            // These IDs must match your 'item_cashbook.xml' file
             cashbookItemCard = itemView.findViewById(R.id.cashbookItemCard);
             iconCard = itemView.findViewById(R.id.iconCard);
             bookIcon = itemView.findViewById(R.id.bookIcon);
@@ -131,7 +130,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
 
             // Set favorite icon
             if (cashbook.isFavorite()) {
-                favoriteButton.setImageResource(R.drawable.ic_star_filled); // [FIX] Use a filled star
+                favoriteButton.setImageResource(R.drawable.ic_star_filled); // Use a filled star
                 favoriteButton.setColorFilter(favoriteColor);
             } else {
                 favoriteButton.setImageResource(R.drawable.ic_star_outline);
@@ -151,7 +150,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
             // Set balance
             double balance = cashbook.getBalance();
             balanceText.setText(currencyFormat.format(balance));
-            balanceText.setTextColor(balance >= 0 ? successColor : ThemeUtil.getThemeAttrColor(context, R.attr.expenseColor));
+            balanceText.setTextColor(balance >= 0 ? successColor : expenseColor);
 
             transactionCountText.setText(String.valueOf(cashbook.getTransactionCount()));
 
@@ -231,7 +230,6 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
             CashbookModel oldCashbook = oldList.get(oldItemPosition);
             CashbookModel newCashbook = newList.get(newItemPosition);
 
-            // [FIX] Use Objects.equals for null safety
             return Objects.equals(oldCashbook.getName(), newCashbook.getName()) &&
                     oldCashbook.getBalance() == newCashbook.getBalance() &&
                     oldCashbook.getTransactionCount() == newCashbook.getTransactionCount() &&
@@ -242,7 +240,7 @@ public class CashbookAdapter extends RecyclerView.Adapter<CashbookAdapter.Cashbo
         }
     }
 
-    // [FIX] Added a simple helper class to resolve theme attributes
+    // Helper class to resolve theme attributes
     static class ThemeUtil {
         static int getThemeAttrColor(Context context, int attr) {
             TypedValue typedValue = new TypedValue();

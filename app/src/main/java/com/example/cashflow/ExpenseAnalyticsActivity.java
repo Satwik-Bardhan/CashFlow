@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cashflow.utils.CategoryColorUtil;
-import com.example.cashflow.utils.ErrorHandler; // [FIX] Added ErrorHandler
+import com.example.cashflow.utils.ErrorHandler;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
@@ -28,7 +28,6 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -58,10 +57,13 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
 
     private List<TransactionModel> allTransactions = new ArrayList<>();
     private List<MonthlyExpense> monthlyExpenses;
+
+    // [FIX] This is the variable your error log is missing
+    private MonthlyExpense currentSelectedMonth;
+
     private LegendAdapter legendAdapter;
     private MonthlyCardAdapter monthlyAdapter;
 
-    // [FIX] Added Firebase references
     private String cashbookId;
     private DatabaseReference transactionsRef;
     private ValueEventListener transactionsListener;
@@ -74,7 +76,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
             getSupportActionBar().hide();
         }
 
-        // [FIX] Get cashbookId from Intent, not the full transaction list
         cashbookId = getIntent().getStringExtra("cashbook_id");
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -92,7 +93,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         setupRecyclerViews();
         setupClickListeners();
         setupPieChart();
-        loadTransactionData(); // [FIX] Load data from Firebase
+        loadTransactionData();
     }
 
     private void initializeUI() {
@@ -107,8 +108,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         fullScreenPieChart.setRotationEnabled(true);
         fullScreenPieChart.setHighlightPerTapEnabled(true);
         fullScreenPieChart.setEntryLabelTextSize(12f);
-        // [FIX] Use theme-aware color
-        fullScreenPieChart.setEntryLabelColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
+        fullScreenPieChart.setEntryLabelColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary)); // [FIX]
         fullScreenPieChart.setHoleRadius(40f);
         fullScreenPieChart.setTransparentCircleRadius(45f);
         fullScreenPieChart.setDrawCenterText(true);
@@ -132,7 +132,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         // Handle case when nothing is selected
     }
 
-    // [FIX] New method to load data from Firebase
     private void loadTransactionData() {
         if (transactionsRef == null) return;
 
@@ -161,7 +160,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
     private void processTransactionData() {
         if (allTransactions == null || allTransactions.isEmpty()) {
             Log.w(TAG, "No transactions to process.");
-            // [FIX] Ensure UI is cleared if no data
             if(monthlyAdapter != null) monthlyAdapter.updateData(new ArrayList<>());
             if(legendAdapter != null) legendAdapter.updateData(new ArrayList<>());
             fullScreenPieChart.clear();
@@ -169,7 +167,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
             return;
         }
 
-        // Group transactions by month
         Map<String, List<TransactionModel>> transactionsByMonth = allTransactions.stream()
                 .filter(t -> "OUT".equalsIgnoreCase(t.getType()))
                 .collect(Collectors.groupingBy(t -> {
@@ -184,18 +181,14 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
             monthlyExpenses.add(new MonthlyExpense(entry.getKey(), total, entry.getValue()));
         }
 
-        // Sort months from most recent to oldest
         monthlyExpenses.sort(Comparator.comparing(MonthlyExpense::getMonth).reversed());
 
-        // Update adapters
         monthlyAdapter.updateData(monthlyExpenses);
 
-        // Initially display data for the most recent month
         if (!monthlyExpenses.isEmpty()) {
             updatePieChartForMonth(monthlyExpenses.get(0));
             monthlyAdapter.setSelectedPosition(0);
         } else {
-            // [FIX] Handle case where there are transactions, but no expenses
             if(legendAdapter != null) legendAdapter.updateData(new ArrayList<>());
             fullScreenPieChart.clear();
             fullScreenPieChart.invalidate();
@@ -203,12 +196,10 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
     }
 
     private void setupRecyclerViews() {
-        // Monthly Cards RecyclerView
         monthlyCardsRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         monthlyAdapter = new MonthlyCardAdapter(new ArrayList<>(), this::updatePieChartForMonth);
         monthlyCardsRecyclerView.setAdapter(monthlyAdapter);
 
-        // Detailed Legend RecyclerView
         detailedLegendRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         legendAdapter = new LegendAdapter(new ArrayList<>());
         detailedLegendRecyclerView.setAdapter(legendAdapter);
@@ -219,9 +210,9 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
     }
 
     private void updatePieChartForMonth(MonthlyExpense monthlyExpense) {
+        // This is the line from your error log.
         currentSelectedMonth = monthlyExpense;
 
-        // Group expenses by category for the selected month
         Map<String, Double> expenseByCategory = monthlyExpense.getTransactions().stream()
                 .collect(Collectors.groupingBy(
                         t -> t.getTransactionCategory() != null ? t.getTransactionCategory() : "Others",
@@ -231,10 +222,8 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         ArrayList<PieEntry> entries = new ArrayList<>();
         ArrayList<LegendItem> legendItems = new ArrayList<>();
 
-        // [FIX] Get theme-aware text colors
         int primaryTextColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary);
 
-        // Use a predefined color list
         int[] colors = {
                 Color.parseColor("#F2C94C"), Color.parseColor("#2DD4BF"),
                 Color.parseColor("#F87171"), Color.parseColor("#A78BFA"),
@@ -242,7 +231,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
                 Color.parseColor("#FBBF24"), Color.parseColor("#F472B6")
         };
 
-        int colorIndex = 0;
         for (Map.Entry<String, Double> entry : expenseByCategory.entrySet()) {
             float amount = entry.getValue().floatValue();
             entries.add(new PieEntry(amount, entry.getKey()));
@@ -250,19 +238,15 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
                     entry.getKey(),
                     amount,
                     (float) (amount / monthlyExpense.getTotalExpense() * 100),
-                    // [FIX] Use CategoryColorUtil if available, otherwise fallback
                     CategoryColorUtil.getCategoryColor(this, entry.getKey())
             ));
-            colorIndex++;
         }
 
-        // Sort legend items by amount (descending)
         legendItems.sort((a, b) -> Float.compare(b.amount, a.amount));
 
-        // Update Pie Chart
         PieDataSet dataSet = new PieDataSet(entries, "Monthly Expenses");
-        dataSet.setColors(colors); // Set colors for the pie slices
-        dataSet.setValueTextColor(primaryTextColor); // [FIX] Theme-aware text color
+        dataSet.setColors(colors);
+        dataSet.setValueTextColor(primaryTextColor);
         dataSet.setValueTextSize(12f);
         dataSet.setValueFormatter(new PercentFormatter(fullScreenPieChart));
         dataSet.setSliceSpace(3f);
@@ -275,22 +259,19 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         fullScreenPieChart.getLegend().setEnabled(false);
         fullScreenPieChart.setDrawEntryLabels(false);
 
-        // Format center text
         String centerText = String.format(Locale.US, "Total Expenses\n₹%.2f", monthlyExpense.getTotalExpense());
         fullScreenPieChart.setCenterText(centerText);
-        fullScreenPieChart.setCenterTextColor(primaryTextColor); // [FIX] Theme-aware
+        fullScreenPieChart.setCenterTextColor(primaryTextColor);
         fullScreenPieChart.setCenterTextSize(16f);
         fullScreenPieChart.animateXY(1000, 1000);
         fullScreenPieChart.invalidate();
 
-        // Update Legend RecyclerView
         legendAdapter.updateData(legendItems);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Remove Firebase listener to prevent memory leaks
         if (transactionsListener != null && transactionsRef != null) {
             transactionsRef.removeEventListener(transactionsListener);
         }
@@ -328,7 +309,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         }
     }
 
-    // Interface for click listener
     interface OnMonthClickListener {
         void onMonthClick(MonthlyExpense monthlyExpense);
     }
@@ -387,7 +367,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         static class ViewHolder extends RecyclerView.ViewHolder {
             TextView monthName, totalExpense;
             LinearLayout cardContainer;
-            int primaryTextColor, secondaryTextColor, balanceColor, surfaceColor, expenseColor; // [FIX]
+            int primaryTextColor, secondaryTextColor, balanceColor, surfaceColor, expenseColor;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -395,7 +375,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
                 totalExpense = itemView.findViewById(R.id.totalExpenseTextView);
                 cardContainer = itemView.findViewById(R.id.cardContainer);
 
-                // [FIX] Get theme colors
                 primaryTextColor = ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.textColorPrimary);
                 secondaryTextColor = ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.textColorSecondary);
                 balanceColor = ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.balanceColor);
@@ -414,15 +393,14 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
 
                 totalExpense.setText(String.format(Locale.US, "₹%.0f", data.getTotalExpense()));
 
-                // [FIX] Set colors based on theme
                 if (isSelected) {
                     cardContainer.setBackgroundColor(balanceColor);
-                    monthName.setTextColor(Color.WHITE); // White text on colored background
+                    monthName.setTextColor(Color.WHITE);
                     totalExpense.setTextColor(Color.WHITE);
                 } else {
                     cardContainer.setBackgroundColor(surfaceColor);
                     monthName.setTextColor(primaryTextColor);
-                    totalExpense.setTextColor(expenseColor); // Use expense color for total
+                    totalExpense.setTextColor(expenseColor);
                 }
             }
         }
@@ -476,7 +454,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
                 amount.setText(String.format(Locale.US, "₹%.2f", item.amount));
                 percentage.setText(String.format(Locale.US, "(%.1f%%)", item.percentage));
 
-                // [FIX] Apply theme colors
                 categoryName.setTextColor(ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.textColorPrimary));
                 amount.setTextColor(ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.textColorPrimary));
                 percentage.setTextColor(ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.textColorSecondary));
@@ -484,7 +461,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         }
     }
 
-    // [FIX] Added a simple helper class to resolve theme attributes
     static class ThemeUtil {
         static int getThemeAttrColor(Context context, int attr) {
             TypedValue typedValue = new TypedValue();

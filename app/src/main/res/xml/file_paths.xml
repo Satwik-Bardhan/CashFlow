@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- This path allows sharing files from your app's private cache directory -->
-    <cache-path
-        name="shared_cache"
-        path="." />
-    <!-- This allows sharing files from the external Downloads directory -->
-    <external-files-path
-        name="external_downloads"
-        path="Download/" />
+    <cache-path name="shared_cache" path="." />
+    <external-files-path name="external_downloads" path="Download/" />
 </paths>

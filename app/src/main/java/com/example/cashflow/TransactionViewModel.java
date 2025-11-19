@@ -15,10 +15,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-/**
- * TransactionViewModel - ViewModel for managing transaction list and filtering
- * [FIX] Handles loading, filtering, and managing transactions for authenticated users only.
- */
 public class TransactionViewModel extends AndroidViewModel {
 
     private static final String TAG = "TransactionViewModel";
@@ -39,14 +35,13 @@ public class TransactionViewModel extends AndroidViewModel {
 
         Log.d(TAG, "TransactionViewModel initialized, cashbook: " + cashbookId);
 
-        // Initialize with empty lists
         allTransactions.setValue(new ArrayList<>());
         filteredTransactions.setValue(new ArrayList<>());
 
         loadTransactions();
     }
 
-    // --- [FIX] Public Getters for LiveData ---
+    // --- Public Getters for LiveData ---
     public LiveData<List<TransactionModel>> getFilteredTransactions() {
         return filteredTransactions;
     }
@@ -68,7 +63,7 @@ public class TransactionViewModel extends AndroidViewModel {
     }
 
     /**
-     * Loads transactions from repository with proper error handling
+     * Loads transactions from repository
      */
     private void loadTransactions() {
         Log.d(TAG, "Loading transactions...");
@@ -106,13 +101,42 @@ public class TransactionViewModel extends AndroidViewModel {
     }
 
     /**
+     * [FIX] ADDED THIS METHOD TO FIX THE BUILD ERROR
+     * Adds a new transaction.
+     */
+    public void addTransaction(TransactionModel transaction) {
+        if (cashbookId == null) {
+            errorMessage.postValue("Error: No cashbook selected.");
+            return;
+        }
+        repository.addTransaction(cashbookId, transaction, success -> {
+            if (!success) {
+                errorMessage.postValue("Failed to add transaction.");
+            }
+            // No need to manually refresh, the listener in TransactionActivity will catch it.
+            // Or, if that's removed, we can call loadTransactions() here.
+        });
+    }
+
+    /**
+     * [FIX] ADDED THIS METHOD TO FIX THE BUILD ERROR
+     * Deletes a transaction.
+     */
+    public void deleteTransaction(String transactionId) {
+        if (cashbookId == null) {
+            errorMessage.postValue("Error: No cashbook selected.");
+            return;
+        }
+        repository.deleteTransaction(cashbookId, transactionId, success -> {
+            if (!success) {
+                errorMessage.postValue("Failed to delete transaction.");
+            }
+            // No need to manually refresh, the listener in TransactionActivity will catch it.
+        });
+    }
+
+    /**
      * Filters transactions based on multiple criteria
-     * @param query Search query for category, party name, or remarks
-     * @param startDate Start date for filtering (0 for no filter)
-     * @param endDate End date for filtering (0 for no filter)
-     * @param entryType Entry type filter ("All", "IN", "OUT")
-     * @param categories List of categories to filter by (null or empty for no filter)
-     * @param paymentModes List of payment modes to filter by (null or empty for no filter)
      */
     public void filter(String query, long startDate, long endDate, String entryType,
                        List<String> categories, List<String> paymentModes) {
@@ -173,9 +197,6 @@ public class TransactionViewModel extends AndroidViewModel {
         }
     }
 
-    /**
-     * Clears all filters and shows all transactions
-     */
     public void clearFilters() {
         Log.d(TAG, "Clearing all filters");
         List<TransactionModel> originalList = allTransactions.getValue();
@@ -184,17 +205,10 @@ public class TransactionViewModel extends AndroidViewModel {
         }
     }
 
-    /**
-     * Gets the current cashbook ID
-     * @return Cashbook ID
-     */
     public String getCashbookId() {
         return cashbookId;
     }
 
-    /**
-     * Cleanup method called when ViewModel is cleared
-     */
     @Override
     protected void onCleared() {
         super.onCleared();

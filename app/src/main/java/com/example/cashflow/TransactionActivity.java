@@ -9,8 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.ShapeDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,7 +25,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,25 +37,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.cashflow.databinding.ActivityTransactionActivityBinding;
+import com.example.cashflow.databinding.ActivityTransactionBinding;
 import com.example.cashflow.databinding.LayoutBottomNavigationBinding;
 import com.example.cashflow.databinding.LayoutPieChartBinding;
 import com.example.cashflow.databinding.LayoutSearchBarBinding;
 import com.example.cashflow.databinding.LayoutSummaryCardsBinding;
 import com.example.cashflow.utils.CustomPieChartValueFormatter;
-import com.example.cashflow.utils.ErrorHandler;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
@@ -69,6 +59,7 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -89,12 +80,10 @@ public class TransactionActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_CASHBOOK_SWITCH = 1001;
 
     // Data
-    private List<TransactionModel> allTransactions = new ArrayList<>(); // For PDF export
-    private List<CashbookModel> cashbooks = new ArrayList<>(); // For badge
+    private List<TransactionModel> allTransactions = new ArrayList<>();
     private Calendar currentMonthCalendar;
 
-    // [FIX] Use ViewBinding for all UI components
-    private ActivityTransactionActivityBinding binding;
+    private ActivityTransactionBinding binding;
     private LayoutSummaryCardsBinding summaryBinding;
     private LayoutPieChartBinding pieChartBinding;
     private LayoutSearchBarBinding searchBinding;
@@ -102,15 +91,12 @@ public class TransactionActivity extends AppCompatActivity {
 
     private TransactionItemFragment transactionFragment;
 
-    // [FIX] Add ViewModel
     private TransactionViewModel viewModel;
 
     // Firebase
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
-    private ValueEventListener cashbooksListener; // Only for badge
     private String currentCashbookId;
-    private FirebaseUser currentUser; // [FIX] Added currentUser
+    private FirebaseUser currentUser;
 
     // Launchers
     private ActivityResultLauncher<Intent> filterLauncher;
@@ -119,88 +105,95 @@ public class TransactionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // [FIX] Inflate using ViewBinding
-        binding = ActivityTransactionActivityBinding.inflate(getLayoutInflater());
+        binding = ActivityTransactionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // Get extras from intent
         currentCashbookId = getIntent().getStringExtra("cashbook_id");
         mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser(); // [FIX] Get current user
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        currentUser = mAuth.getCurrentUser();
         currentMonthCalendar = Calendar.getInstance();
 
         if (currentCashbookId == null || currentUser == null) {
-            showSnackbar("Error: No active cashbook found or user not logged in.");
+            showToast("Error: No active cashbook found or user not logged in.");
             finish();
             return;
         }
 
-        initializeUI(); // [FIX] Simplified to just bind child views
-
-        // [FIX] Initialize ViewModel
+        initializeUI();
         initViewModel();
-
         setupTransactionFragment();
         setupClickListeners();
         setupBottomNavigation();
         setupLaunchers();
-
-        // [FIX] Observe ViewModel LiveData
         observeViewModel();
 
         Log.d(TAG, "TransactionActivity created for cashbook: " + currentCashbookId);
     }
 
     private void initializeUI() {
-        // [FIX] Bind included layouts
         summaryBinding = binding.summaryCards;
         pieChartBinding = binding.pieChartComponent;
         searchBinding = binding.searchBarContainer;
         bottomNavBinding = binding.bottomNavCard;
     }
 
-    // [FIX] New method to initialize ViewModel
     private void initViewModel() {
         TransactionViewModelFactory factory = new TransactionViewModelFactory(getApplication(), currentCashbookId);
         viewModel = new ViewModelProvider(this, factory).get(TransactionViewModel.class);
     }
 
-    // [FIX] New method to observe LiveData
     private void observeViewModel() {
         if (viewModel == null) return;
 
-        // Observe filtered transactions
         viewModel.getFilteredTransactions().observe(this, transactions -> {
             Log.d(TAG, "ViewModel observed " + transactions.size() + " filtered transactions.");
-            this.allTransactions = transactions; // Update local list for PDF export
+            this.allTransactions = transactions;
             displayDataForCurrentMonth();
         });
 
-        // Observe loading state
         viewModel.getIsLoading().observe(this, isLoading -> {
             if (transactionFragment != null) {
                 transactionFragment.showLoading(isLoading);
             }
         });
 
-        // Observe error messages
         viewModel.getErrorMessage().observe(this, error -> {
             if (error != null) {
-                showSnackbar(error);
-                viewModel.clearError(); // Clear error after showing
+                showToast(error);
+                viewModel.clearError();
             }
         });
     }
 
     private void setupTransactionFragment() {
         transactionFragment = TransactionItemFragment.newInstance(new ArrayList<>());
-        transactionFragment.setOnItemClickListener(transaction -> {
-            Intent intent = new Intent(this, EditTransactionActivity.class);
-            intent.putExtra("transaction_model", (Serializable) transaction);
-            intent.putExtra("cashbook_id", currentCashbookId);
-            startActivity(intent);
+        transactionFragment.setOnItemClickListener(new TransactionAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(TransactionModel transaction) {
+                Intent intent = new Intent(TransactionActivity.this, EditTransactionActivity.class);
+                intent.putExtra("transaction_model", (Serializable) transaction);
+                intent.putExtra("cashbook_id", currentCashbookId);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onEditClick(TransactionModel transaction) {
+                Intent intent = new Intent(TransactionActivity.this, EditTransactionActivity.class);
+                intent.putExtra("transaction_model", (Serializable) transaction);
+                intent.putExtra("cashbook_id", currentCashbookId);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onDeleteClick(TransactionModel transaction) {
+                showDeleteConfirmation(transaction);
+            }
+
+            @Override
+            public void onCopyClick(TransactionModel transaction) {
+                duplicateTransaction(transaction);
+            }
         });
 
         getSupportFragmentManager()
@@ -215,28 +208,24 @@ public class TransactionActivity extends AppCompatActivity {
         bottomNavBinding.btnHome.setOnClickListener(v -> {
             Intent intent = new Intent(this, HomePage.class);
             intent.putExtra("cashbook_id", currentCashbookId);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
+            overridePendingTransition(0, 0);
             finish();
         });
-
-        bottomNavBinding.btnTransactions.setOnClickListener(v ->
-                showSnackbar("Already on Transactions"));
 
         bottomNavBinding.btnCashbookSwitch.setOnClickListener(v -> openCashbookSwitcher());
 
         bottomNavBinding.btnSettings.setOnClickListener(v -> {
             Intent intent = new Intent(this, SettingsActivity.class);
             intent.putExtra("cashbook_id", currentCashbookId);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
+            overridePendingTransition(0, 0);
             finish();
         });
-
-        loadCashbooksForBadge();
     }
 
-    // [FIX] Renamed and simplified from original
     private void setupLaunchers() {
         setupFilterLauncher();
         setupDownloadLauncher();
@@ -264,95 +253,19 @@ public class TransactionActivity extends AppCompatActivity {
 
     private void switchCashbook(String newCashbookId, String cashbookName) {
         currentCashbookId = newCashbookId;
-        showSnackbar("Switched to: " + cashbookName);
+        showToast("Switched to: " + cashbookName);
         Log.d(TAG, "Switched to cashbook: " + cashbookName);
 
-        // [FIX] Save the new active cashbook ID
         saveActiveCashbookId(currentCashbookId);
 
-        // Re-initialize ViewModel with the new ID
         initViewModel();
-        // Re-observe LiveData
         observeViewModel();
-        // Reload badge
-        loadCashbooksForBadge();
     }
 
-    // [FIX] Added helper to save active cashbook ID
     private void saveActiveCashbookId(String cashbookId) {
         if (currentUser == null) return;
         SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         prefs.edit().putString("active_cashbook_id_" + currentUser.getUid(), cashbookId).apply();
-    }
-
-    private void loadCashbooksForBadge() {
-        if (currentUser == null) {
-            Log.w(TAG, "No authenticated user for cashbook badge");
-            return;
-        }
-
-        String userId = currentUser.getUid();
-        DatabaseReference cashbooksRef = mDatabase.child("users").child(userId).child("cashbooks");
-
-        if (cashbooksListener != null) {
-            cashbooksRef.removeEventListener(cashbooksListener);
-        }
-
-        cashbooksListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                cashbooks.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
-                    if (cashbook != null) {
-                        cashbook.setCashbookId(snapshot.getKey());
-                        cashbooks.add(cashbook);
-                    }
-                }
-                updateCashbookBadge();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e(TAG, "Failed to load cashbooks for badge", databaseError.toException());
-            }
-        };
-        cashbooksRef.addValueEventListener(cashbooksListener);
-    }
-
-    private void updateCashbookBadge() {
-        if (bottomNavBinding.btnCashbookSwitch == null) return;
-
-        try {
-            int cashbookCount = cashbooks.size();
-            View existingBadge = bottomNavBinding.btnCashbookSwitch.findViewWithTag("cashbook_badge");
-            if (existingBadge != null) {
-                bottomNavBinding.btnCashbookSwitch.removeView(existingBadge);
-            }
-
-            if (cashbookCount > 1) {
-                TextView badge = new TextView(this);
-                badge.setTag("cashbook_badge");
-                badge.setText(String.valueOf(cashbookCount));
-                badge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-                badge.setTextColor(Color.WHITE);
-                badge.setGravity(Gravity.CENTER);
-                badge.setTypeface(null, Typeface.BOLD);
-
-                ShapeDrawable drawable = new ShapeDrawable(new android.graphics.drawable.shapes.OvalShape());
-                drawable.getPaint().setColor(ThemeUtil.getThemeAttrColor(this, R.attr.balanceColor));
-                badge.setBackground(drawable);
-
-                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                        dpToPx(22), dpToPx(22), Gravity.TOP | Gravity.END);
-                params.setMargins(0, dpToPx(2), dpToPx(2), 0);
-                badge.setLayoutParams(params);
-
-                bottomNavBinding.btnCashbookSwitch.addView(badge);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error updating cashbook badge", e);
-        }
     }
 
     private int dpToPx(int dp) {
@@ -362,7 +275,6 @@ public class TransactionActivity extends AppCompatActivity {
     private void setupClickListeners() {
         pieChartBinding.pieChartHeader.setOnClickListener(v -> {
             Intent intent = new Intent(this, ExpenseAnalyticsActivity.class);
-            // [FIX] Pass cashbookId, not the whole list
             intent.putExtra("cashbook_id", currentCashbookId);
             startActivity(intent);
         });
@@ -396,13 +308,8 @@ public class TransactionActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // [FIX] ViewModel handles loading, but we need to refresh data for the current month
-        // This will be triggered by the LiveData observer, but we call it once
-        // to ensure the month title is set correctly.
         displayDataForCurrentMonth();
     }
-
-    // [FIX] Removed startListeningForTransactions, ViewModel handles this.
 
     private void displayDataForCurrentMonth() {
         if (allTransactions == null) return;
@@ -441,11 +348,10 @@ public class TransactionActivity extends AppCompatActivity {
         summaryBinding.expenseText.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
         summaryBinding.balanceText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome - totalExpense));
 
-        // [FIX] Use theme-aware colors
-        int incomeColor = ThemeUtil.getThemeAttrColor(this, R.attr.incomeColor);
-        int expenseColor = ThemeUtil.getThemeAttrColor(this, R.attr.expenseColor);
-
-        summaryBinding.balanceText.setTextColor(totalIncome - totalExpense >= 0 ? incomeColor : expenseColor);
+        // [FIX] Force text color to WHITE for all summary fields
+        summaryBinding.balanceText.setTextColor(Color.WHITE);
+        summaryBinding.incomeText.setTextColor(Color.WHITE);
+        summaryBinding.expenseText.setTextColor(Color.WHITE);
     }
 
     private void setupStyledPieChart(List<TransactionModel> transactionsForMonth) {
@@ -473,27 +379,30 @@ public class TransactionActivity extends AppCompatActivity {
         pieChartBinding.categoriesCount.setText(String.valueOf(expenseByCategory.size()));
         pieChartBinding.highestCategory.setText(highestCategory);
 
-        // [FIX] Get theme-aware text color
-        int textColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary);
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(R.attr.textColorPrimary, typedValue, true);
+        int textColor = typedValue.data;
 
         if (totalExpense == 0) {
             pieChartBinding.pieChart.clear();
             pieChartBinding.pieChart.setCenterText("No Expenses");
-            pieChartBinding.pieChart.setCenterTextColor(textColor); // [FIX]
+            pieChartBinding.pieChart.setCenterTextColor(textColor);
             pieChartBinding.pieChart.invalidate();
             return;
         }
 
         ArrayList<PieEntry> entries = new ArrayList<>();
         ArrayList<Integer> colors = new ArrayList<>();
-        int colorIndex = 0;
+        colors.add(Color.parseColor("#F2C94C")); // Yellow
+        colors.add(Color.parseColor("#2DD4BF")); // Teal
+        colors.add(Color.parseColor("#F87171")); // Coral
+        colors.add(Color.parseColor("#A78BFA")); // Purple
+        colors.add(Color.parseColor("#34D399")); // Green
+        colors.add(Color.parseColor("#60A5FA")); // Blue
 
         for (Map.Entry<String, Float> entry : expenseByCategory.entrySet()) {
             float percentage = entry.getValue() / totalExpense * 100;
             entries.add(new PieEntry(percentage, entry.getKey()));
-            // [FIX] Use CategoryColorUtil to get consistent colors
-            colors.add(CategoryColorUtil.getCategoryColor(this, entry.getKey()));
-            colorIndex++;
         }
 
         PieDataSet dataSet = new PieDataSet(entries, "");
@@ -503,7 +412,7 @@ public class TransactionActivity extends AppCompatActivity {
         dataSet.setValueLinePart1OffsetPercentage(85f);
         dataSet.setValueLinePart1Length(0.25f);
         dataSet.setValueLinePart2Length(0.4f);
-        dataSet.setValueLineColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorSecondary)); // [FIX]
+        dataSet.setValueLineColor(Color.parseColor("#828282"));
         dataSet.setValueLineWidth(1.5f);
         dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
@@ -512,7 +421,7 @@ public class TransactionActivity extends AppCompatActivity {
         PieData data = new PieData(dataSet);
         data.setValueFormatter(new CustomPieChartValueFormatter());
         data.setValueTextSize(11f);
-        data.setValueTextColor(textColor); // [FIX]
+        data.setValueTextColor(textColor);
 
         pieChartBinding.pieChart.setUsePercentValues(true);
         pieChartBinding.pieChart.getDescription().setEnabled(false);
@@ -534,7 +443,6 @@ public class TransactionActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // [FIX] Use ViewModel to filter
                 if (viewModel != null) {
                     viewModel.filter(s.toString(), 0, 0, "All", null, null);
                 }
@@ -545,18 +453,15 @@ public class TransactionActivity extends AppCompatActivity {
 
         searchBinding.filterButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, FiltersActivity.class);
-            // [FIX] Pass current cashbookId to filters
             intent.putExtra("cashbook_id", currentCashbookId);
-            filterLauncher.launch(intent); // [FIX] Use launcher
+            filterLauncher.launch(intent);
         });
 
-        // [FIX] Initialize the launcher
         filterLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                         Intent data = result.getData();
-                        // [FIX] Get all filter data back and apply it
                         long startDate = data.getLongExtra("startDate", 0);
                         long endDate = data.getLongExtra("endDate", 0);
                         String entryType = data.getStringExtra("entryType");
@@ -619,9 +524,9 @@ public class TransactionActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == STORAGE_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                showSnackbar("Storage permission granted. Please tap Download again.");
+                showToast("Storage permission granted. Please tap Download again.");
             } else {
-                showSnackbar("Storage permission denied. Cannot export file.");
+                showToast("Storage permission denied. Cannot export file.");
             }
         }
     }
@@ -629,22 +534,32 @@ public class TransactionActivity extends AppCompatActivity {
     private void exportTransactionsToPdf(long startDate, long endDate,
                                          String entryType, String paymentMode) {
         try {
+            // Create a folder named after the user's email
+            String userFolder = "CashFlow";
+            if (currentUser.getEmail() != null) {
+                userFolder += "_" + currentUser.getEmail().split("@")[0];
+            }
+
+            String fileName = "Report_" + System.currentTimeMillis() + ".pdf";
+
             ContentValues values = new ContentValues();
-            values.put(MediaStore.MediaColumns.DISPLAY_NAME,
-                    "CashFlow_Report_" + System.currentTimeMillis() + ".pdf");
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
             values.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/" + userFolder);
             }
 
             Uri uri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
             } else {
-                // [FIX] Fallback for older APIs
-                String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString();
-                values.put(MediaStore.Images.Media.DATA, path + "/" + "CashFlow_Report_" + System.currentTimeMillis() + ".pdf");
+                File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), userFolder);
+                if (!directory.exists()) {
+                    directory.mkdirs();
+                }
+                File file = new File(directory, fileName);
+                values.put(MediaStore.Images.Media.DATA, file.getAbsolutePath());
                 uri = getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
             }
 
@@ -666,7 +581,6 @@ public class TransactionActivity extends AppCompatActivity {
                 document.add(new Paragraph(dateRange));
                 document.add(new Paragraph(" "));
 
-                // [FIX] Use the already filtered 'allTransactions' list
                 List<TransactionModel> filteredTransactions = allTransactions.stream()
                         .filter(t -> t.getTimestamp() >= startDate && t.getTimestamp() <= endDate)
                         .filter(t -> entryType == null || entryType.equals("All") ||
@@ -701,13 +615,43 @@ public class TransactionActivity extends AppCompatActivity {
                 document.close();
                 outputStream.close();
 
-                showSnackbar("PDF report exported successfully!");
+                showToast("PDF report exported successfully!");
                 Log.d(TAG, "PDF exported successfully");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error exporting PDF", e);
-            showSnackbar("Error exporting PDF: " + e.getMessage());
+            showToast("Error exporting PDF: " + e.getMessage());
         }
+    }
+
+    private void showDeleteConfirmation(TransactionModel transaction) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Transaction")
+                .setMessage("Are you sure you want to permanently delete this transaction?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    if (viewModel != null) {
+                        viewModel.deleteTransaction(transaction.getTransactionId());
+                        showToast("Transaction deleted");
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void duplicateTransaction(TransactionModel transaction) {
+        if (viewModel == null) return;
+
+        TransactionModel newTransaction = new TransactionModel();
+        newTransaction.setAmount(transaction.getAmount());
+        newTransaction.setType(transaction.getType());
+        newTransaction.setTransactionCategory(transaction.getTransactionCategory());
+        newTransaction.setPaymentMode(transaction.getPaymentMode());
+        newTransaction.setPartyName(transaction.getPartyName());
+        newTransaction.setRemark("Copy of: " + transaction.getRemark());
+        newTransaction.setTimestamp(System.currentTimeMillis());
+
+        viewModel.addTransaction(newTransaction);
+        showToast("Transaction duplicated");
     }
 
     private void showGuestLimitationDialog() {
@@ -723,29 +667,18 @@ public class TransactionActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void showSnackbar(String message) {
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // [FIX] ViewModel handles its own listeners
-        // [FIX] But we still need to remove the cashbook badge listener
-        if (cashbooksListener != null && currentUser != null) {
-            mDatabase.child("users").child(currentUser.getUid())
-                    .child("cashbooks")
-                    .removeEventListener(cashbooksListener);
-            cashbooksListener = null;
-            Log.d(TAG, "Cashbooks listener removed");
-        }
         Log.d(TAG, "TransactionActivity destroyed");
     }
 
-    // [FIX] Added a simple helper class to resolve theme attributes
     static class ThemeUtil {
         static int getThemeAttrColor(Context context, int attr) {
-            if (context == null) return Color.BLACK; // Fallback
             TypedValue typedValue = new TypedValue();
             context.getTheme().resolveAttribute(attr, typedValue, true);
             return typedValue.data;

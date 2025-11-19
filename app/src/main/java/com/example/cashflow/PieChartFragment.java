@@ -41,13 +41,11 @@ public class PieChartFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // [FIX] Inflate the correct layout file
         View view = inflater.inflate(R.layout.layout_pie_chart, container, false);
 
         pieChart = view.findViewById(R.id.pieChart);
 
         if (getArguments() != null) {
-            // [FIX] Handle deserialization safely
             try {
                 transactions = (List<TransactionModel>) getArguments().getSerializable("transactions");
             } catch (Exception e) {
@@ -71,10 +69,10 @@ public class PieChartFragment extends Fragment {
         pieChart.setDrawHoleEnabled(true);
         pieChart.setUsePercentValues(true);
         pieChart.setEntryLabelTextSize(12f);
-        pieChart.setEntryLabelColor(textColor); // [FIX] Theme-aware color
+        pieChart.setEntryLabelColor(textColor);
         pieChart.setCenterText("Expenses");
         pieChart.setCenterTextSize(24f);
-        pieChart.setCenterTextColor(textColor); // [FIX] Theme-aware color
+        pieChart.setCenterTextColor(textColor);
         pieChart.getDescription().setEnabled(false);
 
         Legend legend = pieChart.getLegend();
@@ -83,7 +81,7 @@ public class PieChartFragment extends Fragment {
         legend.setOrientation(Legend.LegendOrientation.VERTICAL);
         legend.setDrawInside(false);
         legend.setEnabled(true);
-        legend.setTextColor(textColor); // [FIX] Theme-aware color
+        legend.setTextColor(textColor);
     }
 
     private void loadPieChartData() {
@@ -93,7 +91,6 @@ public class PieChartFragment extends Fragment {
         ArrayList<PieEntry> entries = new ArrayList<>();
 
         if (transactions != null && !transactions.isEmpty()) {
-            // Group expenses by category
             java.util.Map<String, Double> categoryTotals = new java.util.HashMap<>();
 
             for (TransactionModel transaction : transactions) {
@@ -105,7 +102,6 @@ public class PieChartFragment extends Fragment {
                 }
             }
 
-            // Convert to PieEntry list
             for (java.util.Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
                 entries.add(new PieEntry(entry.getValue().floatValue(), entry.getKey()));
             }
@@ -116,11 +112,11 @@ public class PieChartFragment extends Fragment {
             entries.add(new PieEntry(100f, "No Data"));
             dataSet = new PieDataSet(entries, "");
             ArrayList<Integer> colors = new ArrayList<>();
-            colors.add(ThemeUtil.getThemeAttrColor(getContext(), R.attr.dividerHorizontal)); // Use divider color for no data
+            // [FIX] Use android.R.attr.dividerHorizontal to get the system attribute
+            colors.add(ThemeUtil.getThemeAttrColor(getContext(), android.R.attr.dividerHorizontal));
             dataSet.setColors(colors);
         } else {
             dataSet = new PieDataSet(entries, "Expense Categories");
-            // Use predefined colors
             ArrayList<Integer> colors = new ArrayList<>();
             for (int color : ColorTemplate.MATERIAL_COLORS) {
                 colors.add(color);
@@ -134,7 +130,7 @@ public class PieChartFragment extends Fragment {
         PieData data = new PieData(dataSet);
         data.setDrawValues(true);
         data.setValueTextSize(12f);
-        data.setValueTextColor(textColor); // [FIX] Theme-aware color
+        data.setValueTextColor(textColor);
 
         pieChart.setData(data);
         pieChart.invalidate();
@@ -147,7 +143,6 @@ public class PieChartFragment extends Fragment {
         }
     }
 
-    // [FIX] Added a simple helper class to resolve theme attributes
     static class ThemeUtil {
         static int getThemeAttrColor(Context context, int attr) {
             if (context == null) return Color.BLACK; // Fallback

@@ -10,6 +10,7 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -18,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout; // Added
 import android.widget.PopupMenu;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -31,6 +33,7 @@ import androidx.core.content.ContextCompat;
 import com.example.cashflow.databinding.ActivityHomePageBinding;
 import com.example.cashflow.databinding.ComponentBalanceCardBinding;
 import com.example.cashflow.databinding.LayoutBottomNavigationBinding;
+import com.example.cashflow.utils.DateTimeUtils;
 import com.example.cashflow.utils.ErrorHandler;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,8 +44,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -62,8 +67,8 @@ public class HomePage extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private ValueEventListener transactionsListener, cashbooksListener;
-    private FirebaseUser currentUser; // [FIX] Added
-    private DatabaseReference userRef; // [FIX] Added
+    private FirebaseUser currentUser;
+    private DatabaseReference userRef;
 
     // Data
     private ArrayList<TransactionModel> allTransactions = new ArrayList<>();
@@ -77,6 +82,9 @@ public class HomePage extends AppCompatActivity {
     // Utils
     private NumberFormat currencyFormat;
 
+    // [NEW] UI Elements
+    private LinearLayout emptyStateView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +97,9 @@ public class HomePage extends AppCompatActivity {
         balanceCardBinding = binding.balanceCardView;
         bottomNavBinding = binding.bottomNavCard;
 
+        // [NEW] Find empty state view (using binding manually since it's inside a layout)
+        emptyStateView = findViewById(R.id.emptyStateView);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -99,12 +110,12 @@ public class HomePage extends AppCompatActivity {
 
         if (currentUser == null) {
             Log.e(TAG, "No authenticated user found. Redirecting to login.");
-            signOutUser(); // This clears any state and navigates to Signin
-            return; // Stop further execution of onCreate
+            signOutUser();
+            return;
         }
 
         currentUserId = currentUser.getUid();
-        userRef = mDatabase.child("users").child(currentUserId); // [FIX] Set userRef
+        userRef = mDatabase.child("users").child(currentUserId);
         currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
         currentCashbookId = getIntent().getStringExtra("cashbook_id");
 
@@ -117,17 +128,29 @@ public class HomePage extends AppCompatActivity {
 
     private void setupBottomNavigation() {
         bottomNavBinding.btnHome.setSelected(true);
-        bottomNavBinding.btnTransactions.setOnClickListener(v -> navigateToTransactionList());
+
+        bottomNavBinding.btnTransactions.setOnClickListener(v -> {
+            Intent intent = new Intent(this, TransactionActivity.class);
+            intent.putExtra("cashbook_id", currentCashbookId);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+            finish();
+        });
+
         bottomNavBinding.btnCashbookSwitch.setOnClickListener(v -> openCashbookSwitcher());
-        bottomNavBinding.btnSettings.setOnClickListener(v -> navigateToSettings());
+
+        bottomNavBinding.btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            intent.putExtra("cashbook_id", currentCashbookId);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+            finish();
+        });
     }
 
     private void openCashbookSwitcher() {
-        if (currentUserId == null) {
-            showSnackbar("Please log in first");
-            return;
-        }
-
         Intent intent = new Intent(this, CashbookSwitchActivity.class);
         intent.putExtra("current_cashbook_id", currentCashbookId);
         startActivityForResult(intent, REQUEST_CODE_CASHBOOK_SWITCH);
@@ -147,7 +170,6 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    // [FIX] This entire badge system was missing from your original HomePage.java
     private void loadCashbooksForBadge() {
         if (userRef == null) return;
         if (cashbooksListener != null) {
@@ -170,7 +192,6 @@ public class HomePage extends AppCompatActivity {
                     }
                 }
 
-                // This logic ensures a valid cashbook is always selected
                 if (!activeCashbookFound && !cashbooks.isEmpty()) {
                     currentCashbookId = cashbooks.get(0).getCashbookId();
                     saveActiveCashbookId(currentCashbookId);
@@ -180,9 +201,6 @@ public class HomePage extends AppCompatActivity {
                     return;
                 }
 
-                updateCashbookBadge();
-
-                // Now that we have the correct cashbook ID, load transactions
                 updateUserUI();
                 startListeningForTransactions();
             }
@@ -196,103 +214,26 @@ public class HomePage extends AppCompatActivity {
         userRef.child("cashbooks").addValueEventListener(cashbooksListener);
     }
 
-    @SuppressLint("SetTextI18n")
-    private void updateCashbookBadge() {
-        if (bottomNavBinding == null || bottomNavBinding.btnCashbookSwitch == null) return;
-        try {
-            int cashbookCount = cashbooks.size();
-            View existingBadge = bottomNavBinding.btnCashbookSwitch.findViewWithTag("cashbook_badge");
-            if (existingBadge != null) {
-                bottomNavBinding.btnCashbookSwitch.removeView(existingBadge);
-            }
-
-            if (cashbookCount > 1) {
-                TextView badge = new TextView(this);
-                badge.setTag("cashbook_badge");
-                badge.setText(String.valueOf(cashbookCount));
-                badge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-                badge.setTextColor(Color.WHITE);
-                badge.setGravity(Gravity.CENTER);
-                badge.setTypeface(null, Typeface.BOLD);
-
-                ShapeDrawable drawable = new ShapeDrawable(new OvalShape());
-                drawable.getPaint().setColor(ThemeUtil.getThemeAttrColor(this, R.attr.balanceColor));
-                badge.setBackground(drawable);
-
-                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dpToPx(22), dpToPx(22), Gravity.TOP | Gravity.END);
-                params.setMargins(0, dpToPx(2), dpToPx(2), 0);
-                badge.setLayoutParams(params);
-
-                bottomNavBinding.btnCashbookSwitch.addView(badge);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error updating cashbook badge", e);
-        }
-    }
-
-    private void showCashbookDropdownMenu(View anchorView) {
-        if (currentUserId == null) {
-            showSnackbar("Not logged in.");
-            return;
-        }
-
-        try {
-            PopupMenu popupMenu = new PopupMenu(this, anchorView, Gravity.END);
-            // [FIX] Use correct menu file
-            popupMenu.getMenuInflater().inflate(R.menu.menu_cashbook_item, popupMenu.getMenu());
-
-            // [FIX] Animate the correct icon
-            animateDropdownArrow(binding.userDropdownIcon, true);
-
-            popupMenu.setOnMenuItemClickListener(item -> {
-                int itemId = item.getItemId();
-                if (itemId == R.id.action_switch_cashbook) {
-                    openCashbookSwitcher();
-                    return true;
-                } else if (itemId == R.id.action_add_new_cashbook) {
-                    showCreateNewCashbookDialog();
-                    return true;
-                } else if (itemId == R.id.action_settings) {
-                    navigateToSettings();
-                    return true;
-                } else if (itemId == R.id.action_sign_out) {
-                    showSignOutConfirmation(); // [FIX] Added confirmation
-                    return true;
-                }
-                return false;
-            });
-
-            popupMenu.setOnDismissListener(menu -> {
-                animateDropdownArrow(binding.userDropdownIcon, false);
-            });
-
-            popupMenu.show();
-        } catch (Exception e) {
-            Log.e(TAG, "Error showing dropdown menu", e);
-            showSnackbar("Error showing menu options");
-        }
-    }
-
-    private void animateDropdownArrow(View view, boolean isOpen) {
-        if (view == null) return;
-        float rotation = isOpen ? 180f : 0f;
-        view.animate().rotation(rotation).setDuration(200).start();
-    }
-
     private void setupUI() {
         setLoadingState(false);
         binding.cashInButton.setContentDescription("Add cash in transaction");
         binding.cashOutButton.setContentDescription("Add cash out transaction");
         binding.userBox.setContentDescription("User information and cashbook selector");
-        binding.viewFullTransactionsButton.setContentDescription("View all transactions");
+        // [FIX] Added check for null as ViewBinding might not catch dynamic views
+        if (binding.viewFullTransactionsButton != null) {
+            binding.viewFullTransactionsButton.setContentDescription("View all transactions");
+        }
     }
 
     private void setupClickListeners() {
         binding.cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
         binding.cashOutButton.setOnClickListener(v -> openCashInOutActivity("OUT"));
-        binding.viewFullTransactionsButton.setOnClickListener(v -> navigateToTransactionList());
-        binding.userBox.setOnClickListener(this::showCashbookDropdownMenu);
-        binding.userDropdownIcon.setOnClickListener(this::showCashbookDropdownMenu);
+
+        // [FIX] Finding view manually to ensure it works with updated layout
+        View viewFullBtn = findViewById(R.id.viewFullTransactionsButton);
+        if (viewFullBtn != null) {
+            viewFullBtn.setOnClickListener(v -> navigateToTransactionList());
+        }
     }
 
     @Override
@@ -309,10 +250,6 @@ public class HomePage extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // [FIX] Refresh badge when returning to activity
-        if (currentUserId != null) {
-            loadCashbooksForBadge();
-        }
     }
 
     @Override
@@ -352,7 +289,7 @@ public class HomePage extends AppCompatActivity {
         if (currentCashbookId == null) {
             currentCashbookId = prefs.getString("active_cashbook_id_" + currentUserId, null);
         }
-        loadCashbooksForBadge(); // This will load cashbooks, then transactions
+        loadCashbooksForBadge();
     }
 
     private void startListeningForTransactions() {
@@ -404,13 +341,23 @@ public class HomePage extends AppCompatActivity {
         if (currentUser != null && binding != null) {
             try {
                 String cashbookName = "My Cashbook";
+                long lastModified = System.currentTimeMillis();
+
                 for (CashbookModel cashbook : cashbooks) {
                     if (cashbook.getCashbookId().equals(currentCashbookId)) {
                         cashbookName = cashbook.getName();
+                        lastModified = cashbook.getLastModified();
                         break;
                     }
                 }
+
                 binding.userNameTop.setText(cashbookName);
+
+                if (binding.lastOpenedText != null) {
+                    String timeSpan = DateTimeUtils.getRelativeTimeSpan(lastModified);
+                    binding.lastOpenedText.setText("Last opened: " + timeSpan);
+                }
+
                 if (binding.currentCashbookText != null) {
                     binding.currentCashbookText.setText(cashbookName);
                 }
@@ -439,37 +386,51 @@ public class HomePage extends AppCompatActivity {
                 binding.transactionTable.removeViews(1, binding.transactionTable.getChildCount() - 1);
             }
 
-            double totalIncome = 0, totalExpense = 0;
+            // Calculate GLOBAL Balance (All Time)
+            double globalTotalIncome = 0, globalTotalExpense = 0;
             for (TransactionModel transaction : allTransactions) {
                 if ("IN".equalsIgnoreCase(transaction.getType())) {
-                    totalIncome += transaction.getAmount();
+                    globalTotalIncome += transaction.getAmount();
                 } else {
-                    totalExpense += transaction.getAmount();
+                    globalTotalExpense += transaction.getAmount();
                 }
             }
-            double balance = totalIncome - totalExpense;
+            double globalBalance = globalTotalIncome - globalTotalExpense;
 
-            balanceCardBinding.balanceText.setText(formatCurrency(balance));
-            balanceCardBinding.moneyIn.setText(formatCurrency(totalIncome));
-            balanceCardBinding.moneyOut.setText(formatCurrency(totalExpense));
+            // Calculate TODAY'S Income & Expense
+            double todayIncome = 0, todayExpense = 0;
+            List<TransactionModel> todaysTransactions = new ArrayList<>();
 
-            int incomeColor = ThemeUtil.getThemeAttrColor(this, R.attr.incomeColor);
-            int expenseColor = ThemeUtil.getThemeAttrColor(this, R.attr.expenseColor);
-
-            balanceCardBinding.balanceText.setTextColor(balance >= 0 ? incomeColor : expenseColor);
-            balanceCardBinding.moneyIn.setTextColor(incomeColor);
-            balanceCardBinding.moneyOut.setTextColor(expenseColor);
-
-            if (allTransactions.isEmpty()) {
-                addNoTransactionsRow();
-            } else {
-                int limit = Math.min(allTransactions.size(), MAX_VISIBLE_TRANSACTIONS);
-                binding.transactionCount.setText("TRANSACTIONS (" + allTransactions.size() + ")");
-                for (int i = 0; i < limit; i++) {
-                    addTransactionRow(allTransactions.get(i));
+            for (TransactionModel transaction : allTransactions) {
+                if (isToday(transaction.getTimestamp())) {
+                    todaysTransactions.add(transaction);
+                    if ("IN".equalsIgnoreCase(transaction.getType())) {
+                        todayIncome += transaction.getAmount();
+                    } else {
+                        todayExpense += transaction.getAmount();
+                    }
                 }
-                if (allTransactions.size() > MAX_VISIBLE_TRANSACTIONS) {
-                    addViewMoreRow(allTransactions.size() - MAX_VISIBLE_TRANSACTIONS);
+            }
+
+            // Set Texts
+            balanceCardBinding.balanceText.setText(formatCurrency(globalBalance));
+            balanceCardBinding.moneyIn.setText(formatCurrency(todayIncome));
+            balanceCardBinding.moneyOut.setText(formatCurrency(todayExpense));
+
+            balanceCardBinding.balanceText.setTextColor(Color.WHITE);
+
+            // [UPDATED] Use emptyStateView instead of creating a row
+            if (todaysTransactions.isEmpty()) {
+                if (emptyStateView != null) emptyStateView.setVisibility(View.VISIBLE);
+                binding.transactionTable.setVisibility(View.GONE);
+                binding.transactionCount.setText("TODAY (0)");
+            } else {
+                if (emptyStateView != null) emptyStateView.setVisibility(View.GONE);
+                binding.transactionTable.setVisibility(View.VISIBLE);
+
+                binding.transactionCount.setText("TODAY (" + todaysTransactions.size() + ")");
+                for (TransactionModel transaction : todaysTransactions) {
+                    addTransactionRow(transaction);
                 }
             }
         } catch (Exception e) {
@@ -477,68 +438,57 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
+    private boolean isToday(long timestamp) {
+        Calendar transactionCal = Calendar.getInstance();
+        transactionCal.setTimeInMillis(timestamp);
+
+        Calendar todayCal = Calendar.getInstance();
+
+        return transactionCal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR) &&
+                transactionCal.get(Calendar.DAY_OF_YEAR) == todayCal.get(Calendar.DAY_OF_YEAR);
+    }
+
     private String formatCurrency(double amount) {
         return currencyFormat.format(amount);
     }
 
-    private void addNoTransactionsRow() {
-        if (binding == null) return;
-        TableRow row = new TableRow(this);
-        row.setPadding(0, 16, 0, 16);
-        TextView noDataView = new TextView(this);
-        noDataView.setText(R.string.msg_no_transactions);
-        noDataView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorSecondary));
-        noDataView.setTextSize(14);
-        noDataView.setGravity(Gravity.CENTER);
-        noDataView.setPadding(16, 16, 16, 16);
-        TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
-        params.span = 4;
-        noDataView.setLayoutParams(params);
-        row.addView(noDataView);
-        binding.transactionTable.addView(row);
-    }
-
-    private void addViewMoreRow(int remainingCount) {
-        if (binding == null) return;
-        TableRow row = new TableRow(this);
-        row.setPadding(0, 8, 0, 8);
-        TextView viewMoreView = new TextView(this);
-        viewMoreView.setText(getString(R.string.view_more_transactions, remainingCount));
-        viewMoreView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.balanceColor));
-        viewMoreView.setTextSize(12);
-        viewMoreView.setGravity(Gravity.CENTER);
-        viewMoreView.setTypeface(null, Typeface.ITALIC);
-        viewMoreView.setPadding(8, 8, 8, 8);
-        TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
-        params.span = 4;
-        viewMoreView.setLayoutParams(params);
-        row.addView(viewMoreView);
-        row.setOnClickListener(v -> navigateToTransactionList());
-        binding.transactionTable.addView(row);
-    }
-
     private void addTransactionRow(TransactionModel transaction) {
         if (binding == null) return;
-        TableRow row = (TableRow) getLayoutInflater().inflate(R.layout.item_transaction_row, binding.transactionTable, false);
+        TableRow row = new TableRow(this);
+        row.setBackgroundResource(R.drawable.table_row_border);
 
-        TextView entryView = row.findViewById(R.id.table_cell_entry);
-        TextView modeView = row.findViewById(R.id.table_cell_mode);
-        TextView inView = row.findViewById(R.id.table_cell_in);
-        TextView outView = row.findViewById(R.id.table_cell_out);
+        TextView entryView = createTableCell(transaction.getTransactionCategory(), 2f, Typeface.NORMAL, Gravity.START);
+        TextView modeView = createTableCell(transaction.getPaymentMode(), 1f, Typeface.NORMAL, Gravity.CENTER);
+        TextView inView = createTableCell("IN".equalsIgnoreCase(transaction.getType()) ? formatCurrency(transaction.getAmount()) : "-", 1f, Typeface.NORMAL, Gravity.CENTER);
+        TextView outView = createTableCell("OUT".equalsIgnoreCase(transaction.getType()) ? formatCurrency(transaction.getAmount()) : "-", 1f, Typeface.NORMAL, Gravity.CENTER);
 
-        entryView.setText(transaction.getTransactionCategory());
-        modeView.setText(transaction.getPaymentMode());
+        modeView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.balanceColor));
+        inView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.incomeColor));
+        outView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.expenseColor));
 
-        if ("IN".equalsIgnoreCase(transaction.getType())) {
-            inView.setText(formatCurrency(transaction.getAmount()));
-            outView.setText("-");
-        } else {
-            inView.setText("-");
-            outView.setText(formatCurrency(transaction.getAmount()));
-        }
+        row.addView(entryView);
+        row.addView(modeView);
+        row.addView(inView);
+        row.addView(outView);
 
         row.setOnClickListener(v -> openTransactionDetail(transaction));
         binding.transactionTable.addView(row);
+    }
+
+    private TextView createTableCell(String text, float weight, int style, int gravity) {
+        TextView textView = new TextView(this);
+        textView.setText(text != null ? text : "");
+        textView.setPadding(dpToPx(8), dpToPx(12), dpToPx(8), dpToPx(12));
+        textView.setBackgroundResource(R.drawable.table_cell_border);
+        TableRow.LayoutParams params = new TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, weight);
+        textView.setLayoutParams(params);
+        textView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
+        textView.setTypeface(null, style);
+        textView.setGravity(gravity);
+        textView.setTextSize(14);
+        textView.setMaxLines(1);
+        textView.setEllipsize(TextUtils.TruncateAt.END);
+        return textView;
     }
 
     private int dpToPx(int dp) {
@@ -555,13 +505,17 @@ public class HomePage extends AppCompatActivity {
     private void navigateToTransactionList() {
         Intent intent = new Intent(this, TransactionActivity.class);
         intent.putExtra("cashbook_id", currentCashbookId);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
+        overridePendingTransition(0, 0);
     }
 
     private void navigateToSettings() {
         Intent intent = new Intent(this, SettingsActivity.class);
         intent.putExtra("cashbook_id", currentCashbookId);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
+        overridePendingTransition(0, 0);
     }
 
     private void openCashInOutActivity(String type) {
@@ -583,7 +537,6 @@ public class HomePage extends AppCompatActivity {
         input.setHint(R.string.hint_cashbook_name);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
 
-        // Add padding to the EditText
         FrameLayout container = new FrameLayout(this);
         FrameLayout.LayoutParams params = new  FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.leftMargin = dpToPx(20);
@@ -599,7 +552,7 @@ public class HomePage extends AppCompatActivity {
                 createNewCashbook(cashbookName);
             } else {
                 showSnackbar(getString(R.string.error_enter_cashbook_name));
-                showCreateFirstCashbookDialog(); // Show again
+                showCreateFirstCashbookDialog();
             }
         });
         builder.setCancelable(false);
@@ -613,7 +566,6 @@ public class HomePage extends AppCompatActivity {
         input.setHint(R.string.hint_new_cashbook_name);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
 
-        // Add padding to the EditText
         FrameLayout container = new FrameLayout(this);
         FrameLayout.LayoutParams params = new  FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.leftMargin = dpToPx(20);
@@ -643,7 +595,7 @@ public class HomePage extends AppCompatActivity {
             cashbooksRef.child(cashbookId).setValue(newCashbook)
                     .addOnSuccessListener(aVoid -> {
                         showSnackbar("Cashbook '" + name + "' created");
-                        switchCashbook(cashbookId); // [FIX] Switch to the new book
+                        switchCashbook(cashbookId);
                         setLoadingState(false);
                     })
                     .addOnFailureListener(e -> {
@@ -656,7 +608,6 @@ public class HomePage extends AppCompatActivity {
     private void switchCashbook(String newCashbookId) {
         if (currentUserId == null) return;
 
-        // Detach old listener
         if (transactionsListener != null && currentCashbookId != null && userRef != null) {
             userRef.child("cashbooks").child(currentCashbookId).child("transactions")
                     .removeEventListener(transactionsListener);
@@ -665,7 +616,6 @@ public class HomePage extends AppCompatActivity {
         currentCashbookId = newCashbookId;
         saveActiveCashbookId(currentCashbookId);
 
-        // Re-load UI and attach new listener
         updateUserUI();
         startListeningForTransactions();
     }
@@ -676,16 +626,16 @@ public class HomePage extends AppCompatActivity {
     }
 
     private void setLoadingState(boolean loading) {
-        if (binding == null) return; // [FIX] Add null check
+        if (binding == null) return;
         isLoading = loading;
         binding.cashInButton.setEnabled(!loading);
         binding.cashOutButton.setEnabled(!loading);
-        binding.viewFullTransactionsButton.setEnabled(!loading);
+        // binding.viewFullTransactionsButton may be null if not found via binding, but click listener handles it safely
         binding.userBox.setEnabled(!loading);
     }
 
     private void showSnackbar(String message) {
-        if (binding != null) { // [FIX] Add null check
+        if (binding != null) {
             Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT).show();
         }
     }
@@ -707,7 +657,6 @@ public class HomePage extends AppCompatActivity {
         }
     }
 
-    // [FIX] Added a simple helper class to resolve theme attributes
     static class ThemeUtil {
         static int getThemeAttrColor(Context context, int attr) {
             TypedValue typedValue = new TypedValue();

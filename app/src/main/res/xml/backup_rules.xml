@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <!--
-    This file specifies which files to include in Auto Backup.
-    By default, most files in your app's internal storage are backed up.
-    -->
-
-    <!-- Exclude the guest database from cloud backups -->
-    <exclude domain="database" path="guest_transactions.db" />
-
-    <!-- Exclude shared preferences related to temporary states -->
-    <!-- <exclude domain="sharedpref" path="temp_prefs.xml" /> -->
+    <include domain="sharedpref" path="."/>
+    <include domain="database" path="."/>
 </full-backup-content>

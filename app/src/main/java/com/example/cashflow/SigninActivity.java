@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,7 +18,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.lifecycle.ViewModelProvider;
@@ -33,9 +33,11 @@ import com.google.firebase.auth.FirebaseUser;
 public class SigninActivity extends AppCompatActivity {
 
     private static final String TAG = "SigninActivity";
+    private static final int RC_SIGN_IN = 9001;
 
     private EditText emailEditText, passwordEditText;
-    private Button signinButton, guestButton; // [FIX] Added guestButton
+    private Button signinButton;
+    // [FIX] Removed guestButton variable
     private TextView forgotPasswordText, signUpText;
     private ImageView togglePasswordVisibility, backButton, helpButton;
     private CardView googleSignInCard;
@@ -46,7 +48,6 @@ public class SigninActivity extends AppCompatActivity {
 
     private boolean isPasswordVisible = false;
 
-    // [FIX] Modern way to handle Activity Results for Google Sign-In
     private final ActivityResultLauncher<Intent> googleSignInLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -76,7 +77,6 @@ public class SigninActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(SigninViewModel.class);
 
-        // Configure Google Sign In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -92,7 +92,7 @@ public class SigninActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         signinButton = findViewById(R.id.signinButton);
-        guestButton = findViewById(R.id.guestButton); // [FIX] Initialized guestButton
+        // [FIX] Removed finding guestButton
         forgotPasswordText = findViewById(R.id.forgotPassword);
         signUpText = findViewById(R.id.signUpText);
         togglePasswordVisibility = findViewById(R.id.togglePasswordVisibility);
@@ -103,20 +103,20 @@ public class SigninActivity extends AppCompatActivity {
     }
 
     private void observeViewModel() {
-        viewModel.getUser().observe(this, firebaseUser -> { // [FIX] Use getter
+        viewModel.getUser().observe(this, firebaseUser -> {
             if (firebaseUser != null) {
                 updateUI(firebaseUser);
             }
         });
 
-        viewModel.getError().observe(this, errorMessage -> { // [FIX] Use getter
+        viewModel.getError().observe(this, errorMessage -> {
             if (errorMessage != null && !errorMessage.isEmpty()) {
                 Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
-                viewModel.clearError(); // [FIX] Clear error after showing
+                viewModel.clearError();
             }
         });
 
-        viewModel.getLoading().observe(this, isLoading -> { // [FIX] Use getter
+        viewModel.getLoading().observe(this, isLoading -> {
             setLoading(isLoading);
         });
     }
@@ -124,15 +124,13 @@ public class SigninActivity extends AppCompatActivity {
     private void setupClickListeners() {
         signinButton.setOnClickListener(v -> attemptEmailPasswordSignIn());
 
-        // [FIX] Updated guest button to prompt for sign-up
-        guestButton.setOnClickListener(v -> showGuestLimitationDialog());
+        // [FIX] Removed guestButton listener
 
         googleSignInCard.setOnClickListener(v -> signInWithGoogle());
         signUpText.setOnClickListener(v -> startActivity(new Intent(this, SignupActivity.class)));
 
         forgotPasswordText.setOnClickListener(v -> {
             Intent intent = new Intent(this, ForgotPasswordActivity.class);
-            // [FIX] Pass the email to the forgot password screen
             intent.putExtra("email", emailEditText.getText().toString().trim());
             startActivity(intent);
         });
@@ -146,7 +144,7 @@ public class SigninActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
-        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) { // [FIX] Added email validation
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             emailEditText.setError("A valid email is required.");
             emailEditText.requestFocus();
             return;
@@ -162,10 +160,8 @@ public class SigninActivity extends AppCompatActivity {
 
     private void signInWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        googleSignInLauncher.launch(signInIntent); // [FIX] Use modern launcher
+        googleSignInLauncher.launch(signInIntent);
     }
-
-    // [FIX] Removed deprecated onActivityResult
 
     private void togglePasswordVisibility() {
         if (isPasswordVisible) {
@@ -182,20 +178,7 @@ public class SigninActivity extends AppCompatActivity {
     private void setLoading(boolean isLoading) {
         loadingIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         signinButton.setEnabled(!isLoading);
-        guestButton.setEnabled(!isLoading);
         googleSignInCard.setEnabled(!isLoading);
-    }
-
-    // [FIX] Added dialog for guest button
-    private void showGuestLimitationDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.title_guest_mode)
-                .setMessage(R.string.msg_guest_signup_prompt)
-                .setPositiveButton(R.string.btn_sign_up, (dialog, which) -> {
-                    startActivity(new Intent(this, SignupActivity.class));
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
     }
 
     private void updateUI(FirebaseUser user) {

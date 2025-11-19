@@ -32,6 +32,5 @@
         <item name="android:windowLightStatusBar">true</item>
 
         <item name="dividerHorizontal">@color/divider_color</item>
-
     </style>
 </resources>

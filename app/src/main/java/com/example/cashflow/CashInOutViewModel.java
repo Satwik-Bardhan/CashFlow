@@ -10,8 +10,6 @@ import com.example.cashflow.db.DataRepository;
 
 /**
  * CashInOutViewModel - ViewModel for handling transaction creation and editing
- * [FIX] Manages authenticated mode (Firebase) transactions only.
- * Guest mode logic has been removed.
  */
 public class CashInOutViewModel extends AndroidViewModel {
 
@@ -25,13 +23,8 @@ public class CashInOutViewModel extends AndroidViewModel {
         Log.d(TAG, "CashInOutViewModel initialized for authenticated user.");
     }
 
-    /**
-     * Saves a transaction for an authenticated user to Firebase.
-     * @param cashbookId The ID of the cashbook
-     * @param transaction The transaction to save
-     */
     public void saveTransaction(String cashbookId, TransactionModel transaction) {
-        if (!isTransactionValid(transaction, false)) { // [FIX] Use new validation flag
+        if (!isTransactionValid(transaction, false)) {
             Log.e(TAG, "Invalid transaction. Save aborted.");
             return;
         }
@@ -53,13 +46,30 @@ public class CashInOutViewModel extends AndroidViewModel {
         });
     }
 
-    /**
-     * Updates an existing transaction in Firebase.
-     * @param cashbookId The ID of the cashbook
-     * @param transaction The transaction to update
-     */
+    // [NEW] Method to duplicate a transaction
+    public void duplicateTransaction(String cashbookId, TransactionModel originalTransaction, boolean isTemplate) {
+        if (originalTransaction == null || cashbookId == null) return;
+
+        TransactionModel newTransaction = new TransactionModel();
+        newTransaction.setAmount(originalTransaction.getAmount());
+        newTransaction.setType(originalTransaction.getType());
+        newTransaction.setTransactionCategory(originalTransaction.getTransactionCategory());
+        newTransaction.setPaymentMode(originalTransaction.getPaymentMode());
+        newTransaction.setPartyName(originalTransaction.getPartyName());
+        newTransaction.setTimestamp(System.currentTimeMillis()); // Current time
+
+        if (isTemplate) {
+            newTransaction.setRemark("[TEMPLATE] " + originalTransaction.getRemark());
+        } else {
+            newTransaction.setRemark(originalTransaction.getRemark() + " (Copy)");
+        }
+
+        // Save as a new transaction
+        saveTransaction(cashbookId, newTransaction);
+    }
+
     public void updateTransaction(String cashbookId, TransactionModel transaction) {
-        if (!isTransactionValid(transaction, true)) { // [FIX] Use new validation flag
+        if (!isTransactionValid(transaction, true)) {
             Log.e(TAG, "Invalid transaction, update aborted.");
             return;
         }
@@ -81,11 +91,6 @@ public class CashInOutViewModel extends AndroidViewModel {
         });
     }
 
-    /**
-     * Deletes a transaction from Firebase.
-     * @param cashbookId The ID of the cashbook
-     * @param transactionId The ID of the transaction to delete
-     */
     public void deleteTransaction(String cashbookId, String transactionId) {
         if (transactionId == null || transactionId.isEmpty()) {
             Log.e(TAG, "Transaction ID is null or empty, cannot delete");
@@ -109,19 +114,12 @@ public class CashInOutViewModel extends AndroidViewModel {
         });
     }
 
-    /**
-     * Validates transaction data before saving
-     * @param transaction The transaction to validate
-     * @param isUpdate Check for transactionId only if it's an update
-     * @return true if valid, false otherwise
-     */
     public boolean isTransactionValid(TransactionModel transaction, boolean isUpdate) {
         if (transaction == null) {
             Log.w(TAG, "Transaction validation failed: transaction is null");
             return false;
         }
 
-        // [FIX] Only require transactionId if we are updating an existing entry
         if (isUpdate && (transaction.getTransactionId() == null || transaction.getTransactionId().isEmpty())) {
             Log.w(TAG, "Transaction validation failed: transaction ID is empty for update");
             return false;

@@ -134,6 +134,13 @@
                         app:chipSpacingHorizontal="8dp">
 
                         <com.google.android.material.chip.Chip
+                            android:id="@+id/chipAll"
+                            style="@style/Widget.MaterialComponents.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="All" />
+
+                        <com.google.android.material.chip.Chip
                             android:id="@+id/chipActive"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
@@ -219,90 +226,12 @@
                                     android:clipToPadding="false"
                                     android:overScrollMode="never"
                                     android:scrollbars="vertical"
-                                    android:nestedScrollingEnabled="false"
-                                    tools:listitem="@layout/item_single_cashbook"
+                                    android:nestedScrollingEnabled="true"
+                                    tools:listitem="@layout/item_cashbook"
                                     tools:itemCount="3" />
                             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
-
-                    <LinearLayout
-                        android:id="@+id/quickStatsLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="24dp"
-                        android:orientation="horizontal">
-
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            app:cardBackgroundColor="?attr/incomeColor"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="4dp">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-
-                                <TextView
-                                    android:id="@+id/totalCashbooksText"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="0"
-                                    android:textColor="?attr/textColorPrimary"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/total_books_label"
-                                    android:textColor="?attr/textColorPrimary"
-                                    android:alpha="0.7"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-                        </androidx.cardview.widget.CardView>
-
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="8dp"
-                            app:cardBackgroundColor="@color/warning_orange"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="4dp">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-
-                                <TextView
-                                    android:id="@+id/activeCashbooksText"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="0"
-                                    android:textColor="?attr/textColorPrimary"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/active_label"
-                                    android:textColor="?attr/textColorPrimary"
-                                    android:alpha="0.7"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-                        </androidx.cardview.widget.CardView>
-                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"

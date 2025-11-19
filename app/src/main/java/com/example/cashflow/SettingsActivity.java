@@ -23,7 +23,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.bumptech.glide.Glide; // [FIX] Added Glide import
+import com.bumptech.glide.Glide;
 import com.example.cashflow.databinding.ActivitySettingsBinding;
 import com.example.cashflow.models.Users;
 import com.example.cashflow.utils.ErrorHandler;
@@ -54,7 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private FirebaseUser currentUser;
-    private DatabaseReference userRef; // [FIX] Specific ref to user node
+    private DatabaseReference userRef;
 
     // Listeners
     private ValueEventListener userProfileListener;
@@ -79,10 +79,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         currentCashbookId = getIntent().getStringExtra("cashbook_id");
 
-        // [FIX] Robust check for user
         if (currentUser == null) {
             Toast.makeText(this, "Not logged in.", Toast.LENGTH_SHORT).show();
-            logoutUser(); // Send back to login
+            logoutUser();
             return;
         }
 
@@ -100,7 +99,6 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(new Intent(this, EditProfileActivity.class)));
         binding.primarySettingsLayout.editButton.setOnClickListener(v ->
                 startActivity(new Intent(this, EditProfileActivity.class)));
-        binding.primarySettingsLayout.saveCashbookNameButton.setOnClickListener(v -> saveCashbookName());
 
         // General Settings Listeners
         binding.generalSettingsLayout.helpSupport.setOnClickListener(v ->
@@ -118,28 +116,27 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void setupBottomNavigation() {
-        binding.bottomNavigation.btnSettings.setSelected(true); // This enables the ColorStateList
+        binding.bottomNavigation.btnSettings.setSelected(true);
 
         binding.bottomNavigation.btnHome.setOnClickListener(v -> {
             Intent intent = new Intent(this, HomePage.class);
             intent.putExtra("cashbook_id", currentCashbookId);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
+            overridePendingTransition(0, 0);
             finish();
         });
 
         binding.bottomNavigation.btnTransactions.setOnClickListener(v -> {
             Intent intent = new Intent(this, TransactionActivity.class);
             intent.putExtra("cashbook_id", currentCashbookId);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
+            overridePendingTransition(0, 0);
             finish();
         });
 
         binding.bottomNavigation.btnCashbookSwitch.setOnClickListener(v -> openCashbookSwitcher());
-
-        binding.bottomNavigation.btnSettings.setOnClickListener(v ->
-                showSnackbar("Already on Settings"));
     }
 
     private void openCashbookSwitcher() {
@@ -157,76 +154,10 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (newCashbookId != null && !newCashbookId.equals(currentCashbookId)) {
                 currentCashbookId = newCashbookId;
-                // [FIX] Save the new active cashbook ID
                 saveActiveCashbookId(currentCashbookId);
-                showSnackbar("Switched to: " + cashbookName);
-                // Re-load the cashbook name
+                showToast("Switched to: " + cashbookName);
                 startListeningForCashbookName(currentCashbookId);
             }
-        }
-    }
-
-    private void loadCashbooksForBadge() {
-        if (userRef == null) return;
-
-        if (cashbooksListener != null) {
-            userRef.child("cashbooks").removeEventListener(cashbooksListener);
-        }
-
-        cashbooksListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                cashbooks.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
-                    if (cashbook != null) {
-                        cashbook.setCashbookId(snapshot.getKey());
-                        cashbooks.add(cashbook);
-                    }
-                }
-                updateCashbookBadge();
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e(TAG, "Failed to load cashbooks for badge", databaseError.toException());
-            }
-        };
-        userRef.child("cashbooks").addValueEventListener(cashbooksListener);
-    }
-
-    private void updateCashbookBadge() {
-        if (binding.bottomNavigation.btnCashbookSwitch == null) return;
-
-        try {
-            int cashbookCount = cashbooks.size();
-            View existingBadge = binding.bottomNavigation.btnCashbookSwitch.findViewWithTag("cashbook_badge");
-            if (existingBadge != null) {
-                binding.bottomNavigation.btnCashbookSwitch.removeView(existingBadge);
-            }
-
-            if (cashbookCount > 1) {
-                TextView badge = new TextView(this);
-                badge.setTag("cashbook_badge");
-                badge.setText(String.valueOf(cashbookCount));
-                badge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-                badge.setTextColor(Color.WHITE);
-                badge.setGravity(Gravity.CENTER);
-                badge.setTypeface(null, Typeface.BOLD);
-
-                ShapeDrawable drawable = new ShapeDrawable(new OvalShape());
-                // [FIX] Use theme color for badge
-                drawable.getPaint().setColor(ThemeUtil.getThemeAttrColor(this, R.attr.balanceColor));
-                badge.setBackground(drawable);
-
-                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                        dpToPx(22), dpToPx(22), Gravity.TOP | Gravity.END);
-                params.setMargins(0, dpToPx(2), dpToPx(2), 0);
-                badge.setLayoutParams(params);
-
-                binding.bottomNavigation.btnCashbookSwitch.addView(badge);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error updating cashbook badge", e);
         }
     }
 
@@ -242,11 +173,14 @@ public class SettingsActivity extends AppCompatActivity {
             if (currentCashbookId != null) {
                 startListeningForCashbookName(currentCashbookId);
             } else {
-                binding.primarySettingsLayout.editCashbookName.setText("No Active Cashbook");
-                binding.primarySettingsLayout.editCashbookName.setEnabled(false);
-                binding.primarySettingsLayout.saveCashbookNameButton.setEnabled(false);
+                binding.primarySettingsLayout.activeCashbookName.setText("No Active Cashbook");
             }
-            loadCashbooksForBadge(); // Refresh badge
+
+            // [UPDATED] Use the user's Email as the storage path identifier
+            // Note: Actual Firebase data uses UID because emails can change or contain illegal chars,
+            // but we display Email here as requested for user readability.
+            String displayPath = "Cloud ID: " + (currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid());
+            binding.primarySettingsLayout.dataLocation.setText(displayPath);
         }
     }
 
@@ -255,8 +189,6 @@ public class SettingsActivity extends AppCompatActivity {
         super.onStop();
         removeFirebaseListeners();
     }
-
-    // [FIX] Removed handleGuestMode()
 
     private void startListeningForUserProfile() {
         if (userRef == null) return;
@@ -273,7 +205,6 @@ public class SettingsActivity extends AppCompatActivity {
                     binding.primarySettingsLayout.userName.setText("CashFlow User");
                 }
 
-                // [FIX] Load profile image with Glide
                 if (userProfile != null && userProfile.getProfile() != null && !userProfile.getProfile().isEmpty()) {
                     Glide.with(SettingsActivity.this)
                             .load(userProfile.getProfile())
@@ -310,7 +241,7 @@ public class SettingsActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 CashbookModel cashbook = dataSnapshot.getValue(CashbookModel.class);
                 if (cashbook != null) {
-                    binding.primarySettingsLayout.editCashbookName.setText(cashbook.getName());
+                    binding.primarySettingsLayout.activeCashbookName.setText(cashbook.getName());
                 }
             }
             @Override
@@ -319,23 +250,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         };
         userRef.child("cashbooks").child(cashbookId).addValueEventListener(cashbookNameListener);
-    }
-
-    private void saveCashbookName() {
-        if (userRef == null || currentCashbookId == null) {
-            showSnackbar("Cannot save, no cashbook selected.");
-            return;
-        }
-
-        String newName = binding.primarySettingsLayout.editCashbookName.getText().toString().trim();
-        if (TextUtils.isEmpty(newName)) {
-            binding.primarySettingsLayout.editCashbookName.setError("Name cannot be empty");
-            return;
-        }
-
-        userRef.child("cashbooks").child(currentCashbookId).child("name").setValue(newName)
-                .addOnSuccessListener(aVoid -> showSnackbar("Cashbook name saved!"))
-                .addOnFailureListener(e -> showSnackbar("Failed to save name."));
     }
 
     private void logoutUser() {
@@ -368,14 +282,12 @@ public class SettingsActivity extends AppCompatActivity {
     private void deleteUserAccount() {
         if (currentUser == null || userRef == null) return;
 
-        // 1. Delete Realtime Database data
         userRef.removeValue()
                 .addOnSuccessListener(aVoid -> {
-                    // 2. Delete Auth user
                     currentUser.delete().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             Toast.makeText(this, "Account deleted.", Toast.LENGTH_LONG).show();
-                            logoutUser(); // Go back to SigninActivity
+                            logoutUser();
                         } else {
                             Toast.makeText(this, "Failed to delete account. Please sign in again.", Toast.LENGTH_LONG).show();
                         }
@@ -384,10 +296,8 @@ public class SettingsActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete user data.", Toast.LENGTH_LONG).show());
     }
 
-    // [FIX] Removed showGuestLimitationDialog()
-
-    private void showSnackbar(String message) {
-        Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT).show();
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     private void removeFirebaseListeners() {
@@ -399,12 +309,8 @@ public class SettingsActivity extends AppCompatActivity {
         if (cashbookNameListener != null && currentCashbookId != null) {
             userRef.child("cashbooks").child(currentCashbookId).removeEventListener(cashbookNameListener);
         }
-        if (cashbooksListener != null) {
-            userRef.child("cashbooks").removeEventListener(cashbooksListener);
-        }
     }
 
-    // [FIX] Added a simple helper class to resolve theme attributes
     static class ThemeUtil {
         static int getThemeAttrColor(Context context, int attr) {
             TypedValue typedValue = new TypedValue();
@@ -413,7 +319,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    // [FIX] Added helper to save active cashbook ID
     private void saveActiveCashbookId(String cashbookId) {
         SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         prefs.edit().putString("active_cashbook_id_" + currentUser.getUid(), cashbookId).apply();
