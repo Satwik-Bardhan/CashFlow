@@ -450,6 +450,7 @@ public class HomePage extends AppCompatActivity {
 
     private String formatCurrency(double amount) {
         return currencyFormat.format(amount);
+
     }
 
     private void addTransactionRow(TransactionModel transaction) {
