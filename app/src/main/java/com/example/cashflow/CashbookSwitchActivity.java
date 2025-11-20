@@ -65,6 +65,8 @@ public class CashbookSwitchActivity extends AppCompatActivity {
     // UI Components - FAB
     private FloatingActionButton quickAddFab;
 
+    // [FIX] Removed stats textviews
+
     // Adapter & Data
     private CashbookAdapter cashbookAdapter;
     private final List<CashbookModel> allCashbooks = new ArrayList<>();
@@ -131,7 +133,7 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         sortButton = findViewById(R.id.sortButton);
 
         quickAddFab = findViewById(R.id.quickAddFab);
-        // [FIX] Removed stats TextViews initialization
+        // [FIX] Removed findViewById calls for stats
 
         try {
             closeButton.setContentDescription(getString(R.string.close_button));
@@ -191,7 +193,6 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
             if (!checkedIds.isEmpty()) {
                 int checkedId = checkedIds.get(0);
-                // [MODIFIED] Added logic for "All" chip
                 if (checkedId == R.id.chipAll) {
                     currentFilter = "all";
                 } else if (checkedId == R.id.chipActive) {
@@ -239,12 +240,18 @@ public class CashbookSwitchActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 allCashbooks.clear();
+
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     try {
                         CashbookModel cashbook = snapshot.getValue(CashbookModel.class);
                         if (cashbook != null) {
                             cashbook.setCashbookId(snapshot.getKey());
                             cashbook.setCurrent(cashbook.getCashbookId().equals(currentCashbookId));
+
+                            // Calculate stats from transactions
+                            DataSnapshot transactionsSnapshot = snapshot.child("transactions");
+                            calculateStatsForCashbook(cashbook, transactionsSnapshot);
+
                             allCashbooks.add(cashbook);
                         }
                     } catch (Exception e) {
@@ -268,6 +275,31 @@ public class CashbookSwitchActivity extends AppCompatActivity {
             }
         };
         userCashbooksRef.addValueEventListener(cashbooksListener);
+    }
+
+    private void calculateStatsForCashbook(CashbookModel cashbook, DataSnapshot transactionsSnapshot) {
+        double totalIncome = 0;
+        double totalExpense = 0;
+        int count = 0;
+
+        for (DataSnapshot txnSnapshot : transactionsSnapshot.getChildren()) {
+            try {
+                TransactionModel transaction = txnSnapshot.getValue(TransactionModel.class);
+                if (transaction != null) {
+                    count++;
+                    if ("IN".equalsIgnoreCase(transaction.getType())) {
+                        totalIncome += transaction.getAmount();
+                    } else {
+                        totalExpense += transaction.getAmount();
+                    }
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Error parsing transaction for stats", e);
+            }
+        }
+
+        cashbook.setTotalBalance(totalIncome - totalExpense);
+        cashbook.setTransactionCount(count);
     }
 
     private void handleAddNewCashbook() {
@@ -564,6 +596,10 @@ public class CashbookSwitchActivity extends AppCompatActivity {
         if (show) {
             loadingLayout.setVisibility(View.GONE);
         }
+    }
+
+    private void updateStats(List<CashbookModel> cashbooks) {
+        // Removed updateStats method implementation as views are removed
     }
 
     private void showSnackbar(String message) {

@@ -36,4 +36,5 @@
     <color name="category_health">#F44336</color>
     <color name="category_education">#3F51B5</color>
     <color name="category_other">#9E9E9E</color>
+    <color name="violet_500">#673AB7</color>
 </resources>

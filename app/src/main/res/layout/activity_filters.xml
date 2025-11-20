@@ -42,8 +42,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 app:tint="?attr/textColorPrimary"
-                android:padding="6dp"
-                android:importantForAccessibility="yes" />
+                android:padding="6dp" />
 
             <LinearLayout
                 android:orientation="vertical"
@@ -60,7 +59,6 @@
                     android:textColor="?attr/textColorPrimary"
                     android:textSize="22sp"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
                     android:maxLines="1"
                     android:ellipsize="end" />
 
@@ -71,10 +69,7 @@
                     android:text="Refine your search"
                     android:textColor="?attr/textColorSecondary"
                     android:textSize="13sp"
-                    android:layout_marginTop="3dp"
-                    android:fontFamily="sans-serif"
-                    android:maxLines="1"
-                    android:ellipsize="end" />
+                    android:layout_marginTop="3dp" />
             </LinearLayout>
 
             <ImageView
@@ -88,8 +83,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 app:tint="?attr/balanceColor"
-                android:padding="6dp"
-                android:importantForAccessibility="yes" />
+                android:padding="6dp" />
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 
@@ -134,7 +128,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:hint="Search by remarks, reference, or notes"
+                        android:hint="Search by remarks, reference..."
                         android:textColor="?attr/textColorPrimary"
                         android:textColorHint="?attr/textColorHint"
                         android:background="@null"
@@ -274,14 +268,46 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <include layout="@layout/layout_transaction_type" />
-            <include layout="@layout/fragment_payment_mode_filter" />
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="18dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="?attr/surfaceColor">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <include layout="@layout/layout_transaction_type" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="18dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="?attr/surfaceColor">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <include layout="@layout/layout_payment_method" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <include layout="@layout/layout_party_reference" />
+
             <include layout="@layout/layout_category" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
                 android:layout_marginBottom="18dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
@@ -306,7 +332,7 @@
                         android:id="@+id/filterTagsInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Add or search by tag"
+                        android:hint="Search by tag"
                         android:textColor="?attr/textColorPrimary"
                         android:textColorHint="?attr/textColorHint"
                         android:background="@drawable/rounded_input_background"
@@ -350,7 +376,7 @@
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="center"
-                    android:background="@drawable/badge_background"
+                    android:background="@drawable/rounded_icon_background"
                     android:layout_marginEnd="8dp"
                     android:visibility="gone" />
 

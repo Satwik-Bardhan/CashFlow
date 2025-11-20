@@ -5,23 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.OvalShape;
 import android.os.Bundle;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout; // Added
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,13 +50,17 @@ import java.util.Locale;
 public class HomePage extends AppCompatActivity {
 
     private static final String TAG = "HomePage";
-    private static final int MAX_VISIBLE_TRANSACTIONS = 5;
     private static final int REQUEST_CODE_CASHBOOK_SWITCH = 1001;
 
     // ViewBinding
     private ActivityHomePageBinding binding;
     private ComponentBalanceCardBinding balanceCardBinding;
     private LayoutBottomNavigationBinding bottomNavBinding;
+
+    // UI Elements for Daily Header
+    private TextView dailyDateText, dailyBalanceText;
+
+    private LinearLayout emptyStateView;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -82,9 +81,6 @@ public class HomePage extends AppCompatActivity {
     // Utils
     private NumberFormat currencyFormat;
 
-    // [NEW] UI Elements
-    private LinearLayout emptyStateView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,7 +93,9 @@ public class HomePage extends AppCompatActivity {
         balanceCardBinding = binding.balanceCardView;
         bottomNavBinding = binding.bottomNavCard;
 
-        // [NEW] Find empty state view (using binding manually since it's inside a layout)
+        // [FIX] Initialize views using the IDs from your updated layout
+        dailyDateText = findViewById(R.id.dailyDateText);
+        dailyBalanceText = findViewById(R.id.dailyBalanceText);
         emptyStateView = findViewById(R.id.emptyStateView);
 
         if (getSupportActionBar() != null) {
@@ -219,21 +217,13 @@ public class HomePage extends AppCompatActivity {
         binding.cashInButton.setContentDescription("Add cash in transaction");
         binding.cashOutButton.setContentDescription("Add cash out transaction");
         binding.userBox.setContentDescription("User information and cashbook selector");
-        // [FIX] Added check for null as ViewBinding might not catch dynamic views
-        if (binding.viewFullTransactionsButton != null) {
-            binding.viewFullTransactionsButton.setContentDescription("View all transactions");
-        }
     }
 
     private void setupClickListeners() {
         binding.cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
         binding.cashOutButton.setOnClickListener(v -> openCashInOutActivity("OUT"));
 
-        // [FIX] Finding view manually to ensure it works with updated layout
-        View viewFullBtn = findViewById(R.id.viewFullTransactionsButton);
-        if (viewFullBtn != null) {
-            viewFullBtn.setOnClickListener(v -> navigateToTransactionList());
-        }
+        // Removed toggleDailyList logic as requested
     }
 
     @Override
@@ -320,6 +310,7 @@ public class HomePage extends AppCompatActivity {
                             allTransactions.add(transaction);
                         }
                     }
+                    // Sort by date descending
                     Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
                     updateTransactionTableAndSummary();
                     setLoadingState(false);
@@ -382,11 +373,8 @@ public class HomePage extends AppCompatActivity {
     private void updateTransactionTableAndSummary() {
         if (binding == null) return;
         try {
-            if (binding.transactionTable.getChildCount() > 1) {
-                binding.transactionTable.removeViews(1, binding.transactionTable.getChildCount() - 1);
-            }
+            binding.transactionTable.removeAllViews();
 
-            // Calculate GLOBAL Balance (All Time)
             double globalTotalIncome = 0, globalTotalExpense = 0;
             for (TransactionModel transaction : allTransactions) {
                 if ("IN".equalsIgnoreCase(transaction.getType())) {
@@ -397,7 +385,6 @@ public class HomePage extends AppCompatActivity {
             }
             double globalBalance = globalTotalIncome - globalTotalExpense;
 
-            // Calculate TODAY'S Income & Expense
             double todayIncome = 0, todayExpense = 0;
             List<TransactionModel> todaysTransactions = new ArrayList<>();
 
@@ -412,23 +399,35 @@ public class HomePage extends AppCompatActivity {
                 }
             }
 
-            // Set Texts
-            balanceCardBinding.balanceText.setText(formatCurrency(globalBalance));
-            balanceCardBinding.moneyIn.setText(formatCurrency(todayIncome));
-            balanceCardBinding.moneyOut.setText(formatCurrency(todayExpense));
+            double todayBalance = todayIncome - todayExpense;
 
+            // Update Global Balance Card
+            balanceCardBinding.balanceText.setText(formatCurrency(globalBalance));
+            balanceCardBinding.moneyIn.setText(formatCurrency(globalTotalIncome));
+            balanceCardBinding.moneyOut.setText(formatCurrency(globalTotalExpense));
             balanceCardBinding.balanceText.setTextColor(Color.WHITE);
 
-            // [UPDATED] Use emptyStateView instead of creating a row
+            // Update Daily Header Text
+            if (dailyDateText != null) dailyDateText.setText(DateTimeUtils.formatDate(System.currentTimeMillis(), "dd MMM yyyy"));
+
+            if (dailyBalanceText != null) {
+                String sign = todayBalance >= 0 ? "+ " : "- ";
+                dailyBalanceText.setText(sign + formatCurrency(Math.abs(todayBalance)));
+                if (todayBalance >= 0) {
+                    dailyBalanceText.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.incomeColor));
+                } else {
+                    dailyBalanceText.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.expenseColor));
+                }
+            }
+
+            // Populate List with Today's Transactions
             if (todaysTransactions.isEmpty()) {
                 if (emptyStateView != null) emptyStateView.setVisibility(View.VISIBLE);
                 binding.transactionTable.setVisibility(View.GONE);
-                binding.transactionCount.setText("TODAY (0)");
             } else {
                 if (emptyStateView != null) emptyStateView.setVisibility(View.GONE);
                 binding.transactionTable.setVisibility(View.VISIBLE);
 
-                binding.transactionCount.setText("TODAY (" + todaysTransactions.size() + ")");
                 for (TransactionModel transaction : todaysTransactions) {
                     addTransactionRow(transaction);
                 }
@@ -450,46 +449,33 @@ public class HomePage extends AppCompatActivity {
 
     private String formatCurrency(double amount) {
         return currencyFormat.format(amount);
-
     }
 
     private void addTransactionRow(TransactionModel transaction) {
         if (binding == null) return;
-        TableRow row = new TableRow(this);
-        row.setBackgroundResource(R.drawable.table_row_border);
 
-        TextView entryView = createTableCell(transaction.getTransactionCategory(), 2f, Typeface.NORMAL, Gravity.START);
-        TextView modeView = createTableCell(transaction.getPaymentMode(), 1f, Typeface.NORMAL, Gravity.CENTER);
-        TextView inView = createTableCell("IN".equalsIgnoreCase(transaction.getType()) ? formatCurrency(transaction.getAmount()) : "-", 1f, Typeface.NORMAL, Gravity.CENTER);
-        TextView outView = createTableCell("OUT".equalsIgnoreCase(transaction.getType()) ? formatCurrency(transaction.getAmount()) : "-", 1f, Typeface.NORMAL, Gravity.CENTER);
+        // [FIX] Use the correct layout file
+        View rowView = getLayoutInflater().inflate(R.layout.item_transaction_row_daily, binding.transactionTable, false);
 
-        modeView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.balanceColor));
-        inView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.incomeColor));
-        outView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.expenseColor));
+        TextView rowCategory = rowView.findViewById(R.id.rowCategory);
+        TextView rowMode = rowView.findViewById(R.id.rowMode);
+        TextView rowIn = rowView.findViewById(R.id.rowIn);
+        TextView rowOut = rowView.findViewById(R.id.rowOut);
 
-        row.addView(entryView);
-        row.addView(modeView);
-        row.addView(inView);
-        row.addView(outView);
+        rowCategory.setText(transaction.getTransactionCategory());
+        rowMode.setText(transaction.getPaymentMode());
 
-        row.setOnClickListener(v -> openTransactionDetail(transaction));
-        binding.transactionTable.addView(row);
-    }
+        if ("IN".equalsIgnoreCase(transaction.getType())) {
+            rowIn.setText(formatCurrency(transaction.getAmount()));
+            rowOut.setText("-");
+        } else {
+            rowIn.setText("-");
+            rowOut.setText(formatCurrency(transaction.getAmount()));
+        }
 
-    private TextView createTableCell(String text, float weight, int style, int gravity) {
-        TextView textView = new TextView(this);
-        textView.setText(text != null ? text : "");
-        textView.setPadding(dpToPx(8), dpToPx(12), dpToPx(8), dpToPx(12));
-        textView.setBackgroundResource(R.drawable.table_cell_border);
-        TableRow.LayoutParams params = new TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, weight);
-        textView.setLayoutParams(params);
-        textView.setTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
-        textView.setTypeface(null, style);
-        textView.setGravity(gravity);
-        textView.setTextSize(14);
-        textView.setMaxLines(1);
-        textView.setEllipsize(TextUtils.TruncateAt.END);
-        return textView;
+        rowView.setOnClickListener(v -> openTransactionDetail(transaction));
+
+        binding.transactionTable.addView(rowView);
     }
 
     private int dpToPx(int dp) {
@@ -631,7 +617,6 @@ public class HomePage extends AppCompatActivity {
         isLoading = loading;
         binding.cashInButton.setEnabled(!loading);
         binding.cashOutButton.setEnabled(!loading);
-        // binding.viewFullTransactionsButton may be null if not found via binding, but click listener handles it safely
         binding.userBox.setEnabled(!loading);
     }
 
