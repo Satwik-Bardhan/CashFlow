@@ -79,7 +79,7 @@ public class EditTransactionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_transaction);
+        setContentView(R.layout.activity_edit_transaction);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -158,11 +158,8 @@ public class EditTransactionActivity extends AppCompatActivity {
             headerSubtitle.setText("Last modified: " + headerDateFormat.format(calendar.getTime()));
         }
 
-        // [FIX] Added Null Check for amountEditText
         if (amountEditText != null) {
             amountEditText.setText(String.valueOf(currentTransaction.getAmount()));
-        } else {
-            Log.e(TAG, "amountEditText is null! Check layout IDs.");
         }
 
         if (remarkEditText != null) {
@@ -191,8 +188,8 @@ public class EditTransactionActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        backButton.setOnClickListener(v -> finish());
-        cancelButton.setOnClickListener(v -> finish());
+        if (backButton != null) backButton.setOnClickListener(v -> finish());
+        if (cancelButton != null) cancelButton.setOnClickListener(v -> finish());
 
         if (dateSelectorLayout != null) {
             dateSelectorLayout.setOnClickListener(v -> showDatePicker());
@@ -206,7 +203,9 @@ public class EditTransactionActivity extends AppCompatActivity {
             timeTextView.setOnClickListener(v -> showTimePicker());
         }
 
-        if (timePickerIcon != null) timePickerIcon.setOnClickListener(v -> showTimePicker());
+        if (timePickerIcon != null) {
+            timePickerIcon.setOnClickListener(v -> showTimePicker());
+        }
 
         if (categorySelectorLayout != null) {
             categorySelectorLayout.setOnClickListener(v -> {
@@ -217,10 +216,8 @@ public class EditTransactionActivity extends AppCompatActivity {
             });
         }
 
-        saveButton.setOnClickListener(v -> saveChanges());
-        if (menuButton != null) {
-            menuButton.setOnClickListener(v -> showMoreOptionsMenu(v));
-        }
+        if (saveButton != null) saveButton.setOnClickListener(v -> saveChanges());
+        if (menuButton != null) menuButton.setOnClickListener(v -> showMoreOptionsMenu(v));
     }
 
     private void showMoreOptionsMenu(View anchorView) {

@@ -57,10 +57,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
 
     private List<TransactionModel> allTransactions = new ArrayList<>();
     private List<MonthlyExpense> monthlyExpenses;
-
-    // [FIX] This is the variable your error log is missing
     private MonthlyExpense currentSelectedMonth;
-
     private LegendAdapter legendAdapter;
     private MonthlyCardAdapter monthlyAdapter;
 
@@ -107,14 +104,17 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         fullScreenPieChart.setOnChartValueSelectedListener(this);
         fullScreenPieChart.setRotationEnabled(true);
         fullScreenPieChart.setHighlightPerTapEnabled(true);
-        fullScreenPieChart.setEntryLabelTextSize(12f);
-        fullScreenPieChart.setEntryLabelColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary)); // [FIX]
+        fullScreenPieChart.setEntryLabelTextSize(11f); // Reduced size slightly
+        fullScreenPieChart.setEntryLabelColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
         fullScreenPieChart.setHoleRadius(40f);
         fullScreenPieChart.setTransparentCircleRadius(45f);
         fullScreenPieChart.setDrawCenterText(true);
         fullScreenPieChart.setRotationAngle(0);
         fullScreenPieChart.setNoDataText("No expense data available for this month");
-        fullScreenPieChart.setNoDataTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary)); // [FIX]
+        fullScreenPieChart.setNoDataTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
+
+        // [FIX] Increased offsets to prevent label clipping and overlap
+        fullScreenPieChart.setExtraOffsets(40.f, 10.f, 40.f, 10.f);
     }
 
     @Override
@@ -181,6 +181,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
             monthlyExpenses.add(new MonthlyExpense(entry.getKey(), total, entry.getValue()));
         }
 
+        // Sort months so the most recent is FIRST (index 0)
         monthlyExpenses.sort(Comparator.comparing(MonthlyExpense::getMonth).reversed());
 
         monthlyAdapter.updateData(monthlyExpenses);
@@ -188,6 +189,9 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         if (!monthlyExpenses.isEmpty()) {
             updatePieChartForMonth(monthlyExpenses.get(0));
             monthlyAdapter.setSelectedPosition(0);
+
+            // Scroll to the first item (most recent month)
+            monthlyCardsRecyclerView.scrollToPosition(0);
         } else {
             if(legendAdapter != null) legendAdapter.updateData(new ArrayList<>());
             fullScreenPieChart.clear();
@@ -196,7 +200,11 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
     }
 
     private void setupRecyclerViews() {
-        monthlyCardsRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        // Set up Reverse Layout to align items to the Right
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, true);
+        layoutManager.setStackFromEnd(true);
+
+        monthlyCardsRecyclerView.setLayoutManager(layoutManager);
         monthlyAdapter = new MonthlyCardAdapter(new ArrayList<>(), this::updatePieChartForMonth);
         monthlyCardsRecyclerView.setAdapter(monthlyAdapter);
 
@@ -210,7 +218,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
     }
 
     private void updatePieChartForMonth(MonthlyExpense monthlyExpense) {
-        // This is the line from your error log.
         currentSelectedMonth = monthlyExpense;
 
         Map<String, Double> expenseByCategory = monthlyExpense.getTransactions().stream()
@@ -223,31 +230,55 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         ArrayList<LegendItem> legendItems = new ArrayList<>();
 
         int primaryTextColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary);
+        int secondaryTextColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorSecondary);
 
-        int[] colors = {
-                Color.parseColor("#F2C94C"), Color.parseColor("#2DD4BF"),
-                Color.parseColor("#F87171"), Color.parseColor("#A78BFA"),
-                Color.parseColor("#34D399"), Color.parseColor("#60A5FA"),
-                Color.parseColor("#FBBF24"), Color.parseColor("#F472B6")
-        };
+        // [FIX] New Distinct Color Palette
+        ArrayList<Integer> colors = new ArrayList<>();
+        colors.add(Color.parseColor("#EF5350")); // Red
+        colors.add(Color.parseColor("#42A5F5")); // Blue
+        colors.add(Color.parseColor("#66BB6A")); // Green
+        colors.add(Color.parseColor("#FFCA28")); // Amber
+        colors.add(Color.parseColor("#AB47BC")); // Purple
+        colors.add(Color.parseColor("#26C6DA")); // Cyan
+        colors.add(Color.parseColor("#FF7043")); // Deep Orange
+        colors.add(Color.parseColor("#8D6E63")); // Brown
+        colors.add(Color.parseColor("#78909C")); // Blue Grey
+        colors.add(Color.parseColor("#EC407A")); // Pink
+        colors.add(Color.parseColor("#5C6BC0")); // Indigo
+        colors.add(Color.parseColor("#9CCC65")); // Light Green
 
+        int colorIndex = 0;
         for (Map.Entry<String, Double> entry : expenseByCategory.entrySet()) {
             float amount = entry.getValue().floatValue();
             entries.add(new PieEntry(amount, entry.getKey()));
+            // Use the new colors cyclically
+            int color = colors.get(colorIndex % colors.size());
+
             legendItems.add(new LegendItem(
                     entry.getKey(),
                     amount,
                     (float) (amount / monthlyExpense.getTotalExpense() * 100),
-                    CategoryColorUtil.getCategoryColor(this, entry.getKey())
+                    color
             ));
+            colorIndex++;
         }
 
+        // Sorting by amount helps readability
         legendItems.sort((a, b) -> Float.compare(b.amount, a.amount));
 
         PieDataSet dataSet = new PieDataSet(entries, "Monthly Expenses");
         dataSet.setColors(colors);
+
+        // [FIX] Move values outside and increase line length to prevent overlapping
+        dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+        dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+        dataSet.setValueLinePart1OffsetPercentage(80.f);
+        dataSet.setValueLinePart1Length(0.5f); // Increased from 0.2f
+        dataSet.setValueLinePart2Length(0.5f); // Increased from 0.4f
+        dataSet.setValueLineColor(secondaryTextColor);
+
         dataSet.setValueTextColor(primaryTextColor);
-        dataSet.setValueTextSize(12f);
+        dataSet.setValueTextSize(11f);
         dataSet.setValueFormatter(new PercentFormatter(fullScreenPieChart));
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
@@ -257,7 +288,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         fullScreenPieChart.setUsePercentValues(true);
         fullScreenPieChart.getDescription().setEnabled(false);
         fullScreenPieChart.getLegend().setEnabled(false);
-        fullScreenPieChart.setDrawEntryLabels(false);
+        fullScreenPieChart.setDrawEntryLabels(false); // Hide labels on slices to avoid clutter
 
         String centerText = String.format(Locale.US, "Total Expenses\n₹%.2f", monthlyExpense.getTotalExpense());
         fullScreenPieChart.setCenterText(centerText);
@@ -280,7 +311,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
     // --- Inner classes for Adapters ---
 
     static class MonthlyExpense {
-        private String month; // Format: "yyyy-MM"
+        private String month;
         private double totalExpense;
         private List<TransactionModel> transactions;
 
@@ -326,7 +357,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         @SuppressLint("NotifyDataSetChanged")
         public void updateData(List<MonthlyExpense> newItems) {
             this.monthlyExpenses = newItems;
-            this.selectedPosition = 0; // Select the first item by default
+            this.selectedPosition = 0;
             notifyDataSetChanged();
         }
 

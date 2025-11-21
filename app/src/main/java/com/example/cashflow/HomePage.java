@@ -5,8 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -15,14 +19,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
 import com.example.cashflow.databinding.ActivityHomePageBinding;
@@ -58,9 +65,13 @@ public class HomePage extends AppCompatActivity {
     private LayoutBottomNavigationBinding bottomNavBinding;
 
     // UI Elements for Daily Header
+    private View dailySummaryHeader;
     private TextView dailyDateText, dailyBalanceText;
 
+    private CardView transactionListCard;
     private LinearLayout emptyStateView;
+
+    private boolean isDailyListExpanded = true;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -85,17 +96,18 @@ public class HomePage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize ViewBinding
         binding = ActivityHomePageBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Initialize child bindings
         balanceCardBinding = binding.balanceCardView;
         bottomNavBinding = binding.bottomNavCard;
 
-        // [FIX] Initialize views using the IDs from your updated layout
+        // Initialize views
+        dailySummaryHeader = findViewById(R.id.dailySummaryHeader);
         dailyDateText = findViewById(R.id.dailyDateText);
         dailyBalanceText = findViewById(R.id.dailyBalanceText);
+
+        transactionListCard = findViewById(R.id.transactionListCard);
         emptyStateView = findViewById(R.id.emptyStateView);
 
         if (getSupportActionBar() != null) {
@@ -217,13 +229,28 @@ public class HomePage extends AppCompatActivity {
         binding.cashInButton.setContentDescription("Add cash in transaction");
         binding.cashOutButton.setContentDescription("Add cash out transaction");
         binding.userBox.setContentDescription("User information and cashbook selector");
+        // [FIX] Removed viewFullTransactionsButton description
     }
 
     private void setupClickListeners() {
         binding.cashInButton.setOnClickListener(v -> openCashInOutActivity("IN"));
         binding.cashOutButton.setOnClickListener(v -> openCashInOutActivity("OUT"));
 
-        // Removed toggleDailyList logic as requested
+        // [FIX] Removed viewFullTransactionsButton listener
+
+        // Toggle Daily List visibility when clicking the header
+        if (dailySummaryHeader != null) {
+            dailySummaryHeader.setOnClickListener(v -> toggleDailyList());
+        }
+    }
+
+    private void toggleDailyList() {
+        isDailyListExpanded = !isDailyListExpanded;
+        if (isDailyListExpanded) {
+            if (transactionListCard != null) transactionListCard.setVisibility(View.VISIBLE);
+        } else {
+            if (transactionListCard != null) transactionListCard.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -310,7 +337,6 @@ public class HomePage extends AppCompatActivity {
                             allTransactions.add(transaction);
                         }
                     }
-                    // Sort by date descending
                     Collections.sort(allTransactions, (t1, t2) -> Long.compare(t2.getTimestamp(), t1.getTimestamp()));
                     updateTransactionTableAndSummary();
                     setLoadingState(false);
@@ -401,14 +427,14 @@ public class HomePage extends AppCompatActivity {
 
             double todayBalance = todayIncome - todayExpense;
 
-            // Update Global Balance Card
             balanceCardBinding.balanceText.setText(formatCurrency(globalBalance));
             balanceCardBinding.moneyIn.setText(formatCurrency(globalTotalIncome));
             balanceCardBinding.moneyOut.setText(formatCurrency(globalTotalExpense));
             balanceCardBinding.balanceText.setTextColor(Color.WHITE);
 
-            // Update Daily Header Text
-            if (dailyDateText != null) dailyDateText.setText(DateTimeUtils.formatDate(System.currentTimeMillis(), "dd MMM yyyy"));
+            if (dailyDateText != null) {
+                dailyDateText.setText(DateTimeUtils.formatDate(System.currentTimeMillis(), "dd MMM yyyy"));
+            }
 
             if (dailyBalanceText != null) {
                 String sign = todayBalance >= 0 ? "+ " : "- ";
@@ -420,7 +446,6 @@ public class HomePage extends AppCompatActivity {
                 }
             }
 
-            // Populate List with Today's Transactions
             if (todaysTransactions.isEmpty()) {
                 if (emptyStateView != null) emptyStateView.setVisibility(View.VISIBLE);
                 binding.transactionTable.setVisibility(View.GONE);
@@ -454,7 +479,6 @@ public class HomePage extends AppCompatActivity {
     private void addTransactionRow(TransactionModel transaction) {
         if (binding == null) return;
 
-        // [FIX] Use the correct layout file
         View rowView = getLayoutInflater().inflate(R.layout.item_transaction_row_daily, binding.transactionTable, false);
 
         TextView rowCategory = rowView.findViewById(R.id.rowCategory);

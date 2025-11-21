@@ -58,4 +58,16 @@
         <item name="android:drawableTint">@color/bottom_nav_item_color_selector</item>
     </style>
 
+    <style name="CalcButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="strokeColor">?attr/dividerHorizontal</item>
+        <item name="cornerRadius">12dp</item>
+    </style>
+
 </resources>

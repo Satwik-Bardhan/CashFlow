@@ -2,243 +2,319 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/backgroundColor"
     android:fitsSystemWindows="true"
     tools:context=".EditTransactionActivity">
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/main_scroll_view"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/headerCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="?attr/surfaceColor"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_left"
+                app:tint="?attr/textColorPrimary" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/headerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Edit Transaction"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/headerSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Last modified: Today"
+                    android:textColor="?attr/textColorSecondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/menuButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_more_vert"
+                app:tint="?attr/textColorPrimary" />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/headerCard"
+        android:layout_above="@id/footerLayout"
         android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/dateSelectorLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_input_background"
+                    android:gravity="center_vertical"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="?attr/textColorSecondary" />
+
+                    <TextView
+                        android:id="@+id/dateTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Select Date"
+                        android:textColor="?attr/textColorPrimary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/timeSelectorLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/rounded_input_background"
+                    android:gravity="center_vertical"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:id="@+id/timePickerIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_time"
+                        app:tint="?attr/textColorSecondary" />
+
+                    <TextView
+                        android:id="@+id/timeTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Select Time"
+                        android:textColor="?attr/textColorPrimary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <include layout="@layout/layout_transaction_type" />
+
+            <include layout="@layout/layout_payment_method" />
+
+            <include layout="@layout/layout_amount" />
+
+            <include layout="@layout/layout_category" />
+
+            <include layout="@layout/layout_party_reference" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Remark"
+                app:boxBackgroundColor="?attr/surfaceColor"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/remarkEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:textColor="?attr/textColorPrimary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="12dp"
+                android:text="History"
+                android:textColor="?attr/textColorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="12dp"
-                android:layout_marginBottom="14dp"
                 app:cardBackgroundColor="?attr/surfaceColor"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="8dp">
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:paddingStart="20dp"
-                    android:paddingTop="24dp"
-                    android:paddingEnd="20dp"
-                    android:paddingBottom="18dp">
-
-                    <ImageView
-                        android:id="@+id/backButton"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:contentDescription="@string/back_button_desc"
-                        android:focusable="true"
-                        android:importantForAccessibility="yes"
-                        android:padding="6dp"
-                        android:src="@drawable/ic_arrow_left"
-                        app:tint="?attr/textColorPrimary" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
                     <LinearLayout
-                        android:id="@+id/header_text_layout"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:gravity="center_horizontal"
-                        android:orientation="vertical">
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:id="@+id/headerTitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:ellipsize="end"
-                            android:fontFamily="sans-serif-medium"
-                            android:maxLines="1"
-                            android:text="Edit Transaction"
-                            android:textColor="?attr/textColorPrimary"
-                            android:textSize="22sp"
-                            android:textStyle="bold" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_check"
+                            app:tint="?attr/incomeColor"
+                            android:layout_marginTop="2dp" />
 
-                        <TextView
-                            android:id="@+id/headerSubtitle"
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:ellipsize="end"
-                            android:fontFamily="sans-serif"
-                            android:maxLines="1"
-                            android:text="Last modified: June 15, 2025"
-                            android:textColor="?attr/textColorSecondary"
-                            android:textSize="13sp" />
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Created"
+                                android:textColor="?attr/textColorPrimary"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/createdDateText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Loading..."
+                                android:textColor="?attr/textColorSecondary"
+                                android:textSize="12sp"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
                     </LinearLayout>
 
-                    <ImageView
-                        android:id="@+id/menuButton"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:contentDescription="@string/menu_button_desc"
-                        android:focusable="true"
-                        android:importantForAccessibility="yes"
-                        android:padding="6dp"
-                        android:src="@drawable/ic_more_vert"
-                        app:tint="?attr/balanceColor" />
-                </RelativeLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?attr/dividerHorizontal"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="12dp"
+                        android:layout_marginStart="32dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_edit"
+                            app:tint="?attr/balanceColor"
+                            android:layout_marginTop="2dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Last Updated"
+                                android:textColor="?attr/textColorPrimary"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/updatedDateText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Loading..."
+                                android:textColor="?attr/textColorSecondary"
+                                android:textSize="12sp"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <LinearLayout
-                android:id="@+id/statusBanner"
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/balanceColor"
-                android:elevation="1dp"
-                android:paddingStart="20dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="20dp"
-                android:paddingBottom="10dp"
-                android:visibility="visible">
-
-                <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_info"
-                    app:tint="#FFFFFF" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="This transaction has been verified"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp" />
-            </LinearLayout>
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="200dp"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/rounded_info_background"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Original Amount: ₹5,000"
-                        android:textColor="#FFA726"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Created: Jun 17, 2025"
-                        android:textColor="#81C784"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <include layout="@layout/layout_date_time" />
-                <include layout="@layout/layout_transaction_type" />
-                <include layout="@layout/layout_payment_method" />
-                <include layout="@layout/layout_amount" />
-                <include layout="@layout/layout_tax_amount" />
-
-                <include layout="@layout/layout_category" />
-                <include layout="@layout/layout_attachments" />
-                <include layout="@layout/layout_attached_files" />
-
-                <include layout="@layout/layout_party_reference" />
-
-                <LinearLayout
-                    android:id="@+id/changeLogSection"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="26dp"
-                    android:background="@drawable/rounded_info_background"
-                    android:orientation="vertical"
-                    android:padding="13dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="5dp"
-                        android:text="Change History"
-                        android:textColor="?attr/textColorPrimary"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="• Amount changed from ₹4,500 to ₹5,000 on Jun 15"
-                        android:textColor="?attr/textColorSecondary"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/CancelTransactionButton"
-                        android:layout_width="0dp"
-                        android:layout_height="50dp"
-                        android:layout_marginEnd="9dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/button_delete"
-                        android:text="CANCEL"
-                        android:textColor="#FFFFFF"
-                        app:backgroundTint="@null"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-
-
-                    <Button
-                        android:id="@+id/saveChangesButton"
-                        android:layout_width="0dp"
-                        android:layout_height="50dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/button_save_entry"
-                        android:text="UPDATE"
-                        android:textColor="#FFFFFF"
-                        app:backgroundTint="@null"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-            </LinearLayout>
+                android:layout_height="20dp" />
 
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/footerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="?attr/surfaceColor"
+        android:padding="16dp"
+        android:elevation="16dp">
+
+        <Button
+            android:id="@+id/CancelTransactionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/button_cancel_outline"
+            android:text="Cancel"
+            android:textColor="?attr/expenseColor"
+            app:backgroundTint="@null" />
+
+        <Button
+            android:id="@+id/saveChangesButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/button_primary"
+            android:text="Save Changes"
+            android:textColor="@android:color/white"
+            app:backgroundTint="@null" />
+    </LinearLayout>
+
 </RelativeLayout>

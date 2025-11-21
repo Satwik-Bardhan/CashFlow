@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="8dp"
     app:cardBackgroundColor="?attr/surfaceColor">
 
@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="10dp"
+        android:padding="8dp"
         android:gravity="center_horizontal">
 
         <LinearLayout
@@ -22,7 +22,7 @@
             android:gravity="center_vertical"
             android:background="?attr/balanceColor"
             android:padding="4dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="5dp"
             android:clickable="true"
             android:focusable="true">
 
@@ -61,7 +61,7 @@
             android:gravity="center_vertical"
             android:background="?attr/incomeColor"
             android:padding="4dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="5dp"
             android:clickable="true"
             android:focusable="true">
 

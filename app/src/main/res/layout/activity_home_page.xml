@@ -201,60 +201,62 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:visibility="visible"> <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="?attr/surfaceColor"
-                android:padding="8dp"
-                android:elevation="2dp">
+                android:visibility="visible">
 
-                <TextView
-                    android:id="@+id/transactionCount"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:fontFamily="@font/inter_bold"
-                    android:gravity="start"
-                    android:paddingStart="8dp"
-                    android:text="CATEGORY"
-                    android:textColor="?attr/textColorSecondary"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:background="?attr/surfaceColor"
+                    android:padding="8dp"
+                    android:elevation="2dp">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/inter_bold"
-                    android:gravity="center"
-                    android:text="MODE"
-                    android:textColor="?attr/textColorSecondary"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/transactionCount"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:fontFamily="@font/inter_bold"
+                        android:gravity="start"
+                        android:paddingStart="8dp"
+                        android:text="CATEGORY"
+                        android:textColor="?attr/textColorSecondary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/inter_bold"
-                    android:gravity="center"
-                    android:text="IN"
-                    android:textColor="?attr/textColorSecondary"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/inter_bold"
+                        android:gravity="center"
+                        android:text="MODE"
+                        android:textColor="?attr/textColorSecondary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/inter_bold"
-                    android:gravity="center"
-                    android:text="OUT"
-                    android:textColor="?attr/textColorSecondary"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/inter_bold"
+                        android:gravity="center"
+                        android:text="IN"
+                        android:textColor="?attr/textColorSecondary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/inter_bold"
+                        android:gravity="center"
+                        android:text="OUT"
+                        android:textColor="?attr/textColorSecondary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
@@ -291,7 +293,7 @@
                             <ImageView
                                 android:layout_width="80dp"
                                 android:layout_height="80dp"
-                                android:src="@drawable/ic_folder_open"
+                                android:src="@drawable/ic_empty_state"
                                 android:layout_marginBottom="16dp"
                                 app:tint="?attr/textColorHint" />
 
@@ -302,6 +304,15 @@
                                 android:textColor="?attr/textColorPrimary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Click the CASH IN or CASH OUT to add transaction for today."
+                                android:textColor="?attr/textColorSecondary"
+                                android:textSize="13sp"
+                                android:gravity="center"
+                                android:layout_marginTop="8dp" />
                         </LinearLayout>
 
                     </LinearLayout>

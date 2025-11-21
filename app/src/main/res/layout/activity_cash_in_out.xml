@@ -2,128 +2,155 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_settings_layout"
+    android:id="@+id/main_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/backgroundColor"
     android:fitsSystemWindows="true"
-    android:padding="12dp"
-    tools:context=".CashInOutActivity"
-    android:importantForAccessibility="yes">
+    tools:context=".CashInOutActivity">
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll_view"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/headerCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="?attr/surfaceColor"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/back_button"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_left"
+                app:tint="?attr/textColorPrimary" />
+
+            <LinearLayout
+                android:id="@+id/header_text_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/headerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add Entry"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/headerSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Record transaction"
+                    android:textColor="?attr/textColorSecondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/menu_button"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_more_vert"
+                app:tint="?attr/textColorPrimary" />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:fillViewport="true"
-        android:paddingBottom="16dp"
-        android:importantForAccessibility="yes">
+        android:layout_below="@id/headerCard"
+        android:layout_above="@id/footerLayout"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:importantForAccessibility="yes">
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardBackgroundColor="?attr/surfaceColor"
-                app:cardCornerRadius="20dp"
-                android:layout_marginBottom="14dp"
-                app:cardElevation="8dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
-                    android:paddingTop="24dp"
-                    android:paddingBottom="18dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:id="@+id/back_button"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/ic_arrow_left"
-                        android:contentDescription="@string/back_button_desc"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true"
-                        app:tint="?attr/textColorPrimary"
-                        android:padding="6dp"
-                        android:importantForAccessibility="yes" />
-
-                    <LinearLayout
-                        android:id="@+id/header_text_layout"
-                        android:orientation="vertical"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:gravity="center_horizontal">
-
-                        <TextView
-                            android:id="@+id/headerTitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Add Entry"
-                            android:textColor="?attr/textColorPrimary"
-                            android:textSize="22sp"
-                            android:textStyle="bold"
-                            android:fontFamily="sans-serif-medium"
-                            android:maxLines="1"
-                            android:ellipsize="end" />
-
-                        <TextView
-                            android:id="@+id/headerSubtitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Record income or expense"
-                            android:textColor="?attr/textColorSecondary"
-                            android:textSize="13sp"
-                            android:layout_marginTop="3dp"
-                            android:fontFamily="sans-serif"
-                            android:maxLines="1"
-                            android:ellipsize="end" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:id="@+id/menu_button"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/ic_more_vert"
-                        android:contentDescription="@string/menu_button_desc"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true"
-                        app:tint="?attr/balanceColor"
-                        android:padding="6dp"
-                        android:importantForAccessibility="yes" />
-                </RelativeLayout>
-            </androidx.cardview.widget.CardView>
+            android:padding="16dp">
 
             <include layout="@layout/layout_date_time" />
+
             <include layout="@layout/layout_transaction_type" />
+
             <include layout="@layout/layout_payment_method" />
+
             <include layout="@layout/layout_amount" />
+
             <include layout="@layout/layout_quick_amounts" />
+
             <include layout="@layout/layout_tax_amount" />
+
             <include layout="@layout/layout_remark_voice" />
+
             <include layout="@layout/layout_category" />
+
             <include layout="@layout/layout_attachments" />
 
             <include layout="@layout/layout_attached_files" />
 
             <include layout="@layout/layout_party_reference" />
+
             <include layout="@layout/layout_tags_location" />
-            <include layout="@layout/layout_action_buttons" />
 
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/footerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="?attr/surfaceColor"
+        android:padding="16dp"
+        android:elevation="16dp">
+
+        <Button
+            android:id="@+id/clearButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.8"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/button_cancel_outline"
+            android:text="Clear"
+            android:textColor="?attr/expenseColor"
+            app:backgroundTint="@null" />
+
+        <Button
+            android:id="@+id/saveAndAddNewButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/button_save_add_new"
+            android:text="Save &amp; New"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            app:backgroundTint="@null" />
+
+        <Button
+            android:id="@+id/saveEntryButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/button_primary"
+            android:text="Save"
+            android:textColor="@android:color/white"
+            app:backgroundTint="@null" />
+    </LinearLayout>
+
 </RelativeLayout>
