@@ -18,14 +18,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -43,7 +36,6 @@ import com.example.cashflow.databinding.LayoutPieChartBinding;
 import com.example.cashflow.databinding.LayoutSearchBarBinding;
 import com.example.cashflow.databinding.LayoutSummaryCardsBinding;
 import com.example.cashflow.utils.CustomPieChartValueFormatter;
-import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
@@ -78,6 +70,10 @@ public class TransactionActivity extends AppCompatActivity {
     private static final String TAG = "TransactionActivity";
     private static final int STORAGE_PERMISSION_CODE = 101;
     private static final int REQUEST_CODE_CASHBOOK_SWITCH = 1001;
+
+    // [NEW] Preference Keys
+    private static final String PREFS_NAME = "AppPrefs";
+    private static final String KEY_SHOW_CHART = "show_pie_chart";
 
     // Data
     private List<TransactionModel> allTransactions = new ArrayList<>();
@@ -127,6 +123,9 @@ public class TransactionActivity extends AppCompatActivity {
         setupBottomNavigation();
         setupLaunchers();
         observeViewModel();
+
+        // [NEW] Restore saved chart visibility state
+        applySavedChartVisibility();
 
         Log.d(TAG, "TransactionActivity created for cashbook: " + currentCashbookId);
     }
@@ -289,20 +288,57 @@ public class TransactionActivity extends AppCompatActivity {
             displayDataForCurrentMonth();
         });
 
+        // [UPDATED] Toggle Listener with persistence
         pieChartBinding.togglePieChartButton.setOnClickListener(v -> {
-            if (pieChartBinding.pieChart.getVisibility() == View.VISIBLE) {
-                pieChartBinding.pieChart.setVisibility(View.GONE);
-                pieChartBinding.togglePieChartButton.setText(getString(R.string.show_pie_chart));
-            } else {
-                pieChartBinding.pieChart.setVisibility(View.VISIBLE);
-                pieChartBinding.togglePieChartButton.setText(getString(R.string.hide_pie_chart));
-            }
+            boolean isCurrentlyVisible = (pieChartBinding.pieChart.getVisibility() == View.VISIBLE);
+            boolean newVisibility = !isCurrentlyVisible;
+
+            setChartVisibility(newVisibility);
+
+            // Save to SharedPreferences
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            prefs.edit().putBoolean(KEY_SHOW_CHART, newVisibility).apply();
         });
 
         binding.downloadReportButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, DownloadOptionsActivity.class);
             downloadLauncher.launch(intent);
         });
+    }
+
+    // [NEW] Restore saved visibility state
+    private void applySavedChartVisibility() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        boolean shouldShow = prefs.getBoolean(KEY_SHOW_CHART, true); // Default true (show)
+        setChartVisibility(shouldShow);
+    }
+
+    // [NEW] Helper to toggle visibility of chart and stats
+    private void setChartVisibility(boolean show) {
+        if (show) {
+            pieChartBinding.pieChart.setVisibility(View.VISIBLE);
+            // Also toggle the stats layout (Categories/Highest) if it exists in the binding
+            // Note: You added android:id="@+id/statsLayout" to the XML in previous steps.
+            // ViewBinding should expose it as 'statsLayout' if your XML update was successful.
+            // If not found, this part is skipped safely.
+            try {
+                // Reflection or direct access if binding was re-generated
+                // pieChartBinding.statsLayout.setVisibility(View.VISIBLE);
+                // Since I don't know if binding regenerated, using findViewById on the root view of the binding
+                View stats = pieChartBinding.getRoot().findViewById(R.id.statsLayout);
+                if(stats != null) stats.setVisibility(View.VISIBLE);
+            } catch (Exception ignored) {}
+
+            pieChartBinding.togglePieChartButton.setText("Hide Pie Chart");
+        } else {
+            pieChartBinding.pieChart.setVisibility(View.GONE);
+            try {
+                View stats = pieChartBinding.getRoot().findViewById(R.id.statsLayout);
+                if(stats != null) stats.setVisibility(View.GONE);
+            } catch (Exception ignored) {}
+
+            pieChartBinding.togglePieChartButton.setText("Show Pie Chart");
+        }
     }
 
     @Override
@@ -348,10 +384,7 @@ public class TransactionActivity extends AppCompatActivity {
         summaryBinding.expenseText.setText("₹" + String.format(Locale.US, "%.2f", totalExpense));
         summaryBinding.balanceText.setText("₹" + String.format(Locale.US, "%.2f", totalIncome - totalExpense));
 
-        // [FIX] Force text color to WHITE for all summary fields
-        summaryBinding.balanceText.setTextColor(Color.WHITE);
-        summaryBinding.incomeText.setTextColor(Color.WHITE);
-        summaryBinding.expenseText.setTextColor(Color.WHITE);
+        TypedValue typedValue = new TypedValue();
     }
 
     private void setupStyledPieChart(List<TransactionModel> transactionsForMonth) {
@@ -392,13 +425,18 @@ public class TransactionActivity extends AppCompatActivity {
         }
 
         ArrayList<PieEntry> entries = new ArrayList<>();
+        // [FIX] Distinct Color Palette
         ArrayList<Integer> colors = new ArrayList<>();
-        colors.add(Color.parseColor("#F2C94C")); // Yellow
-        colors.add(Color.parseColor("#2DD4BF")); // Teal
-        colors.add(Color.parseColor("#F87171")); // Coral
-        colors.add(Color.parseColor("#A78BFA")); // Purple
-        colors.add(Color.parseColor("#34D399")); // Green
-        colors.add(Color.parseColor("#60A5FA")); // Blue
+        colors.add(Color.parseColor("#EF5350")); // Red
+        colors.add(Color.parseColor("#42A5F5")); // Blue
+        colors.add(Color.parseColor("#66BB6A")); // Green
+        colors.add(Color.parseColor("#FFCA28")); // Amber
+        colors.add(Color.parseColor("#AB47BC")); // Purple
+        colors.add(Color.parseColor("#26C6DA")); // Cyan
+        colors.add(Color.parseColor("#FF7043")); // Deep Orange
+        colors.add(Color.parseColor("#8D6E63")); // Brown
+        colors.add(Color.parseColor("#78909C")); // Blue Grey
+        colors.add(Color.parseColor("#EC407A")); // Pink
 
         for (Map.Entry<String, Float> entry : expenseByCategory.entrySet()) {
             float percentage = entry.getValue() / totalExpense * 100;
@@ -410,10 +448,12 @@ public class TransactionActivity extends AppCompatActivity {
         dataSet.setSelectionShift(8f);
         dataSet.setColors(colors);
         dataSet.setValueLinePart1OffsetPercentage(85f);
-        dataSet.setValueLinePart1Length(0.25f);
-        dataSet.setValueLinePart2Length(0.4f);
+        dataSet.setValueLinePart1Length(0.4f);
+        dataSet.setValueLinePart2Length(0.5f);
         dataSet.setValueLineColor(Color.parseColor("#828282"));
         dataSet.setValueLineWidth(1.5f);
+
+        // [FIX] Avoid Overlap
         dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         dataSet.setDrawValues(true);
@@ -429,7 +469,8 @@ public class TransactionActivity extends AppCompatActivity {
         pieChartBinding.pieChart.setRotationEnabled(true);
         pieChartBinding.pieChart.setDrawHoleEnabled(false);
         pieChartBinding.pieChart.setDrawEntryLabels(false);
-        pieChartBinding.pieChart.setExtraOffsets(25, 25, 25, 25);
+        // [FIX] Extra offsets
+        pieChartBinding.pieChart.setExtraOffsets(30, 10, 30, 10);
         pieChartBinding.pieChart.setBackgroundColor(Color.TRANSPARENT);
 
         pieChartBinding.pieChart.setData(data);
@@ -652,19 +693,6 @@ public class TransactionActivity extends AppCompatActivity {
 
         viewModel.addTransaction(newTransaction);
         showToast("Transaction duplicated");
-    }
-
-    private void showGuestLimitationDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Guest Mode Limitation")
-                .setMessage("This feature is not available in guest mode. " +
-                        "Please sign up to access full functionality.")
-                .setPositiveButton("Sign Up", (dialog, which) -> {
-                    Intent intent = new Intent(this, SignupActivity.class);
-                    startActivity(intent);
-                })
-                .setNegativeButton("Continue as Guest", null)
-                .show();
     }
 
     private void showToast(String message) {

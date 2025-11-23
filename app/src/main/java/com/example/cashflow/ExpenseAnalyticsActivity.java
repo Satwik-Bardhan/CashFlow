@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cashflow.utils.CategoryColorUtil;
+import com.example.cashflow.utils.CustomPieChartValueFormatter;
 import com.example.cashflow.utils.ErrorHandler;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.Entry;
@@ -104,17 +105,27 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         fullScreenPieChart.setOnChartValueSelectedListener(this);
         fullScreenPieChart.setRotationEnabled(true);
         fullScreenPieChart.setHighlightPerTapEnabled(true);
-        fullScreenPieChart.setEntryLabelTextSize(11f); // Reduced size slightly
-        fullScreenPieChart.setEntryLabelColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
-        fullScreenPieChart.setHoleRadius(40f);
-        fullScreenPieChart.setTransparentCircleRadius(45f);
-        fullScreenPieChart.setDrawCenterText(true);
-        fullScreenPieChart.setRotationAngle(0);
-        fullScreenPieChart.setNoDataText("No expense data available for this month");
-        fullScreenPieChart.setNoDataTextColor(ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary));
 
-        // [FIX] Increased offsets to prevent label clipping and overlap
-        fullScreenPieChart.setExtraOffsets(40.f, 10.f, 40.f, 10.f);
+        int textColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary);
+
+        fullScreenPieChart.setHoleRadius(58f); // Slightly smaller hole to allow more room for labels
+        fullScreenPieChart.setTransparentCircleRadius(62f);
+        fullScreenPieChart.setHoleColor(Color.TRANSPARENT);
+
+        fullScreenPieChart.setDrawCenterText(true);
+        fullScreenPieChart.setRotationAngle(270);
+
+        fullScreenPieChart.getDescription().setEnabled(false);
+        fullScreenPieChart.getLegend().setEnabled(false);
+
+        // Disable standard entry labels (we use the formatter for combined labels)
+        fullScreenPieChart.setDrawEntryLabels(false);
+
+        fullScreenPieChart.setNoDataText("No expense data available");
+        fullScreenPieChart.setNoDataTextColor(textColor);
+
+        // [FIX] Increased offsets to 50dp to prevent overlap
+        fullScreenPieChart.setExtraOffsets(50.f, 10.f, 50.f, 10.f);
     }
 
     @Override
@@ -128,9 +139,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
     }
 
     @Override
-    public void onNothingSelected() {
-        // Handle case when nothing is selected
-    }
+    public void onNothingSelected() {}
 
     private void loadTransactionData() {
         if (transactionsRef == null) return;
@@ -145,13 +154,11 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
                         allTransactions.add(transaction);
                     }
                 }
-                Log.d(TAG, "Loaded " + allTransactions.size() + " total transactions.");
                 processTransactionData();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e(TAG, "Failed to load transactions", databaseError.toException());
                 ErrorHandler.handleFirebaseError(ExpenseAnalyticsActivity.this, databaseError);
             }
         });
@@ -159,7 +166,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
 
     private void processTransactionData() {
         if (allTransactions == null || allTransactions.isEmpty()) {
-            Log.w(TAG, "No transactions to process.");
             if(monthlyAdapter != null) monthlyAdapter.updateData(new ArrayList<>());
             if(legendAdapter != null) legendAdapter.updateData(new ArrayList<>());
             fullScreenPieChart.clear();
@@ -181,7 +187,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
             monthlyExpenses.add(new MonthlyExpense(entry.getKey(), total, entry.getValue()));
         }
 
-        // Sort months so the most recent is FIRST (index 0)
         monthlyExpenses.sort(Comparator.comparing(MonthlyExpense::getMonth).reversed());
 
         monthlyAdapter.updateData(monthlyExpenses);
@@ -189,8 +194,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         if (!monthlyExpenses.isEmpty()) {
             updatePieChartForMonth(monthlyExpenses.get(0));
             monthlyAdapter.setSelectedPosition(0);
-
-            // Scroll to the first item (most recent month)
             monthlyCardsRecyclerView.scrollToPosition(0);
         } else {
             if(legendAdapter != null) legendAdapter.updateData(new ArrayList<>());
@@ -200,7 +203,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
     }
 
     private void setupRecyclerViews() {
-        // Set up Reverse Layout to align items to the Right
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, true);
         layoutManager.setStackFromEnd(true);
 
@@ -232,28 +234,25 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         int primaryTextColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorPrimary);
         int secondaryTextColor = ThemeUtil.getThemeAttrColor(this, R.attr.textColorSecondary);
 
-        // [FIX] New Distinct Color Palette
         ArrayList<Integer> colors = new ArrayList<>();
-        colors.add(Color.parseColor("#EF5350")); // Red
-        colors.add(Color.parseColor("#42A5F5")); // Blue
-        colors.add(Color.parseColor("#66BB6A")); // Green
-        colors.add(Color.parseColor("#FFCA28")); // Amber
-        colors.add(Color.parseColor("#AB47BC")); // Purple
-        colors.add(Color.parseColor("#26C6DA")); // Cyan
-        colors.add(Color.parseColor("#FF7043")); // Deep Orange
-        colors.add(Color.parseColor("#8D6E63")); // Brown
-        colors.add(Color.parseColor("#78909C")); // Blue Grey
-        colors.add(Color.parseColor("#EC407A")); // Pink
-        colors.add(Color.parseColor("#5C6BC0")); // Indigo
-        colors.add(Color.parseColor("#9CCC65")); // Light Green
+        colors.add(Color.parseColor("#FF5252"));
+        colors.add(Color.parseColor("#448AFF"));
+        colors.add(Color.parseColor("#69F0AE"));
+        colors.add(Color.parseColor("#FFD740"));
+        colors.add(Color.parseColor("#E040FB"));
+        colors.add(Color.parseColor("#18FFFF"));
+        colors.add(Color.parseColor("#FF6E40"));
+        colors.add(Color.parseColor("#BCAAA4"));
+        colors.add(Color.parseColor("#7C4DFF"));
+        colors.add(Color.parseColor("#B2FF59"));
 
         int colorIndex = 0;
         for (Map.Entry<String, Double> entry : expenseByCategory.entrySet()) {
             float amount = entry.getValue().floatValue();
+            // PieEntry label is "Category Name"
             entries.add(new PieEntry(amount, entry.getKey()));
-            // Use the new colors cyclically
-            int color = colors.get(colorIndex % colors.size());
 
+            int color = colors.get(colorIndex % colors.size());
             legendItems.add(new LegendItem(
                     entry.getKey(),
                     amount,
@@ -263,38 +262,44 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
             colorIndex++;
         }
 
-        // Sorting by amount helps readability
         legendItems.sort((a, b) -> Float.compare(b.amount, a.amount));
 
         PieDataSet dataSet = new PieDataSet(entries, "Monthly Expenses");
         dataSet.setColors(colors);
 
-        // [FIX] Move values outside and increase line length to prevent overlapping
         dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+
+        // [FIX] Optimized Line Settings for minimal overlap
         dataSet.setValueLinePart1OffsetPercentage(80.f);
-        dataSet.setValueLinePart1Length(0.5f); // Increased from 0.2f
-        dataSet.setValueLinePart2Length(0.5f); // Increased from 0.4f
+        dataSet.setValueLinePart1Length(0.5f);
+        dataSet.setValueLinePart2Length(0.6f); // Long tail to push text away
+
         dataSet.setValueLineColor(secondaryTextColor);
+        dataSet.setValueLineWidth(0.8f);
 
         dataSet.setValueTextColor(primaryTextColor);
-        dataSet.setValueTextSize(11f);
-        dataSet.setValueFormatter(new PercentFormatter(fullScreenPieChart));
+        dataSet.setValueTextSize(10f); // Smaller text
+
+        // [FIX] Use Custom Formatter (Percent \n Label)
+        dataSet.setValueFormatter(new CustomPieChartValueFormatter());
+
         dataSet.setSliceSpace(3f);
-        dataSet.setSelectionShift(5f);
+        dataSet.setSelectionShift(8f);
 
         PieData pieData = new PieData(dataSet);
         fullScreenPieChart.setData(pieData);
         fullScreenPieChart.setUsePercentValues(true);
-        fullScreenPieChart.getDescription().setEnabled(false);
-        fullScreenPieChart.getLegend().setEnabled(false);
-        fullScreenPieChart.setDrawEntryLabels(false); // Hide labels on slices to avoid clutter
 
-        String centerText = String.format(Locale.US, "Total Expenses\n₹%.2f", monthlyExpense.getTotalExpense());
+        // Ensure we do NOT draw separate entry labels, rely on Formatter
+        fullScreenPieChart.setDrawEntryLabels(false);
+
+        String centerText = String.format(Locale.US, "Total\n₹%.0f", monthlyExpense.getTotalExpense());
         fullScreenPieChart.setCenterText(centerText);
         fullScreenPieChart.setCenterTextColor(primaryTextColor);
-        fullScreenPieChart.setCenterTextSize(16f);
-        fullScreenPieChart.animateXY(1000, 1000);
+        fullScreenPieChart.setCenterTextSize(18f);
+
+        fullScreenPieChart.animateY(1000);
         fullScreenPieChart.invalidate();
 
         legendAdapter.updateData(legendItems);
@@ -308,41 +313,29 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         }
     }
 
-    // --- Inner classes for Adapters ---
+    // ... (Inner classes remain the same) ...
+    // Copy MonthlyExpense, LegendItem, MonthlyCardAdapter, LegendAdapter, ThemeUtil from previous response
+    // To save space, I am not re-printing them as they haven't changed,
+    // but ensure you keep them in the file.
 
     static class MonthlyExpense {
-        private String month;
-        private double totalExpense;
-        private List<TransactionModel> transactions;
-
+        private String month; private double totalExpense; private List<TransactionModel> transactions;
         public MonthlyExpense(String month, double totalExpense, List<TransactionModel> transactions) {
-            this.month = month;
-            this.totalExpense = totalExpense;
-            this.transactions = transactions;
+            this.month = month; this.totalExpense = totalExpense; this.transactions = transactions;
         }
-
         public String getMonth() { return month; }
         public double getTotalExpense() { return totalExpense; }
         public List<TransactionModel> getTransactions() { return transactions; }
     }
 
     static class LegendItem {
-        String category;
-        float amount;
-        float percentage;
-        int color;
-
+        String category; float amount; float percentage; int color;
         public LegendItem(String category, float amount, float percentage, int color) {
-            this.category = category;
-            this.amount = amount;
-            this.percentage = percentage;
-            this.color = color;
+            this.category = category; this.amount = amount; this.percentage = percentage; this.color = color;
         }
     }
 
-    interface OnMonthClickListener {
-        void onMonthClick(MonthlyExpense monthlyExpense);
-    }
+    interface OnMonthClickListener { void onMonthClick(MonthlyExpense monthlyExpense); }
 
     static class MonthlyCardAdapter extends RecyclerView.Adapter<MonthlyCardAdapter.ViewHolder> {
         private List<MonthlyExpense> monthlyExpenses;
@@ -350,8 +343,7 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         private int selectedPosition = -1;
 
         MonthlyCardAdapter(List<MonthlyExpense> monthlyExpenses, OnMonthClickListener listener) {
-            this.monthlyExpenses = monthlyExpenses;
-            this.clickListener = listener;
+            this.monthlyExpenses = monthlyExpenses; this.clickListener = listener;
         }
 
         @SuppressLint("NotifyDataSetChanged")
@@ -362,10 +354,8 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         }
 
         public void setSelectedPosition(int position) {
-            int oldPosition = selectedPosition;
-            selectedPosition = position;
-            notifyItemChanged(oldPosition);
-            notifyItemChanged(selectedPosition);
+            int oldPosition = selectedPosition; selectedPosition = position;
+            notifyItemChanged(oldPosition); notifyItemChanged(selectedPosition);
         }
 
         @NonNull
@@ -380,25 +370,19 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
             MonthlyExpense monthlyExpense = monthlyExpenses.get(position);
             holder.bind(monthlyExpense, position == selectedPosition);
             holder.itemView.setOnClickListener(v -> {
-                if (clickListener != null) {
-                    clickListener.onMonthClick(monthlyExpense);
-                }
+                if (clickListener != null) clickListener.onMonthClick(monthlyExpense);
                 int oldPosition = selectedPosition;
                 selectedPosition = holder.getAdapterPosition();
-                notifyItemChanged(oldPosition);
-                notifyItemChanged(selectedPosition);
+                notifyItemChanged(oldPosition); notifyItemChanged(selectedPosition);
             });
         }
 
         @Override
-        public int getItemCount() {
-            return monthlyExpenses.size();
-        }
+        public int getItemCount() { return monthlyExpenses.size(); }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
-            TextView monthName, totalExpense;
-            LinearLayout cardContainer;
-            int primaryTextColor, secondaryTextColor, balanceColor, surfaceColor, expenseColor;
+            TextView monthName, totalExpense; LinearLayout cardContainer;
+            int primaryTextColor, balanceColor, surfaceColor, expenseColor;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -407,7 +391,6 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
                 cardContainer = itemView.findViewById(R.id.cardContainer);
 
                 primaryTextColor = ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.textColorPrimary);
-                secondaryTextColor = ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.textColorSecondary);
                 balanceColor = ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.balanceColor);
                 surfaceColor = ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.surfaceColor);
                 expenseColor = ThemeUtil.getThemeAttrColor(itemView.getContext(), R.attr.expenseColor);
@@ -418,20 +401,16 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
                     SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM", Locale.getDefault());
                     SimpleDateFormat formatter = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
                     monthName.setText(formatter.format(parser.parse(data.getMonth())));
-                } catch (ParseException e) {
-                    monthName.setText(data.getMonth());
-                }
+                } catch (ParseException e) { monthName.setText(data.getMonth()); }
 
                 totalExpense.setText(String.format(Locale.US, "₹%.0f", data.getTotalExpense()));
 
                 if (isSelected) {
                     cardContainer.setBackgroundColor(balanceColor);
-                    monthName.setTextColor(Color.WHITE);
-                    totalExpense.setTextColor(Color.WHITE);
+                    monthName.setTextColor(Color.WHITE); totalExpense.setTextColor(Color.WHITE);
                 } else {
                     cardContainer.setBackgroundColor(surfaceColor);
-                    monthName.setTextColor(primaryTextColor);
-                    totalExpense.setTextColor(expenseColor);
+                    monthName.setTextColor(primaryTextColor); totalExpense.setTextColor(expenseColor);
                 }
             }
         }
@@ -439,15 +418,11 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
 
     static class LegendAdapter extends RecyclerView.Adapter<LegendAdapter.ViewHolder> {
         private List<LegendItem> legendItems;
-
-        LegendAdapter(List<LegendItem> items) {
-            this.legendItems = items;
-        }
+        LegendAdapter(List<LegendItem> items) { this.legendItems = items; }
 
         @SuppressLint("NotifyDataSetChanged")
         public void updateData(List<LegendItem> newItems) {
-            this.legendItems = newItems;
-            notifyDataSetChanged();
+            this.legendItems = newItems; notifyDataSetChanged();
         }
 
         @NonNull
@@ -463,13 +438,10 @@ public class ExpenseAnalyticsActivity extends AppCompatActivity implements OnCha
         }
 
         @Override
-        public int getItemCount() {
-            return legendItems.size();
-        }
+        public int getItemCount() { return legendItems.size(); }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
-            View colorSwatch;
-            TextView categoryName, amount, percentage;
+            View colorSwatch; TextView categoryName, amount, percentage;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);

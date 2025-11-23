@@ -101,14 +101,19 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(new Intent(this, EditProfileActivity.class)));
 
         // General Settings Listeners
+        // [FIX] Updated to launch HelpSupportActivity
         binding.generalSettingsLayout.helpSupport.setOnClickListener(v ->
-                Toast.makeText(this, "Help & Support clicked", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(this, HelpSupportActivity.class)));
+
         binding.generalSettingsLayout.appSettings.setOnClickListener(v ->
                 startActivity(new Intent(this, AppSettingsActivity.class)));
+
         binding.generalSettingsLayout.yourProfile.setOnClickListener(v ->
                 startActivity(new Intent(this, EditProfileActivity.class)));
+
+        // [FIX] Updated to launch AboutActivity
         binding.generalSettingsLayout.aboutCashFlow.setOnClickListener(v ->
-                Toast.makeText(this, "About Cash Flow clicked", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(this, AboutActivity.class)));
 
         // Account Actions
         binding.logoutSection.setOnClickListener(v -> showLogoutConfirmationDialog());
@@ -176,9 +181,6 @@ public class SettingsActivity extends AppCompatActivity {
                 binding.primarySettingsLayout.activeCashbookName.setText("No Active Cashbook");
             }
 
-            // [UPDATED] Use the user's Email as the storage path identifier
-            // Note: Actual Firebase data uses UID because emails can change or contain illegal chars,
-            // but we display Email here as requested for user readability.
             String displayPath = "Cloud ID: " + (currentUser.getEmail() != null ? currentUser.getEmail() : currentUser.getUid());
             binding.primarySettingsLayout.dataLocation.setText(displayPath);
         }
