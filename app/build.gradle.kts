@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cashflow"
+    namespace = "com.satvik.cashflow"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.cashflow"
+        applicationId = "com.satvik.cashflow"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

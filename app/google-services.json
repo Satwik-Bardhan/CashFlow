@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "921171797069",
+    "firebase_url": "https://cash-flow-35b0d-default-rtdb.firebaseio.com",
     "project_id": "cash-flow-35b0d",
     "storage_bucket": "cash-flow-35b0d.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.cashflow"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "921171797069-is4impb4lac9lr6om161002rfp8lsqvf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.cashflow",
+            "certificate_hash": "76528e2569a7575545d31cc277fd6e064f593ec1"
+          }
+        },
+        {
+          "client_id": "921171797069-03bo77bm3lh9dittddlb4o35cutnlb66.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDDIBtw0URiXxYqhfq-rNXxLc1lXlwC8ZY"
@@ -20,7 +34,41 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921171797069-03bo77bm3lh9dittddlb4o35cutnlb66.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921171797069:android:46235f5a09b5a4692b6804",
+        "android_client_info": {
+          "package_name": "com.satvik.cashflow"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "921171797069-03bo77bm3lh9dittddlb4o35cutnlb66.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDIBtw0URiXxYqhfq-rNXxLc1lXlwC8ZY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921171797069-03bo77bm3lh9dittddlb4o35cutnlb66.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
