@@ -44,7 +44,7 @@
                     android:id="@+id/headerTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add Entry"
+                    android:text="ARTHAM"
                     android:textColor="?attr/textColorPrimary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -53,7 +53,7 @@
                     android:id="@+id/headerSubtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Record transaction"
+                    android:text="Add Entry"
                     android:textColor="?attr/textColorSecondary"
                     android:textSize="12sp" />
             </LinearLayout>

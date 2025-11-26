@@ -512,7 +512,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="CashFlow Manager"
+                                android:text="Artham Manager"
                                 android:textColor="?attr/textColorPrimary"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />

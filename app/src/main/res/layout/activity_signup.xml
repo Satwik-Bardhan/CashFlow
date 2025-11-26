@@ -55,7 +55,7 @@
                     android:id="@+id/headerTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="CASH FLOW"
+                    android:text="ARTHAM"
                     android:textColor="?attr/textColorPrimary"
                     android:textSize="28sp"
                     android:textStyle="bold"

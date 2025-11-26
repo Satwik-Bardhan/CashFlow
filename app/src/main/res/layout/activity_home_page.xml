@@ -180,12 +180,6 @@
             </LinearLayout>
         </ScrollView>
 
-        <include
-            android:id="@+id/dailySummaryInclude"
-            layout="@layout/layout_daily_balance_summary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
         <androidx.cardview.widget.CardView
             android:id="@+id/transactionListCard"
             android:layout_width="match_parent"
@@ -203,6 +197,12 @@
                 android:orientation="vertical"
                 android:visibility="visible">
 
+                <include
+                    android:id="@+id/dailySummaryInclude"
+                    layout="@layout/layout_daily_balance_summary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -219,9 +219,9 @@
                         android:fontFamily="@font/inter_bold"
                         android:gravity="start"
                         android:paddingStart="8dp"
-                        android:text="CATEGORY"
-                        android:textColor="?attr/textColorSecondary"
-                        android:textSize="11sp"
+                        android:text="Today's Transactions"
+                        android:textColor="?attr/balanceColor"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -308,11 +308,10 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Click the CASH IN or CASH OUT to add transaction for today."
+                                android:text="Click Cash In/Out to add a record."
                                 android:textColor="?attr/textColorSecondary"
                                 android:textSize="13sp"
-                                android:gravity="center"
-                                android:layout_marginTop="8dp" />
+                                android:layout_marginTop="4dp" />
                         </LinearLayout>
 
                     </LinearLayout>

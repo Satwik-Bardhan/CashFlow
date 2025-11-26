@@ -33,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:text="About Cash Flow"
+                android:text="About Artham"
                 android:textColor="?attr/textColorPrimary"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -62,7 +62,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CashFlow Manager"
+                android:text="Artham Manager"
                 android:textColor="?attr/textColorPrimary"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -81,7 +81,7 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="24dp"
                 android:gravity="center"
-                android:text="Your personal finance assistant for tracking income, expenses, and managing your cash flow efficiently."
+                android:text="Your personal finance assistant for tracking income, expenses, and managing your wealth efficiently with Artham."
                 android:textColor="?attr/textColorPrimary"
                 android:textSize="15sp"
                 android:lineSpacingExtra="4dp"/>
@@ -97,6 +97,27 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/checkUpdates"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="16dp"
+                        android:text="Check for Updates"
+                        android:drawableStart="@drawable/ic_download"
+                        android:drawablePadding="12dp"
+                        app:drawableTint="?attr/textColorPrimary"
+                        android:textColor="?attr/textColorPrimary"
+                        android:textSize="16sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?attr/dividerHorizontal"
+                        android:layout_marginHorizontal="16dp"/>
 
                     <TextView
                         android:id="@+id/privacyPolicy"
@@ -153,7 +174,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="© 2025 CashFlow Inc. All rights reserved."
+                android:text="© 2025 Artham Inc. All rights reserved."
                 android:textColor="?attr/textColorHint"
                 android:textSize="12sp" />
 

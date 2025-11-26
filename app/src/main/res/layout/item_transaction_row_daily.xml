@@ -16,6 +16,7 @@
         android:text="Category"
         android:textColor="?attr/textColorPrimary"
         android:textSize="14sp"
+        android:textStyle="bold"
         android:paddingStart="8dp"
         android:gravity="start|center_vertical"
         android:maxLines="1"
